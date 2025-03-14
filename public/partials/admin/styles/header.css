@@ -1,0 +1,191 @@
+:root {
+    --primary: #4361ee;
+    --sidebar-width: 250px;
+    --sidebar-collapsed-width: 70px;
+    --header-height: 60px;
+    --transition-speed: 0.3s;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #1e1e2d;
+    --bs-body-color: #e2e8f0;
+    --bs-card-bg: #2a2a3c;
+    --bs-border-color: #3f3f5a;
+    --sidebar-bg: #131320;
+    --sidebar-text: #e2e8f0;
+
+    /* //////////////////////// */
+    --spec-bg: #2a2a3c;
+    --input-bg: #3f3f5a;
+    --btn-success: #28a745;
+    --btn-danger: #dc3545;
+    --shadow-color: rgba(255, 255, 255, 0.1);
+    --hover-shadow: rgba(255, 255, 255, 0.15);
+}
+
+[data-bs-theme="light"] {
+    --bs-body-bg: #f5f7fb;
+    --bs-body-color: #333;
+    --bs-card-bg: #ffffff;
+    --bs-border-color: #eee;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #333333;
+    /* /////////////////////// */
+    --spec-bg: #f8f9fa;
+    --input-bg: #ffffff;
+    --btn-success: #28a745;
+    --btn-danger: #dc3545;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --hover-shadow: rgba(0, 0, 0, 0.15);
+}
+
+body {
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    transition: all var(--transition-speed);
+    z-index: 1040;
+    overflow-y: auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+[data-bs-theme="light"] .sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    border-right: 1px solid var(--bs-border-color);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    height: var(--header-height);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.sidebar-header .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-left: 10px;
+    white-space: nowrap;
+    background: linear-gradient(to right, #00d2ff, #9d50bb, #ff0099);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+.menu-item {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    border-left: 3px solid transparent;
+    margin: 5px 0;
+    color: var(--sidebar-text);
+    text-decoration: none;
+}
+
+[data-bs-theme="light"] .menu-item {
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="light"] .menu-item:hover, 
+[data-bs-theme="light"] .menu-item.active {
+    background: rgba(0, 0, 0, 0.05);
+    border-left: 3px solid var(--primary);
+    color: var(--primary);
+}
+
+[data-bs-theme="dark"] .menu-item:hover, 
+[data-bs-theme="dark"] .menu-item.active {
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid var(--primary);
+}
+
+.menu-item i {
+    width: 24px;
+    text-align: center;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+/* Main Content */
+.main {
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-speed);
+}
+
+
+/* Responsive Sidebar */
+@media (max-width: 992px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-collapsed-width);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+        width: var(--sidebar-collapsed-width);
+    }
+    
+    .sidebar.show .logo,
+    .sidebar.show .menu-item span {
+        display: none;
+    }
+    
+    .sidebar.show .menu-item {
+        justify-content: center;
+        padding: 15px 0;
+    }
+    
+    .sidebar.show .menu-item i {
+        margin-right: 0;
+        font-size: 20px;
+    }
+    
+    .main {
+        margin-left: 0;
+    }
+    
+    .sidebar.expanded {
+        width: var(--sidebar-width);
+    }
+    
+    .sidebar.expanded .logo,
+    .sidebar.expanded .menu-item span {
+        display: block;
+    }
+    
+    .sidebar.expanded .menu-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+    
+    .sidebar.expanded .menu-item i {
+        margin-right: 10px;
+    }
+}
+
+.table-img {
+    width: 50px; /* Adjust as needed */
+    height: 50px; /* Adjust as needed */
+    object-fit: cover; /* Ensures the image covers the area without distortion */
+    border-radius: 3px; /* Optional: Adds rounded corners */
+  }
+

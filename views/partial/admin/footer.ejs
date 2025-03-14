@@ -1,0 +1,97 @@
+ <!-- Bootstrap Bundle with Popper -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+ <script>
+     // Toggle sidebar on mobile
+     document.getElementById('menu-toggle').addEventListener('click', function() {
+         const sidebar = document.getElementById('sidebar');
+         sidebar.classList.toggle('show');
+         
+         // Toggle between collapsed and expanded view
+         if (sidebar.classList.contains('show')) {
+             sidebar.classList.toggle('expanded');
+         }
+     });
+     
+     // Theme toggle functionality
+     document.getElementById('theme-toggle').addEventListener('click', function() {
+         const body = document.body;
+         if (body.getAttribute('data-bs-theme') === 'dark') {
+             body.setAttribute('data-bs-theme', 'light');
+             this.innerHTML = '<i class="fas fa-sun"></i>';
+         } else {
+             body.setAttribute('data-bs-theme', 'dark');
+             this.innerHTML = '<i class="fas fa-moon"></i>';
+         }
+         
+         // Save theme preference
+         localStorage.setItem('theme', body.getAttribute('data-bs-theme'));
+     });
+
+      // Menu item active state + navigation
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all menu items
+            menuItems.forEach(i => i.classList.remove('active'));
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Close sidebar on mobile
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('show');
+                document.getElementById('sidebar').classList.remove('expanded');
+            }
+            
+            // Actually navigate to the page
+            const page = this.getAttribute('data-page');
+            
+            // Perform the navigation
+            window.location.href = `/admin/${page}`;
+        });
+    });
+
+    // Set active menu item based on current URL
+    function setActiveMenuItem() {
+        const currentPath = window.location.pathname;
+          
+        const pagePath = currentPath.replace('/admin/', '');
+        
+        menuItems.forEach(item => {
+            const itemPage = item.getAttribute('data-page');
+            if (itemPage === pagePath) {
+                // Remove active class from all menu items
+                menuItems.forEach(i => i.classList.remove('active'));
+                // Add active class to current page's menu item
+                item.classList.add('active');
+            }
+        });
+    }
+    
+
+    // Call this function when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setActiveMenuItem();
+        loadThemePreference();
+    });
+
+  
+     // Load user theme preference
+     function loadThemePreference() {
+         const theme = localStorage.getItem('theme') || 'light';
+         document.body.setAttribute('data-bs-theme', theme);
+         if (theme === 'dark') {
+             document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon"></i>';
+         } else {
+             document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun"></i>';
+         }
+     }
+
+     // Call on page load
+     loadThemePreference();
+
+  
+ </script>
+</body>
+</html>

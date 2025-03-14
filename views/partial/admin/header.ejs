@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Den - Admin</title>
+    <link rel="stylesheet" href="/partials/admin/styles/header.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- sweetalert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body data-bs-theme="light">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-laptop-code"></i>
+            <h1 class="logo">DIGITAL DEN</h1>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/admin/dashboard" class="menu-item active" data-page="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/admin/orders" class="menu-item" data-page="orders">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+            </a>
+            <a href="/admin/users" class="menu-item" data-page="users">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="/admin/categories" class="menu-item" data-page="categories">
+                <i class="fas fa-tag"></i>
+                <span>Categories</span>
+            </a>
+            <a href="/admin/brands" class="menu-item" data-page="brands">
+                <i class="fas fa-building"></i>
+                <span>Brands</span>
+            </a>
+            <a href="/admin/products" class="menu-item" data-page="products">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Products</span>
+            </a>
+            <a href="/admin/offers" class="menu-item" data-page="offers">
+                <i class="fas fa-bullhorn"></i>
+                <span>Offers</span>
+            </a>
+            <a href="/admin/coupons" class="menu-item" data-page="coupons">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Coupens</span>
+            </a>
+            <a href="/admin/banner" class="menu-item" data-page="banner">
+                <i class="fas fa-image"></i>
+                <span>Banner</span>
+            </a>
+            <a href="/admin/profile" class="menu-item" data-page="profile">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="/admin/logout" class="menu-item text-danger" data-page="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Header -->
+        <header class="navbar navbar-expand-lg navbar-light bg-body-tertiary shadow-sm">
+            <div class="container-fluid">
+                <button class="btn btn-sm" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="btn btn-sm ms-2" id="theme-toggle">
+                    <i class="fas fa-sun"></i>
+                </button>
+                
+                <div class="ms-auto d-flex align-items-center">
+                    <div class="dropdown">
+                        <button class="btn btn-sm dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/images/admin/images/admin-image.jpg" alt="Admin Profile" class="rounded-circle me-2" width="36" height="36">
+                            <span>Admin User</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/admin/logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>

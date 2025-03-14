@@ -1,0 +1,214 @@
+<%- include ("../../views/partial/user/header") %>
+<link rel="stylesheet" href="/style/user/home.css">
+<div class="home">
+    <!-- banner  Section -->
+    <div class="container slider-container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h2>Get Discount up to 100%</h2>
+                <h1>Make Life Better With Laptop</h1>
+                <p>Discover your new world and enjoy happy moments with Asus Poco X23GM.</p>
+                <button class="btn btn-primary">Browse More</button>
+            </div>
+            <div class="col-md-6">
+                <img src="/images/user/products/banner1.png"
+                    alt="Laptop" class="img-fluid">
+            </div>
+        </div>
+    </div>
+    <!-- sections -->
+    <div class="container">
+        <section class="categories-section">
+            <h2>Shop By Categories</h2>
+            <div class="carousel-container">
+                <!-- Carousel Buttons -->
+                <button id="prevBtn" class="carousel-button disabled" onclick="scrollCategories(-1)">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <button id="nextBtn" class="carousel-button active" onclick="scrollCategories(1)">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Categories Wrapper -->
+            <div class="categories-wrapper" id="categoriesWrapper" onscroll="updateButtons()">
+                <ul class="categories-list">
+                    <li><a href="#"><i class="fa fa-headphones"></i> Headphone</a></li>
+                    <li><a href="/user/products?category=Laptop"><i class="fa fa-laptop"></i> Laptops</a></li>
+                    <li><a href="#"><i class="fa fa-volume-up"></i> Speaker</a></li>
+                    <li><a href="#"><i class="fa fa-gamepad"></i> Gaming</a></li>
+                    <li><a href="#"><i class="fa fa-mouse"></i> Mouse</a></li>
+                    <li><a href="#"><i class="fa fa-keyboard"></i> Keyboard</a></li>
+                    <li><a href="#"><i class="fa fa-mobile"></i> Mobiles</a></li>
+                    <li><a href="#"><i class="fa fa-tablet"></i> Tablets</a></li>
+                    <li><a href="#"><i class="fa fa-camera"></i> Cameras</a></li>
+                    <li><a href="#"><i class="fa fa-tv"></i> Monitors</a></li>
+                    <li><a href="#"><i class="fa fa-microchip"></i> Accessories</a></li>
+                    <li><a href="#"><i class="fa fa-hdd"></i> Storage</a></li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- product section  -->
+    <div class="container">
+        <div class="row">
+            <% products.forEach(product => { %>
+                <div class="col-md-6 col-lg-4 col-xl-3 mt-3">
+                    <a href="/user/product/<%= product._id %>" class="product-link">
+                        <div class="product-card">
+                            <div class="image-container">
+                                <!-- <% if(product.productOffer ) { %>
+                                    <div class="discount-badge"> - <%= Math.round(product.productOffer) %>%</div>
+                                <% } %> -->
+                                <img src="/uploads/products/<%= product.cardImage %>" alt="Product Image">
+                            </div>
+                            <h4><%= product.category.name %></h4>
+                            <h3><%= product.productName %></h3>
+                            <div class="rating">
+                                <% if(product.rating ===undefined  ) { %>
+                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating">N/A
+                                <% } else { %>
+                                <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                <% } %>
+                            </div>
+                            <p class="price"><%= product.salePrice %>
+                                <% if(product.regularPrice > product.salePrice ) {%>
+                                <del class="mx-3"><%= product.regularPrice %></del></p>
+                            <% } %>
+                        </div>
+                    </a>
+                </div>
+            <% }) %>  
+        </div>
+    </div>
+
+    <!-- 2nd Banner section -->
+    <div class="container banner-container">
+        <div class="banner-left">
+            <h2>Start from $300.00</h2>
+            <p>Make Life Better With<br>Stylish Ultra Laptop</p>
+            <button class="pre-order-button">Pre Order Now</button>
+        </div>
+        <div class="banner-right">
+            <img src="/images/user/products/monitor-hp-removebg-preview.png" alt="Laptop" class="laptop-image">
+        </div>
+    </div>
+
+    <!-- Flash Sale Section -->
+    <section class="offer-section">
+        <div class="container">
+            <div class="flash-header mt-5 mb-4">
+                <h2>Flash Sale On Products</h2>
+            </div>
+            <div class="row">
+                <!-- Weekly Best Product with Timer -->
+                <div class="col-lg-4 mt-3 offer-sec">
+                    <div class="countdown-section">
+                        <div class="countdown-sec">
+                            <h1 class="h4 mb-3">Weekly Best Product</h1>
+                            <!-- Countdown Timer -->
+                            <div class="countdown-container">
+                                <div>
+                                    <div class="countdown-item">05</div>
+                                    <div class="countdown-label">Days</div>
+                                </div>
+                                <div>
+                                    <div class="countdown-item">15</div>
+                                    <div class="countdown-label">Hours</div>
+                                </div>
+                                <div>
+                                    <div class="countdown-item">50</div>
+                                    <div class="countdown-label">Mins</div>
+                                </div>
+                                <div>
+                                    <div class="countdown-item">00</div>
+                                    <div class="countdown-label">Secs</div>
+                                </div>
+                            </div>
+
+                            <button class="pre-order-btn">Pre Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Flash Sale Products -->
+                <% offers.forEach(product => { %>
+                    <div class="col-md-6 col-lg-4 col-xl-3 mt-3">
+                        <a href="/user/product/<%= product._id %>" class="product-link">
+                            <div class="product-card">
+                                <div class="image-container">
+                                    <!-- <% if(product.productOffer ) { %>
+                                        <div class="discount-badge"> - <%= Math.round(product.productOffer) %>%</div>
+                                    <% } %> -->
+                                    <img src="/uploads/products/<%=product.cardImage %>" alt="Product Image">
+                                </div>
+                                <h4><%= product.category.name %></h4>
+                                <h3><%= product.productName %></h3>
+                                <div class="rating">
+                                    <% if(product.rating ===undefined  ) { %>
+                                        <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
+                                    <% } else { %>
+                                    <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                    <% } %>
+                                </div>
+                                <p class="price"><%= product.salePrice %><del><%= product.regularPrice %></del></p>
+                                <!-- <span class="offer-text"> <%= product.offer %></span> -->
+                            </div>
+                        </a>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Brand collections -->
+    <div class="container">
+        <div class="row brand-container">
+            <div class="col brand apple">Apple</div>
+            <div class="col brand sony">Sony</div>
+            <div class="col brand hp">HP</div>
+            <div class="col brand samsung">Samsung</div>
+            <div class="col brand dell">Dell</div>
+            <div class="col brand lenovo">LENOVO</div>
+        </div>
+    </div>
+
+    <!-- Top Rating Products  -->
+    <div class="container mt-5">
+        <h3 class="text-with-line">Top Products</h3>
+        <div class="row g-3">
+            <!-- Top Rated Products -->
+            <% topProducts.forEach(product => { %>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a href="/user/product/<%= product._id %>" class="product-link">
+                        <div class="card product-card-last">
+                            <div class="d-flex align-items-center">
+                                <div class="img-container p-2">
+                                    <img src= "/uploads/products/<%=product.cardImage %>" class="product-img-last">
+                                </div>
+                                <div class="flex-grow-1 p-2">
+                                    <h5 class="product-title-last"><%= product.productName%></h5>
+                                    <div class="rating-last">
+                                        <% if(product.rating ===undefined  ) { %>
+                                            <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
+                                        <% } else { %>
+                                        <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                        <% } %>
+                                    </div>
+                                    <p class="product-price-last"><%= product.salePrice %></p>
+                                </div>
+                            </div>
+                        </div>
+                     </a>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</div>
+<!--  -->
+<% if (locals.showBlockedNotification) { %>
+    <%- include("../../views/partial/user/blockedNotification") %>
+<% } %>
+  
+<%- include ("../../views/partial/user/footer") %>

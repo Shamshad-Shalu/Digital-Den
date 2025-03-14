@@ -1,0 +1,161 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #f4f7fe;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 400px;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.otp-boxes {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.otp-box {
+    width: 45px;
+    height: 45px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    outline: none;
+}
+
+.otp-box:focus {
+    border-color: #4CAF50;
+}
+
+.timer-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.timer {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #4CAF50;
+    position: relative;
+    background: white;
+}
+
+.timer-circle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: conic-gradient(#4CAF50 360deg, transparent 0deg);
+    transform: rotate(-90deg);
+}
+
+.timer-mask {
+    width: 52px;
+    height: 52px;
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.verify-btn {
+    background: #4CAF50;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.verify-btn:hover {
+    background: #45a049;
+}
+
+.verify-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+.resend-btn {
+    background: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+}
+
+.resend-btn:hover {
+    background: #f5f5f5;
+}
+
+.resend-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@media (max-width: 400px) {
+    .container {
+        padding: 1.5rem;
+    }
+
+    .otp-box {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .timer, .timer-circle {
+        width: 50px;
+        height: 50px;
+    }
+
+    .timer-mask {
+        width: 42px;
+        height: 42px;
+    }
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="your-csrf-token-here">
+    <title>OTP Verification</title>
+    <link rel="stylesheet" href="/style/user/otp-verification.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css">
+</head>
+<body>
+    <div class="container">
+        <form id="otpForm" onsubmit="return verifyOTP(event)">
+            <input type="hidden" name="context" value="<%= typeof context !== 'undefined' ? context : 'verification' %>">
+            <h2>Enter OTP</h2>
+            <div class="otp-boxes">
+                <input type="text" name="otp1" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 0)" >
+                <input type="text" name="otp2" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 1)" >
+                <input type="text" name="otp3" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 2)" >
+                <input type="text" name="otp4" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 3)" >
+                <input type="text" name="otp5" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 4)" >
+                <input type="text" name="otp6" class="otp-box" maxlength="1" onkeyup="moveToNext(this, 5)" >
+            </div>
+            <div class="timer-container">
+                <div class="timer">
+                    <div class="timer-circle" id="timerCircle"></div>
+                    <div class="timer-mask">
+                        <span id="timer">00:60</span>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="button verify-btn">Verify OTP</button>
+        </form>
+        <button type="button" class="button resend-btn" id="resendBtn" onclick="resendOTP(event)" disabled>Resend OTP</button>
+    </div>
+    <script src="/script/user/verify-otp.js" > </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<%- include ("../../views/partial/user/header") %>
+<link rel="stylesheet" href="/style/user/products.css">
+
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Filter Sidebar -->
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <div class="filter-sidebar">
+                        <div class="filter-title">
+                            <span>Filters</span>
+                            <a href="/user/products" class="small text-decoration-none">Clear All</a>
+                        </div>
+                        <form id="filterForm" action="/user/products" method="GET">
+                            <div class="filter-group">
+                                <h5>Categories</h5>
+                                <% categories.forEach(category => { %>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="category" value="<%= category %>" id="cat-<%= category %>"
+                                            <%= selectedCategories && selectedCategories.includes(category) ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="cat-<%= category %>"><%= category %></label>
+                                    </div>
+                                <% }) %>
+                            </div>
+                            <div class="filter-divider"></div>
+                            <div class="filter-group">
+                                <h5>Price Range</h5>
+                                <div class="price-range-container">
+                                    <input type="range" class="form-range" min="<%= dbMinPrice %>" max="<%= dbMaxPrice %>" step="10" id="priceMin" name="priceMin" value="<%= priceMin %>">
+                                    <input type="range" class="form-range" min="<%= dbMinPrice %>" max="<%= dbMaxPrice %>" step="10" id="priceMax" name="priceMax" value="<%= priceMax %>">
+                                    <div class="price-range-values">
+                                        <span id="priceMinValue">₹<%= priceMin %></span>
+                                        <span id="priceMaxValue">₹<%= priceMax %></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-divider"></div>
+                            <div class="filter-group">
+                                <h5>Brands</h5>
+                                <% brands.forEach(brand => { %>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="brand" value="<%= brand %>" id="brand-<%= brand %>"
+                                            <%= selectedBrands && selectedBrands.includes(brand) ? 'checked' : '' %>>
+                                        <label class="form-check-label" for="brand-<%= brand %>"><%= brand %></label>
+                                    </div>
+                                <% }) %>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 apply-filters-btn">Apply Filters</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- Product Listing -->
+                <div class="col-lg-9 col-md-8">
+                    <div class="row mb-4">
+                        <div class="col-12 d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Our Products</h4>
+                            <div class="sort-dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown">
+                                    Sort By: <span id="currentSort"><%= sortOption ? sortOption.replace('-', ' ') : 'Default' %></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                            
+                                    <li><a class="dropdown-item" href="?sort=price-low-to-high<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>"> Price: Low to High</a></li>
+                                    <li><a class="dropdown-item" href="?sort=price-high-to-low<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>"> Price: High to Low</a></li>
+                                    <li><a class="dropdown-item" href="?sort=title-asc<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">A - Z</a></li>
+                                    <li><a class="dropdown-item" href="?sort=title-desc<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Z - A</a></li>
+                                    <li><a class="dropdown-item" href="?sort=popularity<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Popularity</a></li>
+                                    <li><a class="dropdown-item" href="?sort=rating<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Average Ratings</a></li>
+                                    <li><a class="dropdown-item" href="?sort=new-arrivals<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">New Arrivals</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <% if (products.length === 0) { %>
+                        <div class="no-products-message">
+                            <i class="fas fa-search"></i>
+                            <p>No products found matching your criteria.</p>
+                            <a href="/user/products" class="btn btn-outline-primary">View All Products</a>
+                        </div>
+                    <% } else { %>
+                        <div class="product-grid">
+                            <% products.forEach(product => { %>                          
+                                <a href="/user/product/<%= product._id %>" class="product-link">
+                                    <div class="product-card">
+                                        <div class="image-container">
+                                            <% if (product.originalPrice && product.originalPrice > product.price) { %>
+                                                <div class="discount-badge">
+                                                    -<%= Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) %>%
+                                                </div>
+                                            <% } %>
+                                            <img src="/uploads/products/<%= product.image %>" alt="<%= product.title %>">
+                                        </div>
+                                        <div class="product-info">
+                                            <div class="product-category"><%= product.category %></div>
+                                            <h3 class="product-title"><%= product.title %></h3>
+                                            <div class="rating">
+                                                <div class="star-rating">
+                                                    <img src="/images/user/icons/rating/rating-35.png" alt="">
+                                                </div>
+                                            </div>
+                                            <div class="price-container">
+                                                <span class="current-price">₹<%= product.price %></span>
+                                                <% if (product.originalPrice && product.originalPrice > product.price) { %>
+                                                    <span class="original-price">₹<%= product.originalPrice %></span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            <% }) %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        const priceMinValue = document.getElementById('priceMinValue');
+        const priceMaxValue = document.getElementById('priceMaxValue');
+
+        if (priceMin && priceMax) {
+            priceMin.addEventListener('input', () => {
+                if (Number(priceMin.value) > Number(priceMax.value)) {
+                    priceMin.value = priceMax.value;
+                }
+                priceMinValue.textContent = `₹${priceMin.value}`;
+            });
+
+            priceMax.addEventListener('input', () => {
+                if (Number(priceMax.value) < Number(priceMin.value)) {
+                    priceMax.value = priceMin.value;
+                }
+                priceMaxValue.textContent = `₹${priceMax.value}`;
+            });
+        }
+
+        // Filter form submission
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get all form data
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                
+                // Handle multiple checkboxes for category and brand
+                const categories = formData.getAll('category');
+                const brands = formData.getAll('brand');
+                
+                // Add each category as a separate URL parameter
+                categories.forEach(category => {
+                    params.append('category', category);
+                });
+                
+                // Add each brand as a separate URL parameter
+                brands.forEach(brand => {
+                    params.append('brand', brand);
+                });
+                
+                // Add price parameters
+                if (formData.get('priceMin')) params.append('priceMin', formData.get('priceMin'));
+                if (formData.get('priceMax')) params.append('priceMax', formData.get('priceMax'));
+                
+                // Get current sort option if it exists in URL
+                const currentUrl = new URL(window.location.href);
+                if (currentUrl.searchParams.get('sort')) {
+                    params.append('sort', currentUrl.searchParams.get('sort'));
+                }
+                
+                // Add search query if it exists
+                if (currentUrl.searchParams.get('search')) {
+                    params.append('search', currentUrl.searchParams.get('search'));
+                }
+                
+                const queryString = params.toString();
+                console.log("Query params:", queryString);
+                
+                // Navigate to the filtered page
+                window.location.href = `/user/products?${queryString}`;
+            });
+        }
+    </script>
+            
+<% if (locals.showBlockedNotification) { %>
+    <%- include("../../views/partial/user/blockedNotification") %>
+<% } %>
+
+<%- include ("../../views/partial/user/footer") %>

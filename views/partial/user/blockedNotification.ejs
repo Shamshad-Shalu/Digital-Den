@@ -1,0 +1,47 @@
+<!-- views/partial/user/blockedNotification.ejs -->
+
+<div id="blockedUserNotification" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1080;">
+  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-danger text-white">
+      <i class="fa fa-exclamation-circle me-2"></i>
+      <strong class="me-auto">Account Blocked</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      <p class="text-dark">Your account has been blocked. You can browse but cannot make purchases.</p>
+      <p class="text-dark" >Please contact our support: <strong>digitaldensupport@gmail.com</strong></p>
+      <div class="mt-2 pt-2 border-top">
+        <a href="/user/contact" class="btn btn-primary btn-sm">Contact Support</a>
+        <a href="/user/logout" class="btn btn-secondary btn-sm">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const blockedNotification = document.getElementById('blockedUserNotification');
+    if (blockedNotification) {
+      const toast = new bootstrap.Toast(blockedNotification.querySelector('.toast'));
+      
+      // Close button functionality
+      blockedNotification.querySelector('.btn-close').addEventListener('click', function() {
+        toast.hide();
+      });
+      
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        toast.hide();
+      }, 10000);
+    }
+    
+    // Add event listeners to blocked actions
+    document.querySelectorAll('.blocked-action').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        showBlockedMessage();
+      });
+    });
+    
+});
+</script>

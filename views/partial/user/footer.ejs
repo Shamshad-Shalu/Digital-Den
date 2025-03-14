@@ -1,0 +1,176 @@
+ <!-- Footer Section -->
+<div class="foooter-sec">
+    <footer class="site-footer">
+        <!-- Back to top button -->
+        <div class="back-to-top">
+            <i class="fas fa-chevron-up"></i>
+        </div>
+    
+        <div class="container">
+            <div class="row">
+                <!-- Logo and Social Links -->
+                <div class="col-lg-3 col-md-12 mb-4 mb-lg-0 footer-section company-info">
+                    <div>
+                        <div class="footer-logo">DIGITAL DEN</div>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-pinterest"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-description">
+                        Empower your digital life with the latest tech at your fingertips!
+                    </div>
+                </div>
+    
+                <!-- Quick Links -->
+                <div class="col-lg-3 col-md-12 footer-section">
+                    <h3 class="footer-title" data-bs-toggle="collapse" data-bs-target="#quickLinks">
+                        Quick Links
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </h3>
+                    <div id="quickLinks" class="footer-content collapse">
+                        <ul class="footer-links">
+                            <li><a href="#">All Products</a></li>
+                            <li><a href="#">Payment Method</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Faq & Support</a></li>
+                            <li><a href="#">Blog Post</a></li>
+                        </ul>
+                    </div>
+                </div>
+    
+                <!-- Account Info -->
+                <div class="col-lg-3 col-md-12 footer-section">
+                    <h3 class="footer-title" data-bs-toggle="collapse" data-bs-target="#accountInfo">
+                        Account Info
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </h3>
+                    <div id="accountInfo" class="footer-content collapse">
+                        <ul class="footer-links">
+                            <li><a href="#">Sign In</a></li>
+                            <li><a href="#">Shipping Address</a></li>
+                            <li><a href="#">Wishlist</a></li>
+                            <li><a href="#">Order History</a></li>
+                            <li><a href="#">My Account</a></li>
+                        </ul>
+                    </div>
+                </div>
+    
+                <!-- Contact Us -->
+                <div class="col-lg-3 col-md-12 footer-section">
+                    <h3 class="footer-title" data-bs-toggle="collapse" data-bs-target="#contactInfo">
+                        Contact Us
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </h3>
+                    <div id="contactInfo" class="footer-content collapse">
+                        <div class="footer-contact">
+                            <p><strong>Address:</strong> Your Address, 1234, Country</p>
+                            <p><strong>Email:</strong> test@example.com</p>
+                            <p><strong>Phone:</strong> +123456789</p>
+                            <p><strong>Payment Method</strong></p>
+                            <div class="payment-methods">
+                                <img src="/api/placeholder/40/20" alt="PayPal">
+                                <img src="/api/placeholder/40/20" alt="Mastercard">
+                                <img src="/api/placeholder/40/20" alt="Visa">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <div class="row">
+                    <div class="col-md-6">
+                        Copyright © 2021 Digital Den Inc. All rights reserved.
+                    </div>
+                    <div class="col-md-6 footer-bottom-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Condition</a>
+                        <a href="#">Sales and Refunds</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>    
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function scrollCategories(direction) {
+            const wrapper = document.getElementById('categoriesWrapper');
+            const scrollAmount = 150 * direction;
+    
+            wrapper.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth' // Smooth scrolling effect
+            });
+    
+            setTimeout(updateButtons, 300); // Delay to update button state after scroll
+        }
+    
+        function updateButtons() {
+            const wrapper = document.getElementById('categoriesWrapper');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+    
+            if (wrapper.scrollLeft <= 0) {
+                prevBtn.classList.remove("active");
+                prevBtn.classList.add("disabled");
+            } else {
+                prevBtn.classList.remove("disabled");
+                prevBtn.classList.add("active");
+            }
+    
+            if (wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth) {
+                nextBtn.classList.remove("active");
+                nextBtn.classList.add("disabled");
+            } else {
+                nextBtn.classList.remove("disabled");
+                nextBtn.classList.add("active");
+            }
+        }
+    
+        // Ensure correct button state on page load
+        window.onload = updateButtons;
+    </script>
+    
+    <script>
+        // Theme toggling functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const modeIcon = document.getElementById('mode-icon');
+        
+        // Check for saved theme preference or use default
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+        modeIcon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        
+        // Theme switch event listener
+        themeToggle.addEventListener('change', function() {
+            if(this.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                modeIcon.className = 'fas fa-moon';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                modeIcon.className = 'fas fa-sun';
+            }
+        });
+        
+        // Smooth scrolling back to top
+        const backToTopButton = document.querySelector(".back-to-top");
+    
+        backToTopButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<%- include("../../views/partial/admin/header") %>
+ <!-- Brand Management Section -->
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3">Brand Management</h1>
+            <p class="text-muted">Manage your product brands</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBrandModal">
+                <i class="fas fa-plus me-2"></i>Add New Brand
+            </button>
+        </div>
+    </div>
+    
+    <!-- Search and Filter Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/admin/brands" method="get" class="row g-3" id="brandFilterForm">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search brands..." name="search" value="<%= typeof search !== 'undefined' ? search : '' %>">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        <% if (search || status !== 'All') { %>
+                            <a href="/admin/brands" class="btn btn-secondary">Clear</a>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="All" <%= typeof status !== 'undefined' && status === 'All' ? 'selected' : '' %>>All Status</option>
+                        <option value="Listed" <%= typeof status !== 'undefined' && status === 'Listed' ? 'selected' : '' %>>Active</option>
+                        <option value="Unlisted" <%= typeof status !== 'undefined' && status === 'Unlisted' ? 'selected' : '' %>>Blocked</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Brand Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle user-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Offer (%)</th>
+                            <th>Last Updated</th>
+                            <th width="120">Status</th>
+                            <th width="150">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (brandData && brandData.length > 0) { %>
+                            <% for (let i = 0; i < brandData.length; i++) { %>
+                                <tr>
+                                    <td><%= (page - 1) * limit + i + 1 %></td>
+                                    <td class="fw-medium"><%= brandData[i].brandName %></td>
+                                    <td>
+                                        <% if (brandData[i].brandOffer > 0) { %>
+                                            <span class="badge bg-success"><%= brandData[i].brandOffer %>%</span>
+                                        <% } else { %>
+                                            <span class="badge bg-secondary">No Offer</span>
+                                        <% } %>
+                                    </td>
+                                    <td><%= new Date(brandData[i].updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                                    <td>
+                                        <button class="btn btn-sm status-btn <%= brandData[i].isListed ? 'bg-success' : 'bg-danger' %> text-white"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#statusModal"
+                                            data-status="<%= brandData[i].isListed ? 'Listed' : 'Unlisted' %>"
+                                            data-name="<%= brandData[i].brandName %>"
+                                            data-id="<%= brandData[i]._id %>"
+                                            aria-label="Toggle status for <%= brandData[i].brandName %>">
+                                            <span class="status-text"><%= brandData[i].isListed ? 'Listed' : 'Unlisted' %></span>
+                                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary edit-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editBrandModal"
+                                                data-id="<%= brandData[i]._id %>"
+                                                data-name="<%= brandData[i].brandName %>"
+                                                data-offer="<%= brandData[i].brandOffer %>">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-btn"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                data-id="<%= brandData[i]._id %>"
+                                                data-name="<%= brandData[i].brandName %>">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center py-4">No brands found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <% if (brandData && brandData.length > 0) { %>
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Showing <span class="fw-bold"><%= (page - 1) * limit + 1 %></span> to <span class="fw-bold"><%= Math.min(page * limit, count) %></span> of <span class="fw-bold"><%= count %></span> Brands
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link"
+                                   href="<%= page <= 1 ? '#' : `/admin/brands?page=${page - 1}${search ? '&search=' + encodeURIComponent(search) : ''}${status !== 'All' ? '&status=' + status : ''}` %>"
+                                   aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <% 
+                                const totalPages = Math.ceil(count / limit);
+                                const maxPagesToShow = 5;
+                                const startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+                                const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                                for (let i = startPage; i <= endPage; i++) { 
+                            %>
+                                <li class="page-item <%= page === i ? 'active' : '' %>">
+                                    <a class="page-link"
+                                       href="/admin/brands?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= status !== 'All' ? '&status=' + status : '' %>">
+                                        <%= i %>
+                                    </a>
+                                </li>
+                            <% } %>
+                            <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link"
+                                   href="<%= page >= totalPages ? '#' : `/admin/brands?page=${page + 1}${search ? '&search=' + encodeURIComponent(search) : ''}${status !== 'All' ? '&status=' + status : ''}` %>"
+                                   aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Brand</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Confirmation Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Change Brand Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="statusMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatus">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Brand Modal -->
+<div class="modal fade" id="addBrandModal" tabindex="-1" aria-labelledby="addBrandModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBrandModalLabel">Add New Brand</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addBrandForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                        <div class="invalid-feedback" id="nameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Offer (%)</label>
+                        <input type="number" class="form-control" name="brandOffer" id="brandOffer"  step="1" value="0">
+                        <div class="invalid-feedback" id="brandOfferError"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="addBtn">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Brand Modal -->
+<div class="modal fade" id="editBrandModal" tabindex="-1" aria-labelledby="editBrandModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editBrandModalLabel">Edit Brand</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editBrandForm">
+                <input type="hidden" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                        <div class="invalid-feedback nameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Offer (%)</label>
+                        <input type="number" class="form-control" id="brandOffer" name="brandOffer" step="1" value="0">
+                        <div class="invalid-feedback brandOfferError"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="/script/admin/brand.js" ></script>
+<%- include("../../views/partial/admin/footer") %>

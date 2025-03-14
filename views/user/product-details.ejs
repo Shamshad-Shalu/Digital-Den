@@ -1,0 +1,379 @@
+<%- include ("../../views/partial/user/header") %>
+<link rel="stylesheet" href="/style/user/home.css">
+<link rel="stylesheet" href="/style/user/productDetails.css">
+
+<div class="container py-5">
+    <!-- Dynamic Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/user/products?category=<%= product.category.name %>"><%= product.category.name %></a></li>
+            <li class="breadcrumb-item active"><%= product.productName %></li>
+        </ol>
+    </nav>
+
+    <div class="row mb-5">
+        <!-- product-images  -->
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="product-image-container mb-3">
+                <div class="zoom-container">
+                    <img src="/uploads/products/<%= product.cardImage %>" id="mainImage" 
+                         class="img-fluid" alt="<%= product.productName %>">
+                    <div class="zoom-lens"></div>
+                    <div class="zoom-instructions position-absolute bottom-0 end-0 p-2 bg-black bg-opacity-50 text-white rounded-start">
+                        <i class="fas fa-search-plus me-1"></i> Hover to zoom
+                    </div>
+                    <% if (product.productOffer > 0) { %>
+                        <div class="position-absolute top-0 start-0 bg-danger text-white py-1 px-2 m-2 rounded">
+                            SALE
+                        </div>
+                    <% } %>
+                </div>
+            </div>  
+            <div class="row thumbnail-gallery g-2">
+                <% product.productImages.forEach((img, index) => { %>
+                    <div class="col-3">
+                        <img src="/uploads/products/<%= img %>" 
+                             class="img-fluid thumbnail <%= index === 0 ? 'active' : '' %>" 
+                             alt="Thumbnail <%= index + 1 %>" 
+                            onclick="changeMainImage(this)">
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+        <!-- Product Details -->
+        <div class="col-lg-6">
+            <h1 class="product-title mb-2"><%= product.productName %></h1>
+            <div class="ratings mb-3">
+                <span class="stars">
+                    <% 
+                        const rating = product.rating === "N/A" ? 0 : parseFloat(product.rating);
+                        for (let i = 1; i <= 5; i++) {
+                            if (i <= rating) { %>
+                                <i class="fas fa-star text-warning"></i>
+                            <% } else if (i - 0.5 <= rating) { %>
+                                <i class="fas fa-star-half-alt text-warning"></i>
+                            <% } else { %>
+                                <i class="far fa-star text-warning"></i>
+                            <% }
+                        }
+                    %>
+                                
+                </span>
+                <span class="rating-value ms-2">0.0</span>
+                <span class="reviews-count ms-2">(No reviews yet)</span>
+            </div>
+            <!-- Stock Status -->
+            <div class="stock-status mb-3 ">
+                <% if (product.status === 'Available' && product.quantity > 0) { %>
+                    <span class="badge bg-success">In Stock</span>
+                    <span id="counts" class="text-muted ms-2">Only <%= product.quantity %> left</span>
+                <% } else if (product.status === 'out of stock') { %>
+                    <span class="badge bg-warning">Out of Stock</span>
+                <% } %>
+            </div>
+            <!-- Price and Discounts -->
+            <div class="price-section mb-4">
+                <div class="current-price fs-3 fw-bold">₹<%= product.salePrice %></div>
+                <% if (product.regularPrice > product.salePrice) { %>
+                    <div class="original-price text-decoration-line-through">₹<%= product.regularPrice %></div>
+                    <div class="saving-badge bg-success text-white d-inline-block px-2 py-1 rounded mt-2">
+                        Save ₹<%= product.regularPrice - product.salePrice %> (<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%)
+                    </div>
+                <% } %>
+                <% if (product.productOffer > 0) { %>
+                    <div class="coupon-alert alert d-flex align-items-center mt-2" role="alert">
+                        <i class="fas fa-tag me-2"></i>
+                        <div>Extra <%= product.productOffer %>% off applied!</div>
+                    </div>
+                <% } %>
+            </div>
+            <!-- Purchase Options -->
+            <% if (product.status === 'Available' && product.quantity > 0 ) { %>
+                <div class="purchase-options mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" id="quantity-minus">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="<%= product.quantity %>">
+                                <button class="btn btn-outline-secondary" type="button" id="quantity-plus">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 product-actions">
+                    <div class="col-md-6">
+                        <button class="btn btn-add-to-cart w-100" onclick="addToCart('<%= product._id %>')">
+                            <i class="fa fa-shopping-cart me-2"></i>Add to Cart
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-wishlist w-100" onclick="addtoWishlist('<%= product._id %>')">
+                            <i class="fa fa-heart me-2"></i>Add to Wishlist
+                        </button>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="alert alert-danger">
+                    This product is currently unavailable. <a href="/user/products" class="alert-link">Browse other products</a>.
+                </div>
+            <% } %>
+            <!-- Highlights -->
+            <div class="product-highlights mb-4">
+                <h5 class="mb-3">Highlights</h5>
+                <ul class="list-group list-group-flush">
+                    <% product.specifications.slice(0, 3).forEach(spec => { %>
+                        <li class="list-group-item"><%= spec.name %> : <%= spec.value %></li>
+                    <% }) %>
+                </ul>
+            </div>
+            <!-- Social Share -->
+            <div class="product-share mt-4">
+                <span>Share:</span>
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Tabs -->
+    <div class="product-tabs mb-5">
+        <ul class="nav nav-tabs" id="productTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button">Description</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button">Specifications</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button">Reviews </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button">Shipping & Returns</button>
+            </li>
+        </ul>
+        <div class="tab-content p-4 border border-top-0 rounded-bottom">
+            <div class="tab-pane fade show active" id="description">
+                <h4><%= product.productName %></h4>
+                <p><%= product.description %></p>
+            </div>
+            <div class="tab-pane fade" id="specifications">
+                <h5 class="mb-3">Product Specifications</h5>
+                <table class="table table-striped">
+                    <tbody>
+                        <% product.specifications.forEach(specification => { %>
+                            <tr>
+                                <th scope="row"><%= specification.name %></th>
+                                <td><%= specification.value %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <div class="tab-pane fade" id="reviews">
+                <p>No reviews yet.....</p>
+            </div>
+            <div class="tab-pane fade" id="shipping">
+                <h4>Shipping Information</h4>
+                <p>We offer multiple shipping options to meet your needs:</p>
+                <ul>
+                    <li><strong>Standard Shipping:</strong> 3-5 business days (Free on orders over $50)</li>
+                    <li><strong>Express Shipping:</strong> 1-2 business days ($15.99)</li>
+                    <li><strong>Next Day Delivery:</strong> Next business day if ordered before 2PM ($25.99)</li>
+                </ul>
+                <h4 class="mt-4">Return Policy</h4>
+                <p>We want you to be completely satisfied with your purchase. If you're not, we offer a hassle-free return policy:</p>
+                <ul>
+                    <li>Returns accepted within 30 days of delivery</li>
+                    <li>Item must be in original packaging and unused condition</li>
+                    <li>Free return shipping for defective items</li>
+                    <li>Refunds processed within 5-7 business days after receiving the returned item</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <div class="related-products mb-5">
+        <h3 class="section-title">You Might Also Like</h3>
+        <div class="row">
+            <% relatedProducts.forEach(related => { %>
+                <div class="col-md-6 col-lg-4 col-xl-3 mt-3">
+                    <a href="/user/product/<%= related._id %>" class="product-link">
+                        <div class="product-card">
+                            <div class="image-container">
+                                <img src="/uploads/products/<%= related.cardImage %>" alt="Product Image">
+                            </div>
+                            <h4><%= related.category.name %></h4>
+                            <h3><%= related.productName %></h3>
+                            <div class="rating">
+                                <% if(product.rating ===undefined  ) { %>
+                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating">N/A
+                                <% } else { %>
+                                <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                <% } %>
+                            </div>
+                            <p class="price"><%= related.salePrice %>
+                            <% if(related.regularPrice > related.salePrice) { %>
+                            <del class="mx-3"><%= related.regularPrice %></del></p>
+                            <% } %>
+                        </div>
+                    </a>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const zoomContainers = document.querySelectorAll('.zoom-container');
+        zoomContainers.forEach(container => {
+            const img = container.querySelector('#mainImage');
+            const lens = container.querySelector('.zoom-lens');
+            const zoomFactor = 2; 
+
+
+            img.addEventListener('load', () => {
+                container.addEventListener('mousemove', moveLens);
+                container.addEventListener('mouseleave', hideLens);
+                container.addEventListener('mouseenter', showLens);
+            });
+
+            function moveLens(e) {
+                e.preventDefault();
+
+                const rect = container.getBoundingClientRect();
+                const imgRect = img.getBoundingClientRect();
+
+                // Mouse position relative to the container
+                let posX = e.clientX - rect.left;
+                let posY = e.clientY - rect.top;
+
+                // Calculate image's actual dimensions with object-fit: contain
+                const imgWidth = img.naturalWidth;
+                const imgHeight = img.naturalHeight;
+                const containerWidth = rect.width;
+                const containerHeight = rect.height;
+
+                // Compute the displayed image size (considering object-fit: contain)
+                const ratio = Math.min(containerWidth / imgWidth, containerHeight / imgHeight);
+                const displayWidth = imgWidth * ratio;
+                const displayHeight = imgHeight * ratio;
+                const offsetX = (containerWidth - displayWidth) / 2;
+                const offsetY = (containerHeight - displayHeight) / 2;
+
+                // Adjust posX and posY to be relative to the actual image content
+                posX = Math.max(offsetX, Math.min(posX, offsetX + displayWidth));
+                posY = Math.max(offsetY, Math.min(posY, offsetY + displayHeight));
+
+                // Lens position
+                const lensWidth = lens.offsetWidth;
+                const lensHeight = lens.offsetHeight;
+                let lensX = posX - lensWidth / 2;
+                let lensY = posY - lensHeight / 2;
+
+                // Keep lens within container bounds
+                lensX = Math.max(0, Math.min(lensX, containerWidth - lensWidth));
+                lensY = Math.max(0, Math.min(lensY, containerHeight - lensHeight));
+
+                lens.style.left = `${lensX}px`;
+                lens.style.top = `${lensY}px`;
+
+                // Calculate the background position for the lens
+                const bgPosX = ((posX - offsetX) / displayWidth) * imgWidth * zoomFactor - lensWidth / 2;
+                const bgPosY = ((posY - offsetY) / displayHeight) * imgHeight * zoomFactor - lensHeight / 2;
+
+                lens.style.backgroundImage = `url(${img.src})`;
+                lens.style.backgroundSize = `${imgWidth * zoomFactor}px ${imgHeight * zoomFactor}px`;
+                lens.style.backgroundPosition = `-${bgPosX}px -${bgPosY}px`;
+            }
+
+            function hideLens() {
+                lens.style.opacity = '0';
+            }
+
+            function showLens() {
+                lens.style.opacity = '1';
+            }               
+        });
+
+        // Quantity Controls
+        const quantityInput = document.getElementById('quantity');
+        if (quantityInput) {
+            document.getElementById('quantity-minus').addEventListener('click', () => {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) quantityInput.value = value - 1;
+            });
+
+            document.getElementById('quantity-plus').addEventListener('click', () => {
+                let value = parseInt(quantityInput.value);
+                if (value < <%= product.quantity %>) quantityInput.value = value + 1;
+            });
+
+            quantityInput.addEventListener('change', () => {
+                let value = parseInt(quantityInput.value);
+                if (value < 1) quantityInput.value = 1;
+                if (value > <%= product.quantity %>) quantityInput.value = <%= product.quantity %>;
+            });
+        }
+
+    });
+
+    // Thumbnail click handler remains unchanged
+    function changeMainImage(thumbnail) {
+        const mainImage = document.getElementById('mainImage');
+        if (mainImage) {
+            mainImage.src = thumbnail.src;
+            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+    }
+
+    //  // Add to Cart Function
+    // function addToCart(productId) {
+    //     const quantity = document.getElementById('quantity').value;
+
+    //     fetch('/user/cart/add', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ productId, quantity })
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         if (data.success) {
+    //             alert('Product added to cart!');
+    //         } else if (data.redirect) {
+    //             window.location.href = data.redirect; 
+    //         } else {
+    //             alert(data.message || 'Error adding to cart');
+    //         }
+    //     })
+    //     .catch(err => {
+    //         console.error('Error:', err);
+    //         alert('An error occurred. Please try again.');
+    //     });
+    // }
+
+    // function addtoWishlist (id) {
+
+    // }
+
+
+</script>
+
+<% if (locals.showBlockedNotification) { %>
+    <%- include("../../views/partial/user/blockedNotification") %>
+<% } %>
+
+<%- include ("../../views/partial/user/footer") %>

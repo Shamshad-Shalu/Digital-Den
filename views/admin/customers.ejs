@@ -1,0 +1,158 @@
+<%- include("../../views/partial/admin/header.ejs") %>
+<link rel="stylesheet" href="/partials/admin/styles/customer.css">
+
+<!-- User Management Section -->
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3">User Management</h1>
+            <p class="text-muted">Manage your platform users</p>
+        </div>
+    </div>
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/admin/users" method="GET" class="row g-3" id="userFilterForm">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" 
+                               placeholder="Search users..." value="<%= typeof search !== 'undefined' ? search : '' %>">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        <% if (search || status !== 'All') { %>
+                            <a href="/admin/users" class="btn btn-secondary">Clear</a>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="status" id="statusFilter">
+                        <option value="All" <%= typeof status !== 'undefined' && status === 'All' ? 'selected' : '' %>>All Status</option>
+                        <option value="Active" <%= typeof status !== 'undefined' && status === 'Active' ? 'selected' : '' %>>Active</option>
+                        <option value="Blocked" <%= typeof status !== 'undefined' && status === 'Blocked' ? 'selected' : '' %>>Blocked</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle user-table">
+                    <thead>
+                        <tr>
+                            <th width="60">#</th>
+                            <th width="70">Avatar</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Created On</th>
+                            <th width="120">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (userData && userData.length > 0) { %>
+                            <% for (let i = 0; i < userData.length; i++) { %>
+                                <tr>
+                                    <td><%= (page - 1) * limit + i + 1 %></td>
+                                    <td>
+                                        <div class="avatar-icon">
+                                            <% if (userData[i].profileImage) { %>
+                                                <img src="<%= userData[i].profileImage %>" alt="<%= userData[i].username %>'s profile" class="rounded-circle" width="40" height="40">
+                                            <% } else { %>
+                                                <i class="fas fa-user"></i>
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td><%= userData[i].username %></td>
+                                    <td><%= userData[i].email %></td>
+                                    <td><%= userData[i].phone || 'N/A' %></td>
+                                    <td><%= new Date(userData[i].createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></td>
+                                    <td>
+                                        <button class="btn btn-sm status-btn <%= userData[i].isBlocked ? 'bg-danger' : 'bg-success' %> text-white" 
+                                                data-status="<%= userData[i].isBlocked ? 'Blocked' : 'Active' %>" 
+                                                data-username="<%= userData[i].username %>"
+                                                data-userid="<%= userData[i]._id %>"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#statusModal"
+                                                aria-label="Toggle status for <%= userData[i].username %>">
+                                            <span class="status-text"><%= userData[i].isBlocked ? 'Blocked' : 'Active' %></span>
+                                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center py-4">No users found</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <% if (userData && userData.length > 0) { %>
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Showing <span class="fw-bold"><%= (page - 1) * limit + 1 %></span> to <span class="fw-bold"><%= Math.min(page * limit, count) %></span> of <span class="fw-bold"><%= count %></span> users
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+                                <a class="page-link" href="/admin/users?page=<%= parseInt(page) - 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= typeof status !== 'undefined' && status !== 'All' ? '&status=' + status : '' %>" aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            <% 
+                            const totalPages = Math.ceil(count / limit);
+                            const maxPagesToShow = 5;
+                            const startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+                            const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+                            for (let i = startPage; i <= endPage; i++) { 
+                            %>
+                                <li class="page-item <%= page == i ? 'active' : '' %>">
+                                    <a class="page-link" href="/admin/users?page=<%= i %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= typeof status !== 'undefined' && status !== 'All' ? '&status=' + status : '' %>"><%= i %></a>
+                                </li>
+                            <% } %>
+                            <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+                                <a class="page-link" href="/admin/users?page=<%= parseInt(page) + 1 %><%= search ? '&search=' + encodeURIComponent(search) : '' %><%= typeof status !== 'undefined' && status !== 'All' ? '&status=' + status : '' %>" aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Status Change Modal --> 
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Change User Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4" id="statusIcon"></div>
+                <p class="text-center fs-5 mb-4" id="statusText"></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="actionWarningText">This action might affect user's access to the platform.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusChange">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/script/admin/customers.js" ></script>
+<%- include("../../views/partial/admin/footer.ejs") %>

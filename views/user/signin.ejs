@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Den - Login</title>
+    <link rel="stylesheet" href="/style/user/signin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- jQuery and SweetAlert -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="container p-5">
+        <div class="main-container">
+            <div class="row">
+                <!-- Left Side -Image -->     
+                <div class="col-md-6 d-none d-md-block bg-dark">
+                    <img src="/images/user/icons/DALL_E_2025-02-12_09.42.59_-_A_vintage-style_logo_with_the_words_Digital_Den_in_an_elegant__metallic_gold_and_blue_gradient_font__set_against_a_black_leather-textured_background-removebg-preview.png" alt="Login Banner" class="right-image">
+                </div>
+                <!-- Right Side - Login Form  -->
+                <div class="col-md-6">
+                    <div class="login-container d-flex align-items-center justify-content-center">
+                        <div class="login-form-wrapper" style="width: 100%; max-width: 400px;">
+                            <h1 class="welcome-text">Welcome back!</h1>
+                            <p class="subtitle">The faster you fill up, the faster you get a ticket</p> 
+                            <form action="/user/signin" method="post" id="login-form">
+                                <div class="mb-2">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email">
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <label for="password" class="form-label">Password</label>
+                                    <div class="password-container">
+                                        <input type="password" class="form-control" name="password" id="password" placeholder="@asY34#23dj">
+                                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                                            <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="remember">
+                                        <label class="form-check-label" for="remember">Remember me</label>
+                                    </div>
+                                    <a href="/user/forgot-password" class="forgot-password">Forgot Password</a>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-signin " id="signin-btn" >Sign In</button>
+                            </form>                      
+                            <div class="divider">
+                                <span>Or continue with</span>
+                            </div>
+                            <div class="social-buttons">
+                                <a href="/user/auth/google" class="social-button">
+                                    <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg" alt="Google">
+                                </a>
+                                <!-- <a href="#" class="social-button">
+                                    <img src="/images/user/icons/facebook.svg" alt="Facebook">
+                                </a>
+                                <a href="#" class="social-button">
+                                    <img src="/images/user/icons/twitter-x.svg" alt="Twitter">
+                                </a> -->
+                            </div>
+                                                    
+                            <p class="signup-text">
+                                Don't have an account? <a href="/user/signup" class="signup-link">Sign up</a>
+                            </p> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/script/user/signin.js" ></script>
+</body>
+</html>

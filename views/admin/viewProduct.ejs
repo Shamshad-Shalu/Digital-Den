@@ -1,0 +1,214 @@
+<%- include("../partial/admin/header") %>
+<div class="container-fluid py-4">
+    <!-- header  -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold fs-4 mb-0"><%= product.productName %></h1>
+        <div class="d-flex gap-2">
+            <a href="/admin/products" class="btn btn-outline-primary rounded-3">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+            <a href="/admin/products/edit/<%= product._id %>" class="btn btn-primary rounded-3">
+                <i class="fas fa-edit me-2"></i>Edit Product
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Content Card -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="p-4">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 rounded-4 product-info-card basic-info-section">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h5>
+                                <div class="d-flex mb-3">
+                                    <div class="text-muted" style="width: 120px;">Name:</div>
+                                    <div class="fw-medium"><%= product.productName %></div>
+                                </div>
+                                <div class="d-flex mb-3">
+                                    <div class="text-muted" style="width: 120px;">Description:</div>
+                                    <div class="fw-medium"><%= product.description %></div>
+                                </div>
+                                <div class="d-flex mb-3">
+                                    <div class="text-muted" style="width: 120px;">Category:</div>
+                                    <div class="fw-medium">
+                                        <span class="badge bg-secondary rounded-pill"><%= product.category.name %></span>
+                                    </div>
+                                </div>
+                                <div class="d-flex mb-3">
+                                    <div class="text-muted" style="width: 120px;">Brand:</div>
+                                    <div class="fw-medium"><%= product.brand.brandName %></div>
+                                </div>
+                                <div class="d-flex">
+                                    <div class="text-muted" style="width: 120px;">Status</div>
+                                    <div class="fw-medium">
+                                        <span class="badge  rounded-pill <%= product.isListed ? 'bg-success' : 'bg-danger' %> text-white "><%= product.isListed ? 'Listed' : 'Unlisted' %></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Price & Inventory -->
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 rounded-4 product-info-card price-inventory-section">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                    <i class="fas fa-tag me-2"></i>Price & Inventory
+                                </h5>
+                                <div class="d-flex mb-3 align-items-center">
+                                    <div class="text-muted" style="width: 120px;">Regular Price:</div>
+                                    <div class="fw-medium fs-5">₹<%= product.regularPrice %></div>
+                                </div>
+                                <div class="d-flex mb-3 align-items-center">
+                                    <div class="text-muted" style="width: 120px;">Sale Price:</div>
+                                    <div class="fw-bold fs-5">₹<%= product.salePrice %></div>
+                                </div>
+                                <div class="d-flex mb-3 align-items-center">
+                                    <div class="text-muted" style="width: 120px;">Discount:</div>
+                                    <div class="fw-medium">
+                                        <span class="badge bg-danger rounded-pill px-3 py-2"><%= product.productOffer %>% OFF</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <div class="text-muted" style="width: 120px;">Quantity:</div>
+                                    <div class="fw-medium">
+                                        <% if (product.quantity > 20) { %>
+                                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                                <i class="fas fa-check-circle me-1"></i><%= product.quantity %> in stock
+                                            </span>
+                                        <% } else if (product.quantity > 0) { %>
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                                <i class="fas fa-exclamation-circle me-1"></i><%= product.quantity %> in stock
+                                            </span>
+                                        <% } else { %>
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+                                                <i class="fas fa-times-circle me-1"></i>Out of stock
+                                            </span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Specifications -->
+                    <div class="col-12">
+                        <div class="card border-0 rounded-4 product-info-card specifications-section">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                    <i class="fas fa-cogs me-2"></i>Specifications
+                                </h5>
+                                <% if (product.specifications && product.specifications.length > 0) { %>
+                                    <div class="row">
+                                        <% product.specifications.forEach(spec => { %>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="d-flex">
+                                                    <div class="text-muted" style="width: 120px;"><%= spec.name %>:</div>
+                                                    <div class="fw-medium"><%= spec.value %></div>
+                                                </div>
+                                            </div>
+                                        <% }) %>
+                                    </div>
+                                <% } else { %>
+                                    <p class="text-muted">No specifications available</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Images Gallery -->
+            <div class="product-images p-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">
+                    <i class="fas fa-images me-2"></i>Product Images
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="position-relative rounded-4 overflow-hidden shadow-sm ratio ratio-4x3">
+                            <img src="/uploads/products/<%= product.cardImage %>" alt="Main Product Image" class="img-cover position-absolute">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row g-3">
+                            <% product.productImages.forEach((img, index) => { %>
+                                <div class="col-6">
+                                    <div class="position-relative rounded-4 overflow-hidden shadow-sm ratio ratio-1x1">
+                                        <img src="/uploads/products/<%= img %>" alt="Product Image <%= index + 1 %>" class="img-cover position-absolute">
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Updated CSS for better dark theme visibility -->
+<style>
+    .img-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .product-images,
+    .basic-info-section,
+    .price-inventory-section,
+    .specifications-section {
+        background-color: var(--bs-card-bg);
+    }
+    
+    /* Default border styling for light theme */
+    [data-bs-theme="light"] .product-images,
+    [data-bs-theme="light"] .basic-info-section,
+    [data-bs-theme="light"] .price-inventory-section,
+    [data-bs-theme="light"] .specifications-section {
+        border-top: 1px solid var(--bs-border-color);
+    }
+    
+    /* Specific border styling for dark theme */
+    [data-bs-theme="dark"] .product-images,
+    [data-bs-theme="dark"] .basic-info-section,
+    [data-bs-theme="dark"] .price-inventory-section,
+    [data-bs-theme="dark"] .specifications-section {
+        border-top: 1px solid rgba(255, 255, 255, 0.2); /* Lighter border for dark theme */
+    }
+    
+    /* Remove top border from the first section */
+    .basic-info-section {
+        border-top: none !important; /* Override for both themes */
+    }
+    
+    .product-info-card {
+        background-color: var(--bs-card-bg);
+        border: 1px solid var(--bs-border-color) !important;
+    }
+    
+    [data-bs-theme="dark"] .product-info-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Adjusted for dark theme */
+    }
+    
+    [data-bs-theme="light"] .product-info-card {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    .card {
+        transition: all var(--transition-speed);
+    }
+    
+    @media (max-width: 768px) {
+        .rounded-4 {
+            border-radius: 0.5rem !important;
+        }
+    }
+</style>
+
+<%- include("../partial/admin/footer") %>
