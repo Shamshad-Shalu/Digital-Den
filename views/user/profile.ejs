@@ -1,0 +1,808 @@
+<%- include('../partial/user/header') %>
+
+<style>
+    .profile-photo {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--card-bg);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .profile-photo:hover {
+        transform: scale(1.05);
+    }
+
+    .form-control {
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+
+    .divider {
+        border-top: 1px solid var(--border-color);
+        margin: 2rem 0;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .profile-image-modal .modal-content {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+    .profile-image-modal .modal-body {
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    .large-profile-img {
+        max-width: 100%;
+        max-height: 80vh;
+        border-radius: 12px;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        cursor: zoom-in;
+    }
+
+    .large-profile-img.zoomed {
+        transform: scale(1.5);
+        cursor: zoom-out;
+    }
+
+    .modal-btn-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-btn-close:hover {
+        opacity: 1;
+    }
+
+    .input-group .btn-outline-secondary {
+        border-radius: 0 8px 8px 0;
+        border: 1px solid var(--border-color);
+        border-left: 0;
+    }
+
+    .input-group .form-control {
+        border-right: 0;
+        border-radius: 8px 0 0 8px;
+    }
+
+    .is-invalid {
+        border-color: #dc3545;
+    }
+
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+    }
+
+    body.modal-open {
+        padding-right: 0 !important;
+        overflow: hidden;
+    }
+
+    .modal-open .body {
+        padding-right: 0 !important;
+    }
+
+        
+    #profileImageModal .modal-dialog {
+        max-width: 400px;
+    }
+
+    #profileImageModal .modal-content {
+        border-radius: 16px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        overflow: hidden;
+    }
+
+    .profile-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-img-container {
+        width: 100%;
+        padding-top: 100%;
+        position: relative;
+        background: linear-gradient(135deg, var(--light-color) 0%, var(--border-color) 100%);
+    }
+
+    #modalProfileImg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-name {
+        padding: 15px;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .profile-name h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    [data-theme="dark"] .profile-img-container {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    }
+</style>
+
+<div class="body">
+    <div class="container-fluid profile-container">
+        <div class="row g-4">
+            <%- include('../partial/user/sidebar.ejs') %>
+            <div class="col-12 col-md-9">
+                <div class="content-area">
+                    <!-- Basic Info Section -->
+                    <h4 class="section-title">BASIC INFO</h4>
+                    <div class="row g-4 align-items-center mb-4">
+                        <div class="col-12 col-md-3 text-center">
+                            <div class="d-flex flex-column align-items-center">
+                                <% if (user.cardImage) { %>
+                                    <img src="<%= user.cardImage %>" alt="Profile" class="profile-photo mb-3" data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                                <% } else { %>
+                                    <div class="default-profile-icon mb-3" >
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-9">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6"><label  class="form-label"> First Name</label> <input   type="text" class="form-control" value="<%= user.firstName || 'N/A' %>" readonly></div>
+                                <div class="col-12 col-md-6"><label class="form-label"> Last Name</label> <input type="text" class="form-control"  value="<%= user.lastName || 'N/A' %>" readonly></div>
+                                <div class="col-12 col-md-6"><label class="form-label"> Username </label>  <input type="text" class="form-control"   value="<%= user.username %>" readonly></div>
+                                <div class="col-12 col-md-6"><label class="form-label">Phone </label><input type="text" class="form-control"  value="<%= user.phone || 'Not set' %>" readonly></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <a href="/user/edit-profile" class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>">Edit Profile</a>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Login Details Section -->
+                    <h4 class="section-title">LOGIN DETAILS</h4>
+                    <div class="row g-4 mb-4">
+                        <div class="col-12 col-md-6"><label class="form-label">Email Address</label><input type="email" class="form-control" id="displayEmail" value="<%= user.email %>" readonly></div>
+                    </div>
+                    <div class="text-end">
+                        <button class="btn btn-primary <%= isUserBlocked || googleIdUser ? 'disabled' : '' %>" data-bs-toggle="modal" data-bs-target="#updateEmailModal">Update Email</button>  
+                        <% if ( locals.googleIdUser  && !user.password ) { %>
+                            <button class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>" data-bs-toggle="modal" data-bs-target="#addPasswordModal">Add Password</button>
+                        <% } else { %>
+                            <button class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</button>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simplified Profile Image Modal -->
+<div class="modal fade" id="profileImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Close button -->
+            <button type="button" class="profile-close" data-bs-dismiss="modal">
+                <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>   
+            <!-- Profile image -->
+            <div class="profile-img-container">
+                <% if(user.cardImage) { %>
+                    <img src="/uploads/user/profileimages/<%= user.cardImage%>" alt="<%= user.username %>" id="modalProfileImg">
+                <% } else { %>
+                    <img src="/images/user/products/headset-samsung-removebg-preview.png" alt="Profile photo" id="modalProfileImg">
+                <% } %>
+            </div>
+            <!-- Username -->
+            <div class="profile-name">
+                <h5><%= user.username %></h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Email Modal -->
+<div class="modal fade" id="updateEmailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Update Email</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="updateEmailForm">
+                    <div class="mb-3">
+                        <label for="newEmail" class="form-label">New Email Address</label>
+                        <input type="email" class="form-control" id="newEmail" name="email" value="<%= user.email %>">
+                        <div class="invalid-feedback" id="emailError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currentPasswordEmail" class="form-label">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPasswordEmail" name="password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleCurrentPasswordEmail"><i class="bi bi-eye" id="currentPasswordEmailEyeIcon"></i></button>
+                        </div>
+                        <div class="invalid-feedback" id="currentPasswordEmailError"></div>
+                    </div>
+                    <div class="mb-3" id="otpFieldEmail" style="display: none;">
+                        <label for="otpEmail" class="form-label">Enter OTP </label>
+                        <input type="text" class="form-control" id="otpEmail" name="otp">
+                        <div class="invalid-feedback" id="otpEmailError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="updateEmailForm" id="updateEmailBtn">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleCurrentPassword">
+                                <i class="bi bi-eye" id="currentPasswordEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="currentPasswordError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" name="password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
+                                <i class="bi bi-eye" id="newPasswordEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="newPasswordError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" name="cPassword">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="bi bi-eye" id="confirmPasswordEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="confirmPasswordError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary"  form="changePasswordForm" id="changePasswordBtn">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Password Modal -->
+<div class="modal fade" id="addPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPasswordForm">
+                    <div class="mb-3">
+                        <label for="newPasswordAdd" class="form-label">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPasswordAdd" name="password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleNewPasswordAdd">
+                                <i class="bi bi-eye" id="newPasswordAddEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPasswordAdd" class="form-label">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPasswordAdd" name="cPassword">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPasswordAdd">
+                                <i class="bi bi-eye" id="confirmPasswordAddEyeIcon"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="addPasswordForm" >Add Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<%- include('../partial/user/footer') %>
+
+<script>
+
+    function displayFormErrors(form, errors) { 
+        clearErrors(form);
+        if (errors && typeof errors === 'object') {
+            Object.entries(errors).forEach(([field, message]) => {
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input) {
+                    input.classList.add('is-invalid');
+                    const parentDiv = input.closest('.mb-3');
+                    const feedback = parentDiv.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = message;
+                        feedback.style.display = 'block'; 
+                    }
+                }
+            });
+        }
+    }
+
+    function clearErrors(form) {
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.invalid-feedback').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none'; 
+        });
+    }
+    document.addEventListener("DOMContentLoaded" , () =>{
+    // Password Visibility Toggle
+    function setupPasswordToggle(inputId, buttonId, iconId) {
+        const input = document.getElementById(inputId);
+        const button = document.getElementById(buttonId);
+        const icon = document.getElementById(iconId);
+        button.addEventListener('click', function() {
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        });
+    }
+
+    setupPasswordToggle('currentPasswordEmail', 'toggleCurrentPasswordEmail', 'currentPasswordEmailEyeIcon');
+    setupPasswordToggle('currentPassword', 'toggleCurrentPassword', 'currentPasswordEyeIcon');
+    setupPasswordToggle('newPassword', 'toggleNewPassword', 'newPasswordEyeIcon');
+    setupPasswordToggle('confirmPassword', 'toggleConfirmPassword', 'confirmPasswordEyeIcon');
+    setupPasswordToggle('newPasswordAdd', 'toggleNewPasswordAdd', 'newPasswordAddEyeIcon');
+    setupPasswordToggle('confirmPasswordAdd', 'toggleConfirmPasswordAdd', 'confirmPasswordAddEyeIcon');
+
+    async function passwordSetting(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors(form);
+
+            const formData = new FormData(form);
+            const jsonData = Object.fromEntries(formData);
+            // Trim all string values
+            Object.keys(jsonData).forEach(key => {
+                if (typeof jsonData[key] === 'string') {
+                    jsonData[key] = jsonData[key].trim();
+                }
+            });
+
+            // Use URL
+            const URL = form.id === 'changePasswordForm' ? '/user/change-password' : '/user/add-password';
+
+            try {
+                const response = await fetch(URL, {
+                    method: 'POST',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    displayFormErrors(form, data.errors);
+                    Swal.fire('Error', data.message || 'Invalid form validations!', 'error');
+                } else {
+                    const successMessage = form.id === 'changePasswordForm' ? 
+                        'Password changed successfully' : 'Password added successfully';
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: successMessage,
+                        timer: 1000, 
+                        timerProgressBar: true, 
+                        showConfirmButton: false 
+                    }).then(() => {
+                        window.location.reload();
+                    });
+            }
+
+            } catch (error) {
+                console.error('Password operation error:', error);
+                Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+            }
+        });
+    }
+
+    const addPasswordForm = document.getElementById('addPasswordForm');
+    if (addPasswordForm) {
+        passwordSetting(addPasswordForm);
+    }
+
+    const changePasswordForm = document.getElementById('changePasswordForm'); 
+    if (changePasswordForm) {
+        passwordSetting(changePasswordForm);
+    }
+
+    // Email Update Form
+    const updateEmailForm = document.getElementById('updateEmailForm');
+    if (updateEmailForm) {
+        let isOtpSent = false;
+
+        updateEmailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            clearErrors(updateEmailForm);
+
+            const formData = new FormData(updateEmailForm);
+            const jsonData = Object.fromEntries(formData);
+            Object.keys(jsonData).forEach(key => {
+                if (typeof jsonData[key] === 'string') {
+                    jsonData[key] = jsonData[key].trim();
+                }
+            });
+
+            try {
+                // Show processing Swal
+                const processingSwal = Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait while we send the OTP',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                const url = isOtpSent ? '/user/verify-email-otp' : '/user/change-email';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                // Close the processing Swal
+                await processingSwal.close();
+
+                if (!response.ok || !data.success) {
+                    displayFormErrors(updateEmailForm, data.errors);
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Validation failed',
+                        confirmButtonText:"Ok",
+                        timer:1000
+                    });
+                    return;
+                }
+
+                if (!isOtpSent) {
+                    document.getElementById('otpFieldEmail').style.display = 'block';
+                    document.getElementById('updateEmailBtn').textContent = 'Verify OTP';
+                    isOtpSent = true;
+
+                    await Swal.fire({
+                        icon: 'success',
+                    title: 'OTP Sent',
+                    text: 'Please check your new email for the OTP',
+                    showConfirmButton: false,
+                    timer: 1000 
+                    });
+                } else {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Email updated successfully',
+                        showConfirmButton: false,
+                        timer: 500
+                    });
+                    $('#updateEmailModal').modal('hide');
+                    updateEmailForm.reset();
+                    document.getElementById('otpFieldEmail').style.display = 'none';
+                    document.getElementById('updateEmailBtn').textContent = 'Update';
+                    isOtpSent = false;
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Email update error:', error);
+                Swal.close();
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Something went wrong: ' + error.message
+                });
+            }
+        });
+    }
+    // const updateEmailform = document.getElementById('updateEmailform'); 
+    // if (updateEmailForm) {
+    //     let isOtpSent = false;
+
+    //     updateEmailform.addEventListener('submit', async (e) => {
+    //         e.preventDefault();
+    //         clearErrors(updateEmailform);
+
+    //         const formData = new FormData(updateEmailform);
+    //         const jsonData = Object.fromEntries(formData);
+    //         // Trim all string values
+    //         Object.keys(jsonData).forEach(key => {
+    //             if (typeof jsonData[key] === 'string') {
+    //                 jsonData[key] = jsonData[key].trim();
+    //             }
+    //         });
+
+    //         try {
+    //             const url = isOtpSent ? 'user/verify-email-otp' : "/user/change-email";
+    //             const response = await fetch(url, {
+    //                 method: 'POST',
+    //                 body: JSON.stringify(jsonData),
+    //                 headers: { 'Content-Type': 'application/json' }
+    //             });
+
+    //             const data = await response.json();
+    //             if (!response.ok || !data.success) {
+    //                 displayFormErrors(form, data.errors);
+    //                 Swal.fire('Error', data.message || 'Invalid form validations!', 'error');
+    //                 return;
+    //             }
+    //             if (!isOtpSent) {
+    //                 // Show OTP field after successful OTP send
+    //                 document.getElementById('otpFieldEmail').style.display = 'block';
+    //                 document.getElementById('updateEmailBtn').textContent = 'Verify OTP';
+    //                 isOtpSent = true;
+                    
+    //                 Swal.fire({
+    //                     icon: 'success',title: 'OTP Sent',
+    //                     text: 'Please check your new email for the OTP',
+    //                 });
+    //             } else {
+    //                 // Success after OTP verification
+    //                 Swal.fire({
+    //                     icon: 'success',
+    //                     title: 'Success',
+    //                     text: 'Email updated successfully',
+    //                 }).then(() => {
+    //                     $('#updateEmailModal').modal('hide');
+    //                     updateEmailForm.reset();
+    //                     document.getElementById('otpFieldEmail').style.display = 'none';
+    //                     document.getElementById('updateEmailBtn').textContent = 'Update';
+    //                     isOtpSent = false;
+    //                     window.location.reload();
+    //                 });
+    //             } 
+    //         }catch (error) {
+    //             console.error('Password operation error:', error);
+    //             Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+    //         }
+    //     });
+    // }
+
+    
+
+
+
+    // Profile Image Zoom
+    document.getElementById('largeProfileImg').addEventListener('click', function() {
+        this.classList.toggle('zoomed');
+    });
+
+    // // Update Email
+    // document.getElementById('updateEmailBtn').addEventListener('click', async function() {
+    //     const button = this;
+    //     button.disabled = true;
+    //     button.innerHTML = 'Updating...';
+
+    //     const form = document.getElementById('updateEmailForm');
+    //     const inputs = form.querySelectorAll('input');
+    //     const data = new FormData(form);
+
+    //     // Clear previous errors
+    //     inputs.forEach(input => {
+    //         input.classList.remove('is-invalid');
+    //         const errorDiv = document.getElementById(`${input.id}Error`);
+    //         if (errorDiv) errorDiv.textContent = '';
+    //     });
+
+    //     try {
+    //         const response = await fetch('/user/update-email', {
+    //             method: 'POST',
+    //             body: data
+    //         });
+    //         const result = await response.json();
+
+    //         if (!result.success) {
+    //             for (const [key, value] of Object.entries(result.errors)) {
+    //                 const input = document.getElementById(key === 'otp' ? 'otpEmail' : key);
+    //                 const errorDiv = document.getElementById(`${key}Error`);
+    //                 if (input && errorDiv) {
+    //                     input.classList.add('is-invalid');
+    //                     errorDiv.textContent = value;
+    //                 }
+    //             }
+    //         } else if (result.otpSent) {
+    //             document.getElementById('otpFieldEmail').style.display = 'block';
+    //         } else if (result.redirect) {
+    //             window.location.href = result.redirect;
+    //         }
+    //     } catch (error) {
+    //         alert('An error occurred. Please try again.');
+    //     } finally {
+    //         button.disabled = false;
+    //         button.innerHTML = 'Update';
+    //     }
+    // });
+
+    // // Change Password
+    // document.getElementById('changePasswordBtn').addEventListener('click', async function() {
+    //     const button = this;
+    //     button.disabled = true;
+    //     button.innerHTML = 'Updating...';
+
+    //     const form = document.getElementById('changePasswordForm');
+    //     const inputs = form.querySelectorAll('input');
+    //     const data = new FormData(form);
+
+    //     // Clear previous errors
+    //     inputs.forEach(input => {
+    //         input.classList.remove('is-invalid');
+    //         const errorDiv = document.getElementById(`${input.id}Error`);
+    //         if (errorDiv) errorDiv.textContent = '';
+    //     });
+
+    //     try {
+    //         const response = await fetch('/user/change-password', {
+    //             method: 'POST',
+    //             body: data
+    //         });
+    //         const result = await response.json();
+
+    //         if (!result.success) {
+    //             for (const [key, value] of Object.entries(result.errors)) {
+    //                 const input = document.getElementById(key);
+    //                 const errorDiv = document.getElementById(`${key}Error`);
+    //                 if (input && errorDiv) {
+    //                     input.classList.add('is-invalid');
+    //                     errorDiv.textContent = value;
+    //                 }
+    //             }
+    //         } else if (result.redirect) {
+    //             window.location.href = result.redirect;
+    //         }
+    //     } catch (error) {
+    //         alert('An error occurred. Please try again.');
+    //     } finally {
+    //         button.disabled = false;
+    //         button.innerHTML = 'Update';
+    //     }
+    // });
+
+    // // Add Password
+    // document.getElementById('addPasswordBtn').addEventListener('click', async function() {
+    //     const button = this;
+    //     button.disabled = true;
+    //     button.innerHTML = 'Adding...';
+
+    //     const form = document.getElementById('addPasswordForm');
+    //     const inputs = form.querySelectorAll('input');
+    //     const data = new FormData(form);
+
+    //     // Clear previous errors
+    //     inputs.forEach(input => {
+    //         input.classList.remove('is-invalid');
+    //         const errorDiv = document.getElementById(`${input.id}Error`);
+    //         if (errorDiv) errorDiv.textContent = '';
+    //     });
+
+    //     try {
+    //         const response = await fetch('/user/add-password', {
+    //             method: 'POST',
+    //             body: data
+    //         });
+    //         const result = await response.json();
+
+    //         if (!result.success) {
+    //             for (const [key, value] of Object.entries(result.errors)) {
+    //                 const input = document.getElementById(key === 'newPassword' ? 'newPasswordAdd' : 'confirmPasswordAdd');
+    //                 const errorDiv = document.getElementById(`${key === 'newPassword' ? 'newPasswordAdd' : 'confirmPasswordAdd'}Error`);
+    //                 if (input && errorDiv) {
+    //                     input.classList.add('is-invalid');
+    //                     errorDiv.textContent = value;
+    //                 }
+    //             }
+    //         } else if (result.redirect) {
+    //             window.location.href = result.redirect;
+    //         }
+    //     } catch (error) {
+    //         alert('An error occurred. Please try again.');
+    //     } finally {
+    //         button.disabled = false;
+    //         button.innerHTML = 'Add Password';
+    //     }
+    // });
+
+
+       
+    })
+
+    
+   
+</script>

@@ -1,4 +1,5 @@
 const Category = require('../../model/categorySchema');
+const {updateProductsForCategory} = require("../../utils/helper")
 
 const categoryInfo = async (req, res) => {
     try {
@@ -54,6 +55,7 @@ const toggleCategoryStatus = async (req, res) => {
         // toggle category status 
         category.isListed = !category.isListed;
         await category.save();
+        await updateProductsForCategory(category._id);
 
         res.setHeader('Cache-Control', 'no-store');
         res.json({
@@ -74,25 +76,35 @@ const addCategory = async (req, res) => {
     try {
         const {name ,description , categoryOffer} = req.body;
 
-        const existing = await Category.findOne({name});
-
-        if( existing && existing.isDeleted === true){
-
-            existing.isDeleted = false;
-            existing.description = description;
-            existing.categoryOffer = categoryOffer
-            existing.updatedAt = Date.now();
-            existing.isListed = true
-            await existing.save();
-            return res.json({ success: true, message: 'Category restored successfully' });
-
-        }else if( existing && existing.isDeleted === false) {
-            return res.status(400).json({ success: false, message: 'Category name already exists' });
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Invalid Category name' });
         }
-           // /save if not found 
-           await Category.create({ name, description, categoryOffer });
-           res.setHeader('Cache-Control', 'no-store');
-           res.json({ success: true, message: 'Category added successfully' });
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp(`^${name}$`, 'i') }
+        });
+        
+        if (existingCategory) {
+            if (existingCategory.isDeleted) {
+                existingCategory.name = name;
+                existingCategory.isDeleted = false;
+                existingCategory.description = description;
+                existingCategory.categoryOffer = categoryOffer;
+                existingCategory.updatedAt = Date.now();
+                existingCategory.isListed = true;
+                await existingCategory.save();
+                await updateProductsForCategory(existingCategory._id);
+                
+                return res.json({ success: true, message: 'category restored successfully',});
+            } else {
+                // Brand exists and is active
+                return res.status(400).json({ success: false, message: 'category name already exists'});
+            }
+        }
+
+        // /save if not found 
+        await Category.create({ name, description, categoryOffer ,isListed:true });
+        res.setHeader('Cache-Control', 'no-store');
+        res.json({ success: true, message: 'Category added successfully' });
           
         } catch (error) {
             console.error('Error adding category:', error);
@@ -107,6 +119,26 @@ const editCategory = async (req, res) => {
 
         const { name, description, categoryOffer } = req.body;
         const { id } = req.params;
+
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Invalid Category name' });
+        }
+
+        const existingCategory = await Category.findOne({ 
+            name: { $regex: new RegExp(`^${name}$`, 'i') }
+        });
+        
+        if (existingCategory) {
+            if (existingCategory.isDeleted) {
+                    return res.status(400).json({ 
+                    success: false, 
+                    message: 'An Deleted category found with this name . Please restore it by adding with same Category name ' 
+                });
+            } else {
+                // Brand exists and is active
+                return res.status(400).json({ success: false, message: 'category name already exists'});
+            }
+        }
 
         const category = await Category.findByIdAndUpdate(id ,
             {   name,
@@ -151,6 +183,8 @@ const deleteCategory = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Category not found' });
         }
 
+        await updateProductsForCategory(category._id);
+        
         res.setHeader('Cache-Control', 'no-store');
         res.json({ 
             success: true, 

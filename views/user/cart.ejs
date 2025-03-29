@@ -1,0 +1,495 @@
+<%- include('../partial/user/header') %>
+
+    <style>
+        /* Root variables from DIGITAL DEN header */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --sale-color: #dc3545;
+            --shadow-color: rgba(0,0,0,0.1);
+            --muted-text: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --header-bg: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --border-color: #3a3a3a;
+            --accent-color: #4BB6E8;
+            --sale-color: #ff6b6b;
+            --shadow-color: rgba(0,0,0,0.3);
+            --muted-text: #a7a3a3; /* Lighter gray for dark mode readability */
+        }
+
+        /* Apply theme variables to body */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        /* Original CSS with theme variable integration */
+        .cart-item {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            background-color: var(--card-bg);
+            border: 0.5px solid var(--border-color); /* Reduced border thickness */
+        }
+        .cart-item:hover {
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transform: translateY(-3px);
+        }
+        .product-img {
+            height: 120px;
+            width: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .price-tag {
+            font-weight: 600;
+        }
+        .original-price {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .sale-price {
+            color: var(--sale-color);
+            font-size: 1.2rem;
+        }
+        .savings {
+            background-color: var(--sale-color);
+            color: white;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .quantity-selector {
+            width: 120px;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            background-color: var(--card-bg);
+        }
+        .btn-quantity {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background-color: var(--card-bg); /* Changed to match theme */
+            color: var(--text-color);
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .btn-quantity:hover:not(:disabled) {
+            background-color: var(--border-color);
+        }
+        .btn-quantity:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        .quantity-input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-weight: 600;
+            width: 48px;
+            color: var(--text-color);
+        }
+        .quantity-input:focus {
+            box-shadow: none;
+            outline: none;
+        }
+        .cart-summary {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            border: 0.5px solid var(--border-color); /* Reduced border thickness */
+        }
+        .rating {
+            color: #ffc107;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 12px;
+        }
+        .status-available {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-out {
+            background-color: var(--sale-color);
+            color: white;
+        }
+        .btn-remove {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--sale-color);
+            border: 1px solid var(--sale-color);
+            background-color: var(--card-bg);
+            transition: all 0.2s ease;
+        }
+        .btn-remove:hover {
+            background-color: var(--sale-color);
+            color: white;
+        }
+        .btn-save {
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+        .btn-save:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+      
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        [data-theme="dark"] .outofstock{
+            background-color: #1c2025;
+        }
+        .btn-outline-secondary {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .form-control {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+        [data-theme="dark"] .form-control::placeholder {
+            color: #a7a3a3;
+        }
+        hr {
+            border-color: var(--border-color);
+        }
+        .text-muted {
+            color: var(--muted-text) !important; 
+        }
+        .cart-item.updating {
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+    </style>
+
+    <div class="container py-5">
+        <h1 class="mb-4">Your Shopping Cart</h1>
+        
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="cart-items" id="cartItems">
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <% cart.items.forEach(item => { %>
+                            <% 
+                                const isOutOfStock = item.product.status === 'Out of stock' || item.isDiscontinued;
+                                const savingsPercent = Math.round(((item.product.regularPrice - item.product.salePrice) / item.product.regularPrice) * 100);
+                             %>
+                            <div class="cart-item p-3 mb-3 border <%= isOutOfStock ? 'updating' : '' %>" data-product-id="<%= item.product.id %>">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 mb-2 mb-md-0">
+                                        <img src="/uploads/products/<%=item.product.cardImage %>" alt="<%= item.product.name %>" class="product-img" >
+                                    </div>
+                                    <div class="col-md-4 mb-2 mb-md-0">
+                                        <h5 class="mb-1"><%= item.product.name %></h5>
+                                        <div class="small text-muted">Brand: <%= item.product.brand || 'N/A' %></div>
+                                        <div class="mt-1 mb-2 rating">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <% if (i <= item.product.rating) { %>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                <% } else if (i - 0.5 <= item.product.rating) { %>
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                <% } else { %>
+                                                    <i class="far fa-star text-warning"></i>
+                                                <% } %>
+                                            <% } %>
+                                            <span class="ms-1 text-muted">(<%= item.product.rating || 'N/A' %>)</span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="status-badge <%= isOutOfStock ? 'status-out' : 'status-available' %> ">
+                                                <i class="fas fa-<%= isOutOfStock ? 'times' : 'check' %>-circle me-1"></i>
+                                                <%= item.product.status %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2 mb-md-0">
+                                        <div class="price-tag">
+                                            <div class="original-price">₹<%= item.product.regularPrice.toFixed(2) %></div>
+                                            <div class="sale-price">₹<%= item.product.salePrice.toFixed(2) %></div>
+                                            <div><span class="savings">SAVE <%= savingsPercent %>%</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-2 mb-md-0">
+                                        <div class="d-flex align-items-center">
+                                            <div class="quantity-selector input-group me-3">
+                                                <button class="btn-quantity decrease" type="button" <%= isOutOfStock ? 'disabled' : '' %>>
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="text" class="form-control quantity-input <%= isOutOfStock ? 'outofstock' : '' %>" value="<%= item.quantity %>" readonly <%= isOutOfStock ? 'disabled' : '' %>>
+                                                <button class="btn-quantity increase" type="button" <%= isOutOfStock ? 'disabled' : '' %>>
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <button class="btn-remove btn-delete" title="Remove item">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <% if(item.product.status === 'Out of stock') {%>
+                                        <div class="col-12 col-md-1 text-end mt-2 mt-md-0">
+                                            <button class="btn-remove btn-save" title="Save for later" data-product-id="<%= item.product.id %>">
+                                                <i class="fas fa-heart"></i>
+                                            </button>
+                                        </div>
+                                    <% } %> 
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else {%>
+                        <div class="alert alert-info text-center">
+                            Your cart is empty. <a href="/user/products" class="alert-link">Start shopping now!</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Cart Summary -->
+            <div class="col-lg-4">
+                <div class="cart-summary p-4">
+                    <h4 class="mb-4">Order Summary</h4>
+                    <% if (cart) { %>
+                        <% 
+                            const availabeProducts = cart.items.filter(item => !item.isDiscontinued && item.product.status !== 'Out of stock');
+                            const itemCount = availabeProducts.reduce ((total,item) => total + item.quantity ,0) ;
+                         %>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal (<%= itemCount %> items)</span>
+                        <span>$<%= cart.subtotal.toFixed(2) %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount</span>
+                        <span class="text-danger">-$<%= cart.discount.toFixed(2) %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span>$<%= cart.shipping.toFixed(2)  %></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax</span>
+                        <span>$<%= cart.tax %></span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong>Total</strong>
+                        <strong>$<%= cart.totalAmount.toFixed(2) %></strong>
+                    </div>
+                    <% } else { %>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal (0 items)</span>
+                            <span>$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Discount</span>
+                            <span class="text-danger">-$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span>$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax</span>
+                            <span>$0.00</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Total</strong>
+                            <strong>$0.00</strong>
+                        </div>
+                    <% } %>
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Promo code" id="promoCode">
+                            <button class="btn btn-outline-secondary" type="button">Apply</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-100 py-2 mb-2 " id="checkoutBtn" <%= cart && cart.items.some(item => !item.isDiscontinued && item.product.status !== 'Out of stock') ? '' : 'disabled' %>>Proceed to Checkout</button>
+                    <a href="/user/products"><button class="btn btn-outline-secondary w-100 py-2">Continue Shopping</button></a>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const maxProduct = 10;  
+            // Quantity increase
+            document.querySelectorAll(".btn-quantity.increase").forEach(button => {
+                button.addEventListener("click",async  function() {
+                    const cartItem  = this.closest(".cart-item");
+                    const productId = cartItem.dataset.productId;
+                    const input =  this.parentNode.querySelector(".quantity-input");
+                    const currentValue = parseInt(input.value);
+                    // if (currentValue < maxProduct) {
+                    //     await updateCartQuantity(productId, currentValue + 1,cartItem);
+                    // }
+                        await updateCartQuantity(productId, currentValue + 1,cartItem);
+
+                })   
+            })
+
+            // Quantity degreese
+            document.querySelectorAll('.btn-quantity.decrease').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const cartItem  = this.closest(".cart-item");
+                    const productId = cartItem.dataset.productId;
+                    const input =  this.parentNode.querySelector(".quantity-input");
+                    const currentValue = parseInt(input.value);
+                    if (currentValue > 1) {
+                        await updateCartQuantity(productId, currentValue -1,cartItem);
+                    }
+
+                })
+            })
+
+
+            async function updateCartQuantity(productId ,quantity ,cartItem){
+                try {
+                        cartItem.classList.add('updating');
+                        const response  = await fetch("/user/cart/update",{
+                            method:"POST",
+                            headers:{
+                                'Content-Type': 'application/json'
+                            },
+                            body:JSON.stringify({productId,quantity})
+                        });
+
+                        const data = await response.json();
+
+                        if(data.success ){
+                            setTimeout(() => {
+                                cartItem.classList.remove('updating');
+                                location.reload()
+                            }, 800);
+                            
+                        }else {
+                            cartItem.classList.remove('updating');
+                            Swal.fire('Error', data.message || ' error found', 'error');
+                            console.error('Update failed:', data.message);
+                        }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        
+            // Remove item
+            document.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const productId = this.closest('.cart-item').dataset.productId;
+                    await removeFromCart(productId); 
+                });
+            });
+        
+            // Save for later
+            document.querySelectorAll('.btn-save').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const productId = this.dataset.productId;
+                    await saveForLater(productId);
+                });
+            });
+        
+            // Checkout validation
+            document.getElementById('checkoutBtn').addEventListener('click', function(e) {
+                const hasInvalidItems = Array.from(document.querySelectorAll('.cart-item')).some(item => {
+                    const status = item.querySelector('.status-badge').textContent.trim();
+                    return status === 'Out of stock' || status === 'Discontinued';
+                });
+                if (hasInvalidItems) {
+                    e.preventDefault();
+                    Swal.fire('Error','Please remove out-of-stock or discontinued items before proceeding to checkout.', 'error');
+                } else {
+                    window.location.href = '/user/checkout';
+                }
+            });
+        
+            async function updateQuantity(productId, quantity) {
+                try {
+                    const response = await fetch('/cart/update-quantity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, quantity }),
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        window.location.reload(); // Reload to reflect updated cart
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error updating quantity:', error);
+                    alert('Failed to update quantity');
+                }
+            }
+        
+            async function removeFromCart(productId) {
+                try {
+                    const response  = await fetch("/user/cart/remove",{
+                        method:"POST",
+                        headers:{
+                            'Content-Type': 'application/json'
+                        },
+                        body:JSON.stringify({productId})
+                    });
+
+                    const data = await response.json();
+                    if(data.success ){
+                            location.reload()
+                    }else {
+                        Swal.fire('Error', data.message || 'Failed to remove item', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error removing item:', error);
+                    Swal.fire('Error', data.message || ' Failed to remove item', 'error');
+                }
+            }
+        
+            async function saveForLater(productId) {
+                try {
+                    const response = await fetch('/user/wishlist/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId }),
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        await removeFromCart(productId); 
+                    } else {
+                        Swal.fire('Error',data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error saving for later:', error);
+                    Swal.fire('Error',"Failed to remove item", 'error');
+                }
+            }
+        
+        });
+        </script>
+
+
+<%- include('../partial/user/footer') %>

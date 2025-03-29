@@ -1,10 +1,8 @@
-
 document.addEventListener('DOMContentLoaded', function() {
-    let cropper;
-    let currentFileInput;
-    let currentImageIndex;
+    let cropper = null;
+    let currentFileInput = null;
+    let currentImageIndex = null;
     const cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
-    const isEditMode = !!document.getElementById("productId").value;
 
     // Form submission
     const productForm = document.getElementById('ProductForm');
@@ -15,12 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!validateForm()) return;
 
         const formData = new FormData(productForm);
-        const url = isEditMode ? `/admin/products/edit/${formData.get('productId')}` : '/admin/products/add';
-        const method = isEditMode ? 'PATCH' : 'POST';
+        const url = '/admin/products/add';
 
         try {
             const response = await fetch(url, {
-                method: method,
+                method: 'POST',
                 body: formData,
                 headers: {
                     'Accept': 'application/json'
@@ -28,19 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const result = await response.json();
-            if ( !response.ok || !result.success) {
+            if (!response.ok || !result.success) {
                 console.log('Validation errors from server:', result.errors);
                 displayErrors(result.errors || {});
                 Swal.fire('Error', result.message || 'Please fix the input errors and try again', 'error');
             } else {
-                Swal.fire('Success', isEditMode ? 'Product updated successfully!' : 'Product added successfully!', 'success')
-                .then(() => {
-                        if (!isEditMode) {
-                            productForm.reset();
-                            resetImageInputs();
-                        }
+                Swal.fire('Success', 'Product added successfully!', 'success')
+                    .then(() => {
+                        productForm.reset();
+                        resetImageInputs();
                         window.location.href = '/admin/products';
-                });
+                    });
             }
         } catch (error) {
             console.error('Submission error:', error);
@@ -53,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
         handleFileChange('cardImageUpload', 'cardThumbnail', 'cardThumbnailContainer'));
     document.getElementById('productImagesUpload').addEventListener('change', handleMultipleFileChange);
 
+    // Crop button listeners
     document.querySelectorAll('.crop-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             currentFileInput = this.getAttribute('data-target');
@@ -65,37 +61,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 currentImageIndex = parseInt(selected.getAttribute('data-index'));
-                const isExisting = selected.getAttribute('data-existing');
-                let file;
-                if (isExisting) {
-                    // For existing images, fetch the image as a blob
-                    fetch(selected.querySelector('img').src)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            file = new File([blob], `existing-${currentImageIndex}.jpg`, { type: 'image/jpeg' });
-                            openCropModal(file);
-                        });
-                } else {
-                    file = files[currentImageIndex];
-                    if (!file) {
-                        Swal.fire('Warning', 'No file selected for cropping', 'warning');
-                        return;
-                    }
-                    openCropModal(file);
+                const file = files[currentImageIndex];
+                if (!file) {
+                    Swal.fire('Warning', 'No file selected for cropping', 'warning');
+                    return;
                 }
+                openCropModal(file);
             } else {
                 currentImageIndex = 0;
-                if (!files.length && !isEditMode) {
+                if (!files.length) {
                     Swal.fire('Warning', 'Please select an image first', 'warning');
                     return;
-                } else if (!files.length && isEditMode) {
-                    // For cardImage in edit mode
-                    fetch(document.getElementById('cardThumbnail').src)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            const file = new File([blob], 'existing-card.jpg', { type: 'image/jpeg' });
-                            openCropModal(file);
-                        });
                 } else {
                     openCropModal(files[0]);
                 }
@@ -106,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Crop functionality
     document.getElementById('cropButton').addEventListener('click', () => {
         if (!cropper) return;
-
         const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
         canvas.toBlob(blob => {
             const croppedFile = new File([blob], `cropped_${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -116,104 +91,128 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateMultipleFile(croppedFile);
             }
             cropModal.hide();
-            cropper.destroy();
-            cropper = null;
+            destroyCropper();
         }, 'image/jpeg', 0.9);
     });
 
+    // Zoom and rotate controls
     document.getElementById('rotateLeftBtn').addEventListener('click', () => cropper?.rotate(-90));
     document.getElementById('rotateRightBtn').addEventListener('click', () => cropper?.rotate(90));
-    document.getElementById('zoomInBtn').addEventListener('click', () => cropper?.zoom(0.1));
-    document.getElementById('zoomOutBtn').addEventListener('click', () => cropper?.zoom(-0.1));
+    document.getElementById('zoomInBtn').addEventListener('click', () => {
+        if (cropper) cropper.zoom(0.1);
+    });
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+        if (cropper) cropper.zoom(-0.1);
+    });
+
+    // Modal cleanup
+    document.getElementById('cropModal').addEventListener('hidden.bs.modal', () => {
+        destroyCropper();
+    });
+
+    function destroyCropper() {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    }
+
+    function openCropModal(file) {
+        const img = document.getElementById('imageToCrop');
+        const reader = new FileReader();
+        reader.onload = e => {
+            img.src = e.target.result;
+            cropModal.show();
+            document.getElementById('cropModal').addEventListener('shown.bs.modal', initializeCropper, { once: true });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function initializeCropper() {
+        const img = document.getElementById('imageToCrop');
+        destroyCropper(); // Ensure no previous instance exists
+        cropper = new Cropper(img, {
+            aspectRatio: 1,
+            viewMode: 1,
+            zoomable: true,
+            scalable: true,
+            movable: true,
+            minCropBoxWidth: 100,
+            minCropBoxHeight: 100,
+            background: false,
+            responsive: true,
+            autoCropArea: 1,
+        });
+    }
 
     // Validation
     function validateForm() {
         let isValid = true;
-        const fields = ['productName', 'description', 'category', 'brand', 'regularPrice', 'salePrice', 'quantity', 'status'];
+        const fields = ['productName', 'description', 'category', 'brand', 'regularPrice', 'salePrice', 'quantity'];
         
         fields.forEach(id => {
             const input = document.getElementById(id);
             if (!input.value.trim()) {
-                showError(id, `${input.labels[0].textContent} is required`);
+                showError(id, `${input.labels[0].textContent.replace(' *', '')} is required`);
                 isValid = false;
             }
         });
 
         const cardImage = document.getElementById('cardImageUpload');
-        const cardThumbnailContainer = document.getElementById('cardThumbnailContainer');
-        if (!cardImage.files.length && (!isEditMode || cardThumbnailContainer.style.display === 'none')) {
+        if (!cardImage.files.length) {
             showError('cardImageUpload', 'Card image is required');
             isValid = false;
         }
 
         const productImages = document.getElementById('productImagesUpload');
-        const thumbnails = document.querySelectorAll('#productThumbnails .thumbnail-wrapper');
-        const existingImagesCount = Array.from(thumbnails).filter(t => t.getAttribute('data-existing')).length;
-        const newImagesCount = productImages.files.length;
-        const totalImages = existingImagesCount + newImagesCount;
-
-        if ((!isEditMode && totalImages < 3) || (isEditMode && totalImages < 3 && newImagesCount === 0)) {
+        if (productImages.files.length < 3) {
             showError('productImagesUpload', 'Minimum 3 product images required');
             isValid = false;
-        } else if (totalImages > 4) {
+        } else if (productImages.files.length > 4) {
             showError('productImagesUpload', 'Maximum 4 product images allowed');
             isValid = false;
         }
 
         if (!validateSpecifications()) {
-           isValid = false;
+            isValid = false;
         }
         return isValid;
     }
 
-    // Add this function alongside your other validation functions
     function validateSpecifications() {
         let isValid = true;
         const specEntries = document.querySelectorAll('.specification-entry');
         const specificationsContainer = document.getElementById('specifications-container');
         
-        // Check if there are at least 3 specifications
         if (specEntries.length < 3) {
-            // Create or update a visible error message area
             let errorMessageArea = document.getElementById('specifications-error-area');
             if (!errorMessageArea) {
                 errorMessageArea = document.createElement('div');
                 errorMessageArea.id = 'specifications-error-area';
                 errorMessageArea.className = 'alert alert-danger mt-2';
                 errorMessageArea.style.display = 'none';
-                
-                // Insert it after the specifications container but before the add button
                 const addSpecBtn = document.getElementById('add-spec-btn');
                 addSpecBtn.parentNode.insertBefore(errorMessageArea, addSpecBtn);
             }
             errorMessageArea.textContent = 'Minimum 3 specifications required';
             errorMessageArea.style.display = 'block';
-            
-            // Also add invalid class to container for visual indication
             specificationsContainer.classList.add('border', 'border-danger', 'p-2', 'rounded');
-            
             isValid = false;
         } else if (specEntries.length > 10) {
-            // Same approach for maximum limit
             let errorMessageArea = document.getElementById('specifications-error-area');
             if (!errorMessageArea) {
                 errorMessageArea = document.createElement('div');
                 errorMessageArea.id = 'specifications-error-area';
                 errorMessageArea.className = 'alert alert-danger mt-2';
                 errorMessageArea.style.display = 'none';
-                
                 const addSpecBtn = document.getElementById('add-spec-btn');
                 addSpecBtn.parentNode.insertBefore(errorMessageArea, addSpecBtn);
             }
-            
             errorMessageArea.textContent = 'Maximum 10 specifications allowed';
             errorMessageArea.style.display = 'block';
-            
             specificationsContainer.classList.add('border', 'border-danger', 'p-2', 'rounded');
-            
             isValid = false;
         } else {
-            // If valid, hide the error message and remove danger styling
             const errorMessageArea = document.getElementById('specifications-error-area');
             if (errorMessageArea) {
                 errorMessageArea.style.display = 'none';
@@ -221,7 +220,6 @@ document.addEventListener('DOMContentLoaded', function() {
             specificationsContainer.classList.remove('border', 'border-danger', 'p-2', 'rounded');
         }
         
-        // Validate each specification entry
         specEntries.forEach((entry) => {
             const nameInput = entry.querySelector('.spec-name');
             const valueInput = entry.querySelector('.spec-value');
@@ -254,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
-  // Error handling
+    // Error handling
     function showError(id, message) {
         const input = document.getElementById(id);
         input.classList.add('is-invalid');
@@ -272,13 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
             el.style.display = 'none';
         });
         
-        // Clear specification error area
         const errorMessageArea = document.getElementById('specifications-error-area');
         if (errorMessageArea) {
             errorMessageArea.style.display = 'none';
         }
         
-        // Remove danger styling from specifications container
         const specificationsContainer = document.getElementById('specifications-container');
         if (specificationsContainer) {
             specificationsContainer.classList.remove('border', 'border-danger', 'p-2', 'rounded');
@@ -306,9 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.onload = e => {
                     thumbnail.src = e.target.result;
                     container.style.display = 'block';
-
-                    const removeInput = document.querySelector('input[name="removeCardImage"]');
-                if (removeInput) removeInput.remove();
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -321,12 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleMultipleFileChange() {
         const fileInput = document.getElementById('productImagesUpload');
         const container = document.getElementById('productThumbnails');
-        const existingThumbnails = Array.from(container.children).filter(t => t.getAttribute('data-existing'));
-
-        // Clear previous new uploads but retain existing
-        Array.from(container.children).forEach(child => {
-            if (!child.getAttribute('data-existing')) child.remove();
-        });
+        
+        // Clear existing thumbnails
+        container.innerHTML = '';
         
         Array.from(fileInput.files).forEach((file, index) => {
             if (validateFile(file)) {
@@ -334,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 reader.onload = e => {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'thumbnail-wrapper';
-                    wrapper.setAttribute('data-index', existingThumbnails.length + index);
+                    wrapper.setAttribute('data-index', index);
 
                     const img = document.createElement('img');
                     img.className = 'thumbnail-img';
@@ -343,7 +333,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-btn';
                     removeBtn.innerHTML = '×';
-                    removeBtn.onclick = () => removeImage(existingThumbnails.length + index);
+                    removeBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        removeImage(index);
+                    };
 
                     wrapper.appendChild(img);
                     wrapper.appendChild(removeBtn);
@@ -390,48 +383,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const dt = new DataTransfer();
         const files = Array.from(fileInput.files);
-        // files[currentImageIndex] = croppedFile;
-
-        if (wrapper.getAttribute('data-existing')) {
-            files.push(croppedFile); // Add new file for existing images
-        } else {
-            files[currentImageIndex] = croppedFile;
-        }
-
+        files[currentImageIndex] = croppedFile;
         files.forEach(file => dt.items.add(file));
         fileInput.files = dt.files;
 
         const reader = new FileReader();
         reader.onload = e => img.src = e.target.result;
         reader.readAsDataURL(croppedFile);
-    }
-
-    function openCropModal(file) {
-        const img = document.getElementById('imageToCrop');
-        const reader = new FileReader();
-        reader.onload = e => {
-            img.src = e.target.result;
-            cropModal.show();
-            // Use Bootstrap's 'shown.bs.modal' event to ensure modal is visible
-            document.getElementById('cropModal').addEventListener('shown.bs.modal', () => {
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(img, {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    zoomable: true,
-                    scalable: true,
-                    movable: true,
-                    minCropBoxWidth: 100,
-                    minCropBoxHeight: 100,
-                    background: false,
-                    responsive: true,
-                    autoCropArea: 1,
-                });
-            },
-            //  { once: true }
-            ); 
-        };
-        reader.readAsDataURL(file);
     }
 
     function selectThumbnail(wrapper) {
@@ -445,33 +403,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('cardThumbnailContainer');
             fileInput.value = '';
             container.style.display = 'none';
-            if (isEditMode) {
-                const removeInput = document.createElement('input');
-                removeInput.type = 'hidden';
-                removeInput.name = 'removeCardImage';
-                removeInput.value = 'true';
-                productForm.appendChild(removeInput);
-            }
         } else {
             const fileInput = document.getElementById('productImagesUpload');
             const container = document.getElementById('productThumbnails');
-            const wrapper = document.querySelector(`.thumbnail-wrapper[data-index="${indexOrId}"]`);
+            const wrapper = container.querySelector(`.thumbnail-wrapper[data-index="${indexOrId}"]`);
+            
             if (wrapper) {
-                const isExisting = wrapper.getAttribute('data-existing');
                 wrapper.remove();
-                if (isExisting && isEditMode) {
-                    const removeInput = document.createElement('input');
-                    removeInput.type = 'hidden';
-                    removeInput.name = `removedImages[${indexOrId}]`;
-                    removeInput.value = 'true';
-                    productForm.appendChild(removeInput);
-                } else if (!isExisting) {
-                    const dt = new DataTransfer();
-                    Array.from(fileInput.files).forEach((file, i) => {
-                        if (i !== indexOrId - document.querySelectorAll('[data-existing]').length) dt.items.add(file);
-                    });
-                    fileInput.files = dt.files;
-                }
+                const dt = new DataTransfer();
+                Array.from(fileInput.files).forEach((file, i) => {
+                    if (i !== indexOrId) dt.items.add(file);
+                });
+                fileInput.files = dt.files;
+                
+                // Reindex thumbnails
                 Array.from(container.children).forEach((child, i) => child.setAttribute('data-index', i));
             }
         }
@@ -484,66 +429,77 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('productThumbnails').innerHTML = '';
     }
 
+    // Specifications handling
     document.getElementById('add-spec-btn').addEventListener('click', function() {
-    const container = document.getElementById('specifications-container');
-    const specEntries = container.querySelectorAll('.specification-entry');
-    const newIndex = specEntries.length;
-    
-    const entryDiv = document.createElement('div');
-    entryDiv.className = 'specification-entry mb-3';
-    entryDiv.setAttribute('data-index', newIndex);
-    
-    entryDiv.innerHTML = `
-        <div class="row g-3 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label">Specification Name</label>
-                <input type="text" class="form-control spec-name" name="specifications[${newIndex}][name]" placeholder="e.g., Processor">
-                <div class="invalid-feedback">Specification name is required.</div>
-            </div>
-            <div class="col-md-5">
-                <label class="form-label">Value</label>
-                <input type="text" class="form-control spec-value" name="specifications[${newIndex}][value]" placeholder="e.g., Intel i7">
-                <div class="invalid-feedback">Value is required.</div>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-danger remove-spec-btn w-100">Remove</button>
-            </div>
-        </div>
-    `;
-    
-    container.appendChild(entryDiv);
-    
-    // Add event listener for the remove button
-    entryDiv.querySelector('.remove-spec-btn').addEventListener('click', function() {
-        entryDiv.remove();
-        // Re-index remaining specifications
-        reindexSpecifications();
-    });
-});
-
-
-// Helper function to re-index specifications after removal
-function reindexSpecifications() {
-    const container = document.getElementById('specifications-container');
-    const specEntries = container.querySelectorAll('.specification-entry');
-    
-    specEntries.forEach((entry, index) => {
-        entry.setAttribute('data-index', index);
-        const nameInput = entry.querySelector('.spec-name');
-        const valueInput = entry.querySelector('.spec-value');
+        const container = document.getElementById('specifications-container');
+        const specEntries = container.querySelectorAll('.specification-entry');
+        const newIndex = specEntries.length;
         
-        nameInput.name = `specifications[${index}][name]`;
-        valueInput.name = `specifications[${index}][value]`;
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'specification-entry mb-3';
+        entryDiv.setAttribute('data-index', newIndex);
+        
+        entryDiv.innerHTML = `
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Specification Name</label>
+                    <input type="text" class="form-control spec-name" name="specifications[${newIndex}][name]" placeholder="e.g., Processor">
+                    <div class="invalid-feedback">Specification name is required.</div>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Value</label>
+                  <input type="text" class="form-control spec-value" name="specifications[${newIndex}][value]" placeholder="e.g., Intel i5-10400F">
+                    <div class="invalid-feedback">Specification value is required.</div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger w-100 remove-spec-btn" data-index="${newIndex}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(entryDiv);
+        
+        // Add event listener to the remove button
+        entryDiv.querySelector('.remove-spec-btn').addEventListener('click', function() {
+            removeSpecification(this.getAttribute('data-index'));
+        });
+        
+        // Clear any specification validation error if it exists
+        const errorMessageArea = document.getElementById('specifications-error-area');
+        if (errorMessageArea) {
+            errorMessageArea.style.display = 'none';
+        }
+        
+        const specificationsContainer = document.getElementById('specifications-container');
+        specificationsContainer.classList.remove('border', 'border-danger', 'p-2', 'rounded');
     });
-}
-
-
-
-document.querySelectorAll('.remove-spec-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const specEntry = this.closest('.specification-entry');
-        specEntry.remove();
-        reindexSpecifications();
-    });
-});
+    
+    function removeSpecification(index) {
+        const container = document.getElementById('specifications-container');
+        const specToRemove = container.querySelector(`.specification-entry[data-index="${index}"]`);
+        
+        if (specToRemove) {
+            specToRemove.remove();
+            
+            // Reindex remaining specifications
+            const allSpecs = container.querySelectorAll('.specification-entry');
+            allSpecs.forEach((spec, idx) => {
+                spec.setAttribute('data-index', idx);
+                spec.querySelector('.remove-spec-btn').setAttribute('data-index', idx);
+                
+                const nameInput = spec.querySelector('.spec-name');
+                const valueInput = spec.querySelector('.spec-value');
+                
+                nameInput.name = `specifications[${idx}][name]`;
+                valueInput.name = `specifications[${idx}][value]`;
+            });
+        }
+    }
+    
+    // Add at least 3 specification fields by default
+    for (let i = 0; i < 3; i++) {
+        document.getElementById('add-spec-btn').click();
+    }
 });

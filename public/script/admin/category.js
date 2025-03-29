@@ -352,4 +352,4 @@ function validateCategory(name, description, categoryOffer) {
            }
 
        return errors;
-  }
+}

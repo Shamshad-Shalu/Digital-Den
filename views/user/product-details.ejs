@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="/style/user/productDetails.css">
 
 <div class="container py-5">
-    <!-- Dynamic Breadcrumbs -->
+    <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -65,13 +65,13 @@
             </div>
             <!-- Stock Status -->
             <div class="stock-status mb-3 ">
-                <% if (product.status === 'Available' && product.quantity > 0) { %>
-                    <span class="badge bg-success">In Stock</span>
-                    <span id="counts" class="text-muted ms-2">Only <%= product.quantity %> left</span>
-                <% } else if (product.status === 'out of stock') { %>
-                    <span class="badge bg-warning">Out of Stock</span>
-                <% } %>
-            </div>
+            <% if (product.status === 'Available' && product.quantity > 0) { %>
+                <span class="badge bg-success">In Stock</span>
+                <span id="counts" class="text-muted ms-2">Only <%= product.quantity %> left</span>
+            <% } else if (product.status === 'Out of stock') { %>
+                <span class="badge bg-warning">Out of Stock</span>
+            <% } %>
+        </div>
             <!-- Price and Discounts -->
             <div class="price-section mb-4">
                 <div class="current-price fs-3 fw-bold">₹<%= product.salePrice %></div>
@@ -113,12 +113,27 @@
                         </button>
                     </div>
                     <div class="col-md-6">
-                        <button class="btn btn-wishlist w-100" onclick="addtoWishlist('<%= product._id %>')">
+                        <button class="btn btn-wishlist  w-100" id="addtoWishlist"  onclick="addtoWishlist('<%= product._id %>')" data-product-id = "<%= product._id %>">
                             <i class="fa fa-heart me-2"></i>Add to Wishlist
                         </button>
                     </div>
                 </div>
-            <% } else { %>
+            <% } else if(product.status === "Out of stock") { %>
+                <div class="purchase-options mb-4">
+                    <div class="row align-items-center">
+                        <div class="alert alert-warning">
+                            This product is currently out of stock. <a href="/user/products" class="alert-link">Browse other products</a>.
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2 product-actions">
+                    <div class="col-md-6">
+                        <button class="btn btn-wishlist  w-100" id="addtoWishlist"  onclick="addtoWishlist('<%= product._id %>')" data-product-id = "<%= product._id %>">
+                            <i class="fa fa-heart me-2"></i>Add to Wishlist
+                        </button>
+                    </div>
+                </div>
+            <%}else { %>   
                 <div class="alert alert-danger">
                     This product is currently unavailable. <a href="/user/products" class="alert-link">Browse other products</a>.
                 </div>
@@ -233,9 +248,106 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    function changeMainImage(thumbnail) {
+        const mainImage = document.getElementById('mainImage');
+        if (mainImage) {
+            mainImage.src = thumbnail.src;
+            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+    }
+    // Define addToCart globally
+    function addToCart(productId) {
+        const quantityInput = document.getElementById("quantity");
+        const quantity = quantityInput ? quantityInput.value : 1; 
+        fetch("/user/cart/add", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId, quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message || 'Product added to cart successfully!',
+                    timer: 1000,
+                    showConfirmButton: false
+                });
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Error adding to cart',
+                    timer: 1000,
+                    showConfirmButton: false
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred. Please try again.',
+                timer: 1000,
+                showConfirmButton: false
+            });
+        });
+    }
 
-        const zoomContainers = document.querySelectorAll('.zoom-container');
+    // Define addToCart globally
+    function addtoWishlist(productId) {
+        fetch("/user/wishlist/add", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ productId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message || 'Product added to wishlist successfully!',
+                    timer: 1200,
+                    showConfirmButton: "OK"
+                });
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Error adding to wishlist',
+                    timer: 1500,
+                    showConfirmButton: "OK"
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred. Please try again.',
+                timer: 1000,
+                showConfirmButton: true
+            });
+        });
+    }
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const zoomContainers = document.querySelectorAll('.zoom-container');
         zoomContainers.forEach(container => {
             const img = container.querySelector('#mainImage');
             const lens = container.querySelector('.zoom-lens');
@@ -316,59 +428,22 @@
 
             document.getElementById('quantity-plus').addEventListener('click', () => {
                 let value = parseInt(quantityInput.value);
-                if (value < <%= product.quantity %>) quantityInput.value = value + 1;
+                if (value < <%= product.quantity %>){
+                    quantityInput.value = value + 1;
+                }
             });
 
             quantityInput.addEventListener('change', () => {
                 let value = parseInt(quantityInput.value);
-                if (value < 1) quantityInput.value = 1;
-                if (value > <%= product.quantity %>) quantityInput.value = <%= product.quantity %>;
+                if (value < 1) {
+                    quantityInput.value = 1
+                }
+                if (value > <%= product.quantity %>){
+                    quantityInput.value = <%= product.quantity %>;
+                } 
             });
-        }
-
-    });
-
-    // Thumbnail click handler remains unchanged
-    function changeMainImage(thumbnail) {
-        const mainImage = document.getElementById('mainImage');
-        if (mainImage) {
-            mainImage.src = thumbnail.src;
-            document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-            thumbnail.classList.add('active');
-        }
-    }
-
-    //  // Add to Cart Function
-    // function addToCart(productId) {
-    //     const quantity = document.getElementById('quantity').value;
-
-    //     fetch('/user/cart/add', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ productId, quantity })
-    //     })
-    //     .then(response => response.json())
-    //     .then(data => {
-    //         if (data.success) {
-    //             alert('Product added to cart!');
-    //         } else if (data.redirect) {
-    //             window.location.href = data.redirect; 
-    //         } else {
-    //             alert(data.message || 'Error adding to cart');
-    //         }
-    //     })
-    //     .catch(err => {
-    //         console.error('Error:', err);
-    //         alert('An error occurred. Please try again.');
-    //     });
-    // }
-
-    // function addtoWishlist (id) {
-
-    // }
-
+        }  
+});
 
 </script>
 

@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
-const Product = require("../../model/productSchema"); // Adjust path to your Product model
-const Category = require("../../model/categorySchema"); // Assuming you have a Category model
-const Brand = require("../../model/brandSchema"); // Assuming you have a Brand model
-const { products } = require("../../products");
+const Product = require("../../model/productSchema"); 
+const Category = require("../../model/categorySchema"); 
+const Brand = require("../../model/brandSchema"); 
+const {determineStatus} = require("../../utils/helper");
+const Wishlist = require("../../model/wishlistSchema");
 const { ObjectId } = require('mongoose').Types;
 
 
@@ -10,6 +11,7 @@ const loadHome = async (req , res) => {
     try {
 
         const { isLoggedIn, userData, isUserBlocked } = res.locals;
+    
         let products  = await Product.find({
             isDeleted:false ,
             isListed : true ,
@@ -19,6 +21,11 @@ const loadHome = async (req , res) => {
         .populate({ path:"brand", match:{isListed:true}, select:"brandName"})
         .populate("rating", "rating")
         .limit(11);
+
+        let wishlist = null;
+        if (isLoggedIn) {
+            wishlist = await Wishlist.findOne({ userId: userData._id });
+        }
 
         let offers  = await Product.find({
             isDeleted : false ,
@@ -52,7 +59,8 @@ const loadHome = async (req , res) => {
           topProducts,
           user: userData,
           isLoggedIn: isLoggedIn,
-          showBlockedNotification: isUserBlocked
+          showBlockedNotification: isUserBlocked,
+          wishlist
         });  
     } catch (error) {
         console.log("Home page not loading:", error);
@@ -72,7 +80,7 @@ const getProducts = async (req, res) => {
 
         if (search) {
             query.$or = [
-                { productName: { $regex: search, $options: "i" } }
+                { productName: { $regex: search.trim(), $options: "i" } }
             ];
         }
 
@@ -197,6 +205,10 @@ const getProducts = async (req, res) => {
         const filterQuery = filterQueryParts.length > 0 ? `&${filterQueryParts.join('&')}` : '';
 
         
+        let wishlist = null;
+        if (isLoggedIn) {
+            wishlist = await Wishlist.findOne({ userId: userData._id });
+        }
         const renderData = {
             products: transformedProducts,
             categories: allCategories.map(cat => cat.name),
@@ -212,7 +224,8 @@ const getProducts = async (req, res) => {
             filterQuery: filterQuery,
             isLoggedIn: isLoggedIn,
             user: userData,
-            showBlockedNotification: isUserBlocked
+            showBlockedNotification: isUserBlocked,
+            wishlist
         };
         
         res.render("user/products",renderData);
@@ -413,12 +426,22 @@ const getProductDetails = async (req, res) => {
             .populate('brand', 'brandName isListed')
             .lean();
 
-        if (!product?.isListed || product?.isDeleted){
+        if (!product || !product.isListed || product.isDeleted){
             return res.redirect('/user/products'); 
         }
         if  (!product?.category?.isListed || !product?.brand?.isListed){
             return res.redirect('/user/products');
         }
+
+
+        const status = await determineStatus(productId);
+        product.status = status; 
+
+        if (status === 'Discontinued') {
+            return res.redirect('/user/products');
+        }
+
+
 
         // related products
         let relatedProducts = await Product.find({
@@ -433,6 +456,12 @@ const getProductDetails = async (req, res) => {
 
         relatedProducts = relatedProducts.filter(pr => pr?.category?.isListed && pr?.brand?.isListed).slice(0,7)
          
+        for (let i = 0; i < relatedProducts.length; i++) {
+            const relProduct = relatedProducts[i];
+            const relStatus = await determineStatus(relProduct._id);
+            relProduct.status = relStatus;
+        }
+
         res.render('user/product-details', {
             product,
             relatedProducts,
@@ -942,29 +971,8 @@ const getProductDetails = async (req, res) => {
 
 
 
-
-// Add to Cart (Basic Implementation - Expand as needed)
-const addToCart = async (req, res) => {
-    try {
-        const { productId, quantity } = req.body;
-
-        const product = await Product.findById(productId).lean();
-        if (!product || product.isDeleted || product.isBlocked || product.status !== 'Available' || product.quantity < quantity) {
-            return res.json({ success: false, redirect: '/products', message: 'Product is unavailable' });
-        }
-
-        // Add your cart logic here (e.g., update user's cart in session or database)
-        // For simplicity, assuming success
-        res.json({ success: true, message: 'Product added to cart' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Server Error' });
-    }
-};
-
 module.exports  = {
     loadHome,
     getProducts,
-    addToCart,
     getProductDetails
 }

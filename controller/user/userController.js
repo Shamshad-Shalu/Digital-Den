@@ -33,8 +33,7 @@ const login = async (req , res) => {
 
         if (!isGoogleUser && !password) {
             return res.status(400).json({
-                success: false,
-                message: "Password is required"
+                success: false,message: "Password is required"
             });
         }
 
@@ -174,7 +173,7 @@ const verifyOTP = async(req, res)=>{
                 username:user.username,
                 email:user.email,
                 password:harshPassword
-            })
+            });
 
             await newUserData.save();
             req.session.user = newUserData._id;

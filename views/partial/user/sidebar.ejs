@@ -1,0 +1,316 @@
+<style>
+  /* Common Variables */
+    :root {
+        --card-bg: #ffffff;
+        --text-color: #333333;
+        --border-color: #e5e7eb;
+        --primary-color: #6366f1;
+        --primary-light: rgba(99, 102, 241, 0.1);
+        --secondary-color: #4f46e5;
+        --dark-color: #1e293b;
+        --light-color: #f8fafc;
+        --danger-color: #ef4444;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --body-bg: #f9fafb;
+        --light-text: #666666;
+    }
+
+    [data-theme="dark"] {
+        --card-bg: #2d2d2d;
+        --text-color: #e0e0e0;
+        --border-color: #444444;
+        --body-bg: black;
+        --light-text: #b0b0b0;
+        --dark-color: #e0e0e0;
+        --light-color: #1e293b;
+    }
+
+    /* Body background */
+    body {
+        background-color: var(--body-bg);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        color: var(--text-color);
+        min-height: 100vh;
+    }
+
+    /* Profile Container */
+    .profile-container {
+        max-width: 1400px;
+        padding: 3rem;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        background-color: var(--card-bg);
+        border-radius: 12px !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        min-height: calc(100vh - 6rem);
+        padding: 10px;
+     
+    }
+
+    .sidebar-content {
+        padding: 2rem;
+        position: sticky;
+        top: 0;
+        background-color: var(--card-bg);
+        max-height: 100vh;
+        
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--text-color);
+        text-decoration: none;
+        border-radius: 8px;
+        margin: 5px 0;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: var(--primary-color);
+    }
+
+    [data-theme="dark"] .sidebar-link:hover,
+    [data-theme="dark"] .sidebar-link.active {
+        background-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .sidebar-link i {
+        margin-right: 12px;
+        font-size: 1.2rem;
+    }
+
+    .profile-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #3b82f6, #1e40af);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+        overflow: hidden;    
+         flex-shrink: 0;
+    }
+
+    .profile-info h6 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .profile-info span {
+        font-size: 0.85rem;
+        color: var(--text-color);
+    }
+
+    /* Content Area */
+    .content-area {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 2.5rem;
+        color: var(--text-color);
+    }
+
+    /* Section Title */
+    .section-title {
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        border-radius: 8px;
+        padding: 10px 20px;
+        color: #ffffff;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    .btn-danger {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+        border-radius: 8px;
+        padding: 10px 20px;
+        color: #ffffff;
+        transition: all 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background-color: #dc2626;
+        border-color: #dc2626;
+    }
+
+    /* Media Queries */
+    @media (min-width: 992px) {
+        .sidebar {
+            min-width: 310px;
+        }
+        .content-area {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 991.98px) {
+        .sidebar {
+            margin-bottom: 1.5rem;
+        }
+        .sidebar-content {
+            position: static;
+            max-height: none;
+        }
+    }  
+
+    /* Profile Section in Sidebar */
+    .profile-section {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+   
+    .profile-info h6 {
+        margin: 0;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .profile-info span {
+        font-size: 0.85rem;
+        color: var(--text-color);
+    }
+
+    /* /////// */
+    .address-card {
+        max-width: none;  /* Remove previous max-width */
+        width: 100%;      /* Make it full width of column */
+    }
+
+    /* Grid layout for larger screens */
+    @media (min-width: 992px) {
+        .address-list .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .address-list .col-md-12 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+
+    /* Dark Mode Input Styling */
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+        background-color: #333333;  /* Darker background for inputs */
+        color: #e0e0e0;            /* Light text */
+        border-color: #555555;      /* Slightly lighter border */
+    }
+
+    [data-theme="dark"] .form-control:focus,
+    [data-theme="dark"] .form-select:focus {
+        background-color: #333333;  /* Maintain dark background on focus */
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+    }
+
+    [data-theme="dark"] .form-control::placeholder,
+    [data-theme="dark"] .form-select::placeholder {
+        color: #b0b0b0 !important; /* Light gray color for readability in dark mode */
+        opacity: 1; /* Ensure full opacity */
+    }
+
+     /* Style for default user icon */
+     .default-profile-icon {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background-color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--card-bg);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .default-profile-icon i {
+        font-size: 60px;
+        color: white;
+    }
+
+</style>
+<div class="col-12 col-md-3">
+    <div class="sidebar">
+        <div class="sidebar-content">
+            <div class="profile-section">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <h6><%= user ? user.username : '' %></h6>
+                    <span><%= user ? user.email : '' %></span>
+                </div>
+            </div>
+            <a href="/user/profile" class="sidebar-link" data-section="profile">
+                <i class="bi bi-person"></i> Profile
+            </a>
+            <a href="/user/address" class="sidebar-link" data-section="address">
+                <i class="bi bi-geo-alt"></i> Address
+            </a>
+            <a href="/user/orders" class="sidebar-link" data-section="orders">
+                <i class="bi bi-box"></i> Orders
+            </a>
+            <a href="/user/wallet" class="sidebar-link" data-section="wallet">
+                <i class="bi bi-wallet2"></i> Wallet
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Select all sidebar links
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+    // Function to set the active link based on the current URL
+    function setActiveLink() {
+        const currentPath = window.location.pathname; // e.g., "/user/address"
+
+        sidebarLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            // Special case for edit-profile: treat it as part of the "Profile" section
+            if (currentPath === '/user/edit-profile' && linkPath === '/user/profile') {
+                link.classList.add('active');
+            } else if (linkPath === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    // Run on page load
+    window.addEventListener('load', setActiveLink);
+</script>

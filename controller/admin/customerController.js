@@ -71,7 +71,6 @@ const toggleUserStatus = async (req, res )=>{
                 message: `User status updated${emailSent ? ' and email sent' : ', but email failed'}`,
             })
         }
-
         res.redirect("/admin/customers");
 
     } catch (error) {

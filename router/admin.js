@@ -5,6 +5,7 @@ const customerController = require("../controller/admin/customerController.js");
 const categoryController = require("../controller/admin/categoryController.js");
 const brandController = require("../controller/admin/brandController.js");
 const productController = require("../controller/admin/productController.js");
+const orderController = require("../controller/admin/orderController.js");
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
 
@@ -42,21 +43,31 @@ router.patch('/brands/delete/:id', brandController.deleteBrand);
 
 // product-routes
 router.get('/products', productController.productInfo);
-router.get('/products/add', productController.getAddProductPage);
 router.get("/products/view/:id",productController.viewProduct);
-router.get('/products/edit/:id', productController.getEditProduct);
 router.patch('/products/toggle/:id', productController.toggleProductStatus);
 router.get('/products/delete/:id', productController.deleteProduct);
-router.post('/products/add', upload.fields([
-    { name: 'cardImage', maxCount: 1 },
-    { name: 'productImages', maxCount: 4 }
-]), productController.addProduct);
-router.patch('/products/edit/:id', upload.fields([
-    { name: 'cardImage', maxCount: 1 },
-    { name: 'productImages', maxCount: 4 }
-]), productController.editProduct);
+router.get('/products/add', productController.getAddProductPage);
+router.post('/products/add', upload, productController.addProduct);
+router.get('/products/edit/:id', productController.getEditProductPage);
+router.patch('/products/edit/:id', upload, productController.editProduct);
 
 
+
+// Admin Order Management Routes
+router.get("/orders",orderController.getAllOrders);
+router.patch("/orders/update-status/:orderId",  orderController.updateOrderStatus);
+router.get("/orders/details/:orderId", orderController.getOrderDetails);
+router.post("/orders/return/:returnId", orderController.processReturnRequest);
+router.post("/orders/note/:orderId",  orderController.addOrderNote);
+
+router.get("/banner",(req,res)=> {
+    res.render("admin/banner")
+})
+
+
+router.get("/coupons",(req,res)=> {
+    res.render("admin/coupon")
+})
 
 
 module.exports = router;

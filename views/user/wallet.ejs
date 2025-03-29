@@ -1,0 +1,682 @@
+<%- include('../partial/user/header') %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        /* Theme variables consistent with Address Management */
+        :root {
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e5e7eb;
+            --primary-color: #6366f1;
+            --primary-light: rgba(99, 102, 241, 0.1);
+            --secondary-color: #4f46e5;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --body-bg: #f9fafb;
+            --light-text: #666666;
+            --card-gradient: linear-gradient(135deg, #6366f1, #4f46e5);
+        }
+
+        [data-theme="dark"] {
+            --card-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --border-color: #444444;
+            --body-bg: black;
+            --light-text: #b0b0b0;
+            --dark-color: #e0e0e0;
+            --light-color: #1e293b;
+            --card-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+        }
+
+        body {
+            background-color: var(--body-bg);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .profile-container {
+            max-width: 1400px;
+            padding: 3rem;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        /* Sidebar (assumed in partial) */
+        .sidebar {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            height: 100%;
+            min-height: calc(100vh - 6rem);
+            padding: 0;
+        }
+
+        .sidebar-content {
+            padding: 2rem;
+            position: sticky;
+            top: 0;
+            background-color: var(--card-bg);
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .sidebar-link i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* Content Area */
+        .content-area {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            color: var(--text-color);
+        }
+
+        .section-title {
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 12px;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        /* Wallet Card */
+        .wallet-card {
+            background: var(--card-gradient);
+            border-radius: 16px;
+            padding: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .wallet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.3);
+        }
+
+        .wallet-card-bg {
+            position: absolute;
+            bottom: -50px;
+            right: -50px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .wallet-card h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .wallet-card h3 i {
+            margin-right: 10px;
+        }
+
+        .wallet-card .balance {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .wallet-details {
+            display: flex;
+            justify-content: space-between;
+            opacity: 0.9;
+            margin-top: 1.5rem;
+        }
+
+        .wallet-details span {
+            font-size: 0.9rem;
+        }
+
+        /* Add Money Form */
+        .add-money-form {
+            background: var(--primary-light);
+            padding: 1.75rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .add-money-form h5 {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .add-money-form h5 i {
+            margin-right: 10px;
+            background: var(--card-bg);
+            color: var(--primary-color);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            background: var(--card-bg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            color: var(--text-color);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-control::placeholder {
+            color: var(--light-text);
+            opacity: 1;
+        }
+
+        [data-theme="dark"] .form-control::placeholder {
+            color: #b0b0b0;
+        }
+
+        .input-group-text {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px 0 0 12px;
+            color: var(--text-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Transaction Section */
+        .transaction-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .transaction-section h5 {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .transaction-section h5 i {
+            margin-right: 10px;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .transaction-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .transaction-search {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .transaction-search input {
+            padding-left: 40px;
+        }
+
+        .transaction-search i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--light-text);
+        }
+
+        .transaction-filter {
+            min-width: 150px;
+        }
+
+        /* Table Container */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Table Styling with higher specificity */
+        .table-container .table {
+            margin-bottom: 0;
+            background: var(--card-bg) !important; /* Override Bootstrap */
+            color: var(--text-color) !important;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-container .table thead {
+            background: var(--primary-light) !important;
+        }
+
+        .table-container .table thead th {
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            border: none;
+        }
+
+        .table-container .table tbody {
+            background: var(--card-bg) !important;
+        }
+
+        .table-container .table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-container .table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-container .table tbody tr:hover {
+            background: var(--light-color) !important;
+        }
+
+        .table-container .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            color: var(--text-color);
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .transaction-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .transaction-type.credit {
+            background: #ecfdf5;
+            color: var(--success-color);
+        }
+
+        [data-theme="dark"] .transaction-type.credit {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .transaction-type.debit {
+            background: #fef2f2;
+            color: var(--danger-color);
+        }
+
+        [data-theme="dark"] .transaction-type.debit {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .transaction-type.transfer {
+            background: #eff6ff;
+            color: var(--info-color);
+        }
+
+        [data-theme="dark"] .transaction-type.transfer {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .transaction-type i {
+            margin-right: 5px;
+        }
+
+        .transaction-date, .transaction-id {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .badge.bg-success {
+            background-color: var(--success-color) !important;
+            color: white;
+        }
+
+        [data-theme="dark"] .badge.bg-success {
+            background-color: var(--success-color) !important;
+            color: var(--card-bg);
+        }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+
+        .pagination-info {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .pagination {
+            margin: 0;
+        }
+
+        .page-link {
+            border: none;
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin: 0 2px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+        }
+
+        .page-link:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .page-item.active .page-link {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .page-item.disabled .page-link {
+            color: #d1d5db;
+        }
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                margin-bottom: 1.5rem;
+            }
+            .sidebar-content {
+                position: static;
+                max-height: none;
+            }
+            .transaction-filters {
+                flex-direction: column;
+            }
+            .pagination-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animation */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid profile-container">
+        <div class="row g-4">
+            <!-- Sidebar -->
+            <div class="col-12 col-lg-3">
+                <%- include('../partial/user/sidebar.ejs') %>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-12 col-lg-9">
+                <div class="content-area">
+                    <h4 class="section-title">
+                        <i class="bi bi-wallet2"></i> Wallet Dashboard
+                    </h4>
+
+                    <!-- Wallet Card -->
+                    <div class="wallet-card animate-fade-in">
+                        <div class="wallet-card-bg"></div>
+                        <h3><i class="bi bi-wallet2"></i> Digital Wallet</h3>
+                        <div class="balance">₹5,999.00</div>
+                        <div class="wallet-details">
+                            <span>**** **** **** 1234</span>
+                            <span>Valid Thru: 12/26</span>
+                        </div>
+                    </div>
+
+                    <!-- Add Money Section -->
+                    <div class="add-money-form animate-fade-in">
+                        <h5><i class="bi bi-plus-circle"></i> Add Funds</h5>
+                        <form id="addMoneyForm" class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label for="amount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="amount" name="amount" min="10" step="10" placeholder="Enter amount" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="paymentMethod" class="form-label">Payment Method</label>
+                                <select class="form-select" id="paymentMethod">
+                                    <option value="card">Debit Card</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="bank">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100">Add Funds</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Transaction History -->
+                    <div class="transaction-section animate-fade-in">
+                        <h5><i class="bi bi-clock-history"></i> Transaction History</h5>
+                        
+                        <div class="transaction-filters">
+                            <div class="transaction-search">
+                                <i class="bi bi-search"></i>
+                                <input type="text" class="form-control" placeholder="Search transactions...">
+                            </div>
+                            <div class="transaction-filter">
+                                <select class="form-select">
+                                    <option value="all">All Types</option>
+                                    <option value="credit">Credit</option>
+                                    <option value="debit">Debit</option>
+                                    <option value="transfer">Transfer</option>
+                                </select>
+                            </div>
+                            <div class="transaction-filter">
+                                <select class="form-select">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <div class="table-container">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Transaction ID</th>
+                                            <th>Amount</th>
+                                            <th>Type</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionBody">
+                                        <tr>
+                                            <td><span class="transaction-id">#TXN20248801</span></td>
+                                            <td><span class="transaction-amount">₹200.00</span></td>
+                                            <td><span class="transaction-type credit"><i class="bi bi-arrow-down-circle"></i> Credit</span></td>
+                                            <td><span class="transaction-date">Aug 08, 2024</span></td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="transaction-id">#TXN20248792</span></td>
+                                            <td><span class="transaction-amount">₹50.00</span></td>
+                                            <td><span class="transaction-type debit"><i class="bi bi-arrow-up-circle"></i> Debit</span></td>
+                                            <td><span class="transaction-date">Aug 07, 2024</span></td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="transaction-id">#TXN20248775</span></td>
+                                            <td><span class="transaction-amount">₹250.00</span></td>
+                                            <td><span class="transaction-type transfer"><i class="bi bi-arrow-left-right"></i> Transfer</span></td>
+                                            <td><span class="transaction-date">Aug 06, 2024</span></td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="transaction-id">#TXN20248763</span></td>
+                                            <td><span class="transaction-amount">₹100.00</span></td>
+                                            <td><span class="transaction-type credit"><i class="bi bi-arrow-down-circle"></i> Credit</span></td>
+                                            <td><span class="transaction-date">Aug 05, 2024</span></td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="transaction-id">#TXN20248749</span></td>
+                                            <td><span class="transaction-amount">₹75.00</span></td>
+                                            <td><span class="transaction-type debit"><i class="bi bi-arrow-up-circle"></i> Debit</span></td>
+                                            <td><span class="transaction-date">Aug 04, 2024</span></td>
+                                            <td><span class="badge bg-success">Completed</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                Showing 1 to 5 of 25 entries
+                            </div>
+                            <nav aria-label="Transaction pagination">
+                                <ul class="pagination">
+                                    <li class="page-item disabled"><a class="page-link" href="#"><i class="bi bi-chevron-left"></i></a></li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">5</a></li>
+                                    <li class="page-item"><a class="page-link" href="#"><i class="bi bi-chevron-right"></i></a></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partial/user/footer') %>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('addMoneyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const amount = this.querySelector('input[name="amount"]').value;
+            const method = document.getElementById('paymentMethod').value;
+            if (amount) {
+                alert(`Added ₹${amount} to wallet using ${method} successfully! (Demo)`);
+                this.reset();
+            }
+        });
+
+        const paginationLinks = document.querySelectorAll('.page-link');
+        paginationLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.page-item').forEach(item => item.classList.remove('active'));
+                if (!this.parentElement.classList.contains('disabled') && 
+                    !this.innerHTML.includes('chevron')) {
+                    this.parentElement.classList.add('active');
+                }
+            });
+        });
+
+        document.querySelector('.transaction-search input').addEventListener('input', function() {
+            console.log('Searching for:', this.value);
+        });
+
+        document.querySelectorAll('.transaction-filter select').forEach(select => {
+            select.addEventListener('change', function() {
+                console.log('Filter changed:', this.value);
+            });
+        });
+    </script>
+</body>
+</html>

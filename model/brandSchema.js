@@ -8,10 +8,6 @@ const brandSchema = new Schema({
         required:true,
         trim: true
     },
-    brandImage:{
-        type:[String],
-        required:true
-    },
     isListed: {
         type: Boolean,
         default: true

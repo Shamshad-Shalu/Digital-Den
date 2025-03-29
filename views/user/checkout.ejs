@@ -1,0 +1,1076 @@
+<%- include('../partial/user/header') %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --sale-color: #007bff;
+            --shadow-color: rgba(0,0,0,0.1);
+            --muted-text: #6c757d;
+            --input-bg: #ffffff;
+            --input-text: #333333;
+            --input-placeholder: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --header-bg: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --border-color: #3a3a3a;
+            --accent-color: #4BB6E8;
+            --sale-color: #4BB6E8;
+            --shadow-color: rgba(0,0,0,0.3);
+            --muted-text: #a7a3a3;
+            --input-bg: #3a3a3a;
+            --input-text: #e0e0e0;
+            --input-placeholder: #a7a3a3;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .form-section, .cart-summary {
+            background-color: var(--card-bg);
+            border: 0.5px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-control::placeholder, .form-select option {
+            color: var(--input-placeholder);
+        }
+
+        .btn-primary, .btn-add {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary:hover, .btn-add:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .payment-option, .address-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+        }
+
+        .payment-option:hover, .address-card:hover {
+            border-color: var(--accent-color);
+            background-color: var(--bg-color);
+        }
+
+        .payment-option.active, .address-card.active {
+            border-color: var(--accent-color);
+            background-color: var(--bg-color);
+        }
+
+        .btn-edit {
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .upi-options {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--card-bg);
+            border-radius: 5px;
+        }
+
+        .upi-option {
+            margin-bottom: 10px;
+        }
+
+        .upi-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .upi-option label {
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .upi-option img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .upi-input-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .upi-input-group input {
+            flex: 1;
+            margin-right: 10px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+        }
+
+        .upi-input-group input::placeholder {
+            color: var(--input-placeholder);
+        }
+
+        .btn-verify {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+        }
+
+        .btn-verify:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-pay {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .btn-pay:hover {
+            background-color: #5a6268;
+        }
+
+        .more-addresses {
+            display: none;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .modal-header, .modal-body, .modal-footer {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+        
+        .product-list .product-item {
+            transition: background-color 0.2s ease;
+        }
+
+        .product-list .product-item:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .product-list img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            transition: transform 0.2s ease;
+        }
+
+        .product-list .product-item:hover img {
+            transform: scale(1.05); /* Subtle zoom on hover */
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            color: var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-text {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-option input[disabled] + label {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    </style>
+
+    <div class="container py-5">
+        <h1 class="mb-4">Checkout</h1>     
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Shipping Information -->
+                <div class="form-section mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Shipping Information</h4>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                            <i class="fas fa-plus me-2"></i>Add New Address
+                        </button>
+                    </div>
+                    <div class="addresses mb-4">
+                        <% if(checkoutData?.addresses?.length > 0) { %>
+                            <!-- const sortedAddresses = checkoutData.addresses.sort((a, b) => b.isDefault - a.isDefault); %> -->
+                             <%
+                                const sortedAddresses = checkoutData.addresses.sort((a, b) => b.isDefault - a.isDefault);
+                                const initialAddresses = sortedAddresses.slice(0, 2); // First 2 addresses
+                                const moreAddresses = sortedAddresses.slice(2); // Remaining addresses 
+                            %>
+                            <% initialAddresses.forEach((address  ) => { %>
+                                <div class="address-card p-3 mb-3 <%= address.isDefault ? 'active default-address' : '' %> ">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="address" id="address<%= address._id %>" <%= address.isDefault ?  'checked' : '' %> value="<%= address._id %>" >
+                                        <label class="form-check-label" for="address<%= address._id %>">
+                                            <strong><%= address.name %> (<%= address.addressType %> <%= address.isDefault ? '- Default' : '' %> )</strong>
+                                            <p class="mb-0 small">
+                                                <%= address.addressLine %>,<%= address.landmark%> ,<%= address.city %>, <%= address.state %> <%= address.pincode %>
+                                            </p>
+                                            <p class="mb-0 small">
+                                                Phone: +91 <%= address.phone %>
+                                            </p>
+                                        </label>
+                                        <button class="btn btn-edit btn-sm float-end" data-bs-toggle="modal" data-bs-target="#editAddressModal<%= address._id %>" data-address-id="<%= address._id %> ">Edit</button>
+                                    </div>
+                                </div>
+                                
+                            <!-- Edit Address Modal -->
+                            <div class="modal fade" id="editAddressModal<%= address._id %>" tabindex="-1" aria-labelledby="editAddressModalLabel<%= address._id %>" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content " style="background-color: var(--card-bg); border-color: var(--border-color);">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title fw-bold" id="editAddressModalLabel<%= address._id %>">Edit Address</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form class="editAddressForm"  data-address-id="<%= address._id %>"  >
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressName<%= address._id %>" class="form-label">Full Name</label>
+                                                        <input type="text" class="form-control" id="editAddressName<%= address._id %>" name="name" value="<%= address.name %>">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressType<%= address._id %>" class="form-label">Address Type</label>
+                                                        <select class="form-select" id="editAddressType<%= address._id %>" name="addressType">
+                                                            <option value="Home" <%= address.type === 'Home' ? 'selected' : '' %> >Home</option>
+                                                            <option value="Work" <%= address.type === 'Work' ? 'selected' : '' %> >Work</option>
+                                                            <option value="Other" <%= address.type === 'Other' ? 'selected' : '' %> >Other</option>
+                                                        </select>
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <label for="editAddressLine<%= address._id %>" class="form-label">Address Line </label>
+                                                        <input type="text" class="form-control" id="editAddressLine<%= address._id %>"  name="addressLine" value="<%= address.addressLine %>">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressCity<%= address._id %>" class="form-label">City</label>
+                                                        <input type="text" class="form-control" id="editAddressCity<%= address._id %>" name="city" value="<%= address.city %>">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editLandmark<%= address._id %>" class="form-label">Landmark</label>
+                                                        <input type="text" class="form-control" id="editLandmark<%= address._id %>" name="landmark" value="<%= address.landmark || '' %>" placeholder="Enter a nearby landmark">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressState<%= address._id %>" class="form-label">State</label>
+                                                        <select class="form-select" id="editAddressState<%= address._id %>" name="state">
+                                                            <option value="" disabled>Select your state</option>
+                                                            <% checkoutData.states.forEach(state => { %>
+                                                                <option value="<%= state.name %>" <%= address.state === state.name ? 'selected' : '' %>> <%= state.name %></option>
+                                                            <% }) %>
+                                                        </select>
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressPincode<%= address._id %>" class="form-label">Pincode</label>
+                                                        <input type="text" class="form-control" id="editAddressPincode<%= address._id %>" name="pincode" value="<%= address.pincode %>">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressPhone<%= address._id %>" class="form-label">Phone Number</label>
+                                                        <input type="tel" class="form-control" id="editAddressPhone<%= address._id %>" name="phone" value="<%= address.phone %>">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="editAddressAltPhone<%= address._id %>" class="form-label">Alternate Number</label>
+                                                        <input type="tel" class="form-control" id="editAddressAltPhone<%= address._id %>" name="altPhone" value="<%= address.altPhone || '' %>" placeholder="Enter your phone number">
+                                                        <div class="invalid-feedback"></div>
+                                                    </div>                                                                                             
+                                                    <div class="col-12 mt-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="editDefaultAddress<%= address._id %>" name="isDefault" <%= address.isDefault ? 'checked' : '' %>>
+                                                            <label class="form-check-label" for="editDefaultAddress<%= address._id %>">
+                                                                Make this my default address
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline cancel" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-add">Update Address</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <% }) %>
+                            <!-- More Addresses  -->
+                            <% if(moreAddresses.length > 0) { %>
+                                <div class="more-addresses">
+                                    <% moreAddresses.forEach((address) => { %>
+                                        <div class="address-card p-3 mb-3 <%= address.isDefault ? 'active default-address' : '' %>">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="address" id="address<%= address._id %>" 
+                                                    value="<%= address._id %>" <%= address.isDefault ? 'checked' : '' %>>
+                                                <label class="form-check-label" for="address<%= address._id %>">
+                                                    <strong><%= address.name %> (<%= address.addressType %> <%= address.isDefault ? '- Default' : '' %>)</strong>
+                                                    <p class="mb-0 small">
+                                                        <%= address.addressLine %>, <%= address.landmark ? address.landmark + ', ' : '' %>
+                                                        <%= address.city %>, <%= address.state %> <%= address.pincode %>
+                                                    </p>
+                                                    <p class="mb-0 small">Phone: +91 <%= address.phone %></p>
+                                                </label>
+                                                <button class="btn btn-edit btn-sm float-end" data-bs-toggle="modal"
+                                                 data-bs-target="#editAddressModal<%= address._id %>"  data-address-id="<%= address._id %>">
+                                                   Edit
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Edit Address Modal for more addresses (same as above, repeated for each) -->
+                                        <div class="modal fade" id="editAddressModal<%= address._id %>" tabindex="-1" 
+                                            aria-labelledby="editAddressModalLabel<%= address._id %>" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title fw-bold" id="editAddressModalLabel<%= address._id %>">Edit Address</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form class="editAddressForm" data-address-id="<%= address._id %>" 
+                                                            action="/user/address/edit/<%= address._id %>" method="POST">
+                                                            <div class="row g-3">
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressName<%= address._id %>" class="form-label">Full Name</label>
+                                                                    <input type="text" class="form-control" id="editAddressName<%= address._id %>" name="name" value="<%= address.name %>">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressType<%= address._id %>" class="form-label">Address Type</label>
+                                                                    <select class="form-select" id="editAddressType<%= address._id %>" name="addressType">
+                                                                        <option value="Home" <%= address.addressType === 'Home' ? 'selected' : '' %>>Home</option>
+                                                                        <option value="Work" <%= address.addressType === 'Work' ? 'selected' : '' %>>Work</option>
+                                                                        <option value="Other" <%= address.addressType === 'Other' ? 'selected' : '' %>>Other</option>
+                                                                    </select>
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-12">
+                                                                    <label for="editAddressLine<%= address._id %>" class="form-label">Address Line</label>
+                                                                    <input type="text" class="form-control" id="editAddressLine<%= address._id %>" name="addressLine" value="<%= address.addressLine %>">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressCity<%= address._id %>" class="form-label">City</label>
+                                                                    <input type="text" class="form-control" id="editAddressCity<%= address._id %>" name="city" value="<%= address.city %>">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editLandmark<%= address._id %>" class="form-label">Landmark</label>
+                                                                    <input type="text" class="form-control" id="editLandmark<%= address._id %>" name="landmark" value="<%= address.landmark || '' %>" placeholder="Enter a nearby landmark">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressState<%= address._id %>" class="form-label">State</label>
+                                                                    <select class="form-select" id="editAddressState<%= address._id %>" name="state">
+                                                                        <option value="" disabled>Select your state</option>
+                                                                        <% checkoutData.states.forEach(state => { %>
+                                                                            <option value="<%= state.name %>" <%= address.state === state.name ? 'selected' : '' %>><%= state.name %></option>
+                                                                        <% }) %>
+                                                                    </select>
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressPincode<%= address._id %>" class="form-label">Pincode</label>
+                                                                    <input type="text" class="form-control" id="editAddressPincode<%= address._id %>" name="pincode" value="<%= address.pincode %>">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressPhone<%= address._id %>" class="form-label">Phone Number</label>
+                                                                    <input type="tel" class="form-control" id="editAddressPhone<%= address._id %>" name="phone" value="<%= address.phone %>">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="editAddressAltPhone<%= address._id %>" class="form-label">Alternate Number</label>
+                                                                    <input type="tel" class="form-control" id="editAddressAltPhone<%= address._id %>" name="altPhone" value="<%= address.altPhone || '' %>" placeholder="Enter your phone number">
+                                                                    <div class="invalid-feedback"></div>
+                                                                </div>
+                                                                <div class="col-12 mt-3">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox" 
+                                                                            id="editDefaultAddress<%= address._id %>" 
+                                                                            name="isDefault" 
+                                                                            <%= address.isDefault ? 'checked' : '' %>>
+                                                                        <label class="form-check-label" for="editDefaultAddress<%= address._id %>">
+                                                                            Make this my default address
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-add">Update Address</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                                <button class="btn btn-link p-0" id="showMore">Show More Addresses</button>
+                            <% } %>
+                        <% } else { %>
+                            <div class="empty-state">
+                                <i class="bi bi-geo-alt empty-icon"></i>
+                                <p class="empty-text">No addresses found. Please add an address to proceed.</p>
+                            </div>
+    
+                        <% } %> 
+                    </div>
+                </div>
+                <!-- Payment Method -->
+                <div class="form-section mb-4">
+                    <h4 class="mb-4">Payment Method</h4>
+                    <div class="payment-options">
+                        <div class="payment-option p-3 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="Online">
+                                <label class="form-check-label" for="online">
+                                    Online
+                                    <span class="float-end">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="payment-option p-3 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="Wallet" disabled>
+                                <label class="form-check-label" for="wallet">
+                                    Wallet
+                                    <span class="float-end">
+                                        <i class="fas fa-wallet"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="payment-option p-3 active">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD" checked>
+                                <label class="form-check-label" for="cod">
+                                    Cash on Delivery
+                                    <span class="float-end">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="cart-summary p-4">
+                    <!-- Header -->
+                    <div class="summary-header mb-4 pb-2 border-bottom">
+                        <h4 class="fw-bold d-inline-block mb-0" style="color: var(--text-color);">
+                            Order Summary
+                        </h4>
+                    </div>
+                    <!-- Product List -->
+                    <div class="product-list mb-4">
+                        <% if(checkoutData?.cartItems?.length > 0) { %>
+                            <% checkoutData.cartItems.forEach((product  ) => { %>
+                                <div class="product-item d-flex align-items-center mb-3 pb-3 border-bottom">
+                                    <img src="/uploads/products/<%= product.cardImage %>" alt="<%= product.productName %>"
+                                       class="me-3 rounded" style="width: 60px; height: 60px; object-fit: cover;">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <!-- <h6>productimage: <%= product.cardImage %></h6> -->
+                                                <h6 class="mb-0 fw-semibold"><%= product.productName %></h6>
+                                                <small style="color: var(--muted-text);">
+                                                    Qty: <%= product.quantity %> @ ₹<%= product.salePrice %>.00
+                                                </small>
+                                            </div>
+                                            <span class="fw-medium">₹<%= product.totalPrice %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% })%>
+                        <% } %>
+                    </div>
+                    <div class="price-section">
+                        <% if(checkoutData?.cartItems?.length > 0) { %>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal (<%= checkoutData.summery.totalItems %> items)</span>
+                                <span>₹<%= checkoutData.summery.subtotal %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount</span>
+                                <span>-₹<%= checkoutData.summery.discount %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping</span>
+                                <span>₹<%= checkoutData.summery.shipping %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+                                <span>₹<%= checkoutData.summery.tax %></span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <strong>Total</strong>
+                                <strong>₹<%= checkoutData.summery.totalAmount %></strong>
+                            </div>
+                            <button class="btn btn-primary w-100 py-2 mb-2" id="placeOrder">Place Order</button>
+                            <a href="/user/cart" class="btn btn-outline-secondary w-100 py-2">Return to Cart</a>
+                        <% } %>
+                    </div>    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Address Modal -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: var(--card-bg); border-color: var(--border-color);">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="addAddressModalLabel">Add New Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addAddressForm" action="/user/address/add" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="addressName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control"  name="name" placeholder="Enter your full name">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressType" class="form-label">Address Type</label>
+                                <select class="form-select" id="addressType" name="addressType">
+                                    <option selected disabled>Select address type</option>
+                                    <option value="Home" >Home</option>
+                                    <option value="Work">Work</option>
+                                    <option value="Other" >Other</option>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-12">
+                                <label for="addressLine" class="form-label">Address Line</label>
+                                <input type="text" class="form-control" id="addressLine " name="addressLine" placeholder="House no. / Flat no. / Floor / Building">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressCity" class="form-label">City</label>
+                                <input type="text" class="form-control" id="addressCity" name="city" placeholder="Enter your city">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Landmark</label>
+                                <input type="text" class="form-control" id="landmark" name="landmark" placeholder="Enter a nearby landmark">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressState" class="form-label">State</label>
+                                <select class="form-select"  name="state">
+                                    <option selected disabled>Select your state</option>
+                                    <% checkoutData.states.forEach(state => { %>
+                                        <option value="<%= state.name %>"><%= state.name %></option>
+                                    <% }) %>
+                                </select>
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressPincode" class="form-label">Pincode</label>
+                                <input type="text" class="form-control" name="pincode" placeholder="Enter your pincode">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="addressPhone" name="phone" placeholder="Enter your phone number">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="addressAltPhone" class="form-label">Alternate Number</label>
+                                <input type="tel" class="form-control" id="addressAltPhone" name="altPhone" placeholder="Enter your phone number">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="defaultAddress" name="isDefault" >
+                                    <label class="form-check-label" for="defaultAddress">
+                                        Make this my default address
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-add" id="saveNewAddress">Save Address</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            document.querySelectorAll('.address-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                        document.querySelectorAll('.address-card').forEach(c => {
+                            c.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        this.querySelector('input[type="radio"]').checked = true;
+                    }
+                });
+            });
+
+            // Payment option selection
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    // Only proceed if the clicked option is not disabled
+                    if (!this.querySelector('input[type="radio"]').disabled) {
+                        document.querySelectorAll('.payment-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        this.querySelector('input[type="radio"]').checked = true;
+                    }
+                });
+            });
+
+            // Show More Addresses
+            const showMoreBtn = document.getElementById('showMore');
+            if (showMoreBtn) {
+                showMoreBtn.addEventListener('click', function() {
+                    document.querySelector('.more-addresses').style.display = 'block';
+                    this.style.display = 'none';
+                });
+            }
+
+            const addAddressForm = document.getElementById('addAddressForm');
+            if (addAddressForm) {
+                addAddressForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    clearErrors(addAddressForm);
+
+                    const formData = new FormData(addAddressForm);
+                    const jsonData = Object.fromEntries(formData);
+                    //trim all values 
+                    Object.keys(jsonData).forEach(key => {
+                        if (typeof jsonData[key] === 'string') {
+                            jsonData[key] = jsonData[key].trim();
+                        }
+                    });
+                    jsonData.isDefault = jsonData.isDefault === 'on'; 
+
+                    try {
+                        const response = await fetch('/user/address/add', {
+                            method: 'POST',
+                            body: JSON.stringify(jsonData),
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok || !data.success) {
+                            displayFormErrors(addAddressForm, data.errors);
+                            Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
+                        } else {
+                            Swal.fire('Success', 'Address added successfully', 'success')
+                                .then(() => window.location.reload());
+                        }
+                    } catch (error) {
+                        console.error('Add address error:', error);
+                        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+                    }
+                });
+            }
+
+            document.querySelectorAll('.editAddressForm').forEach(editForm => {
+                editForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    clearErrors(editForm);
+
+                    const formData = new FormData(editForm);
+                    const addressId = editForm.dataset.addressId;
+                    const jsonData = Object.fromEntries(formData);
+                    //trim all values 
+                    Object.keys(jsonData).forEach(key => {
+                        if (typeof jsonData[key] === 'string') {
+                            jsonData[key] = jsonData[key].trim();
+                        }
+                    });
+                    jsonData.isDefault = jsonData.isDefault === 'on'; 
+
+                    try {
+                        const response = await fetch(`/user/address/edit/${addressId}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(jsonData)
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok || !data.success) {
+                            displayFormErrors(editForm, data.errors);
+                            Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
+                        } else {
+                            Swal.fire('Success', 'Address updated successfully', 'success')
+                                .then(() => window.location.reload());
+                        }
+                    } catch (error) {
+                        console.error('Edit address error:', error);
+                        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+                    }
+                });
+            });
+
+            function displayFormErrors(form, errors) {
+                clearErrors(form);
+                if (errors && typeof errors === 'object') {
+                    Object.entries(errors).forEach(([field, message]) => {
+                        const input = form.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const feedback = input.nextElementSibling;
+                            if (feedback?.classList.contains('invalid-feedback')) {
+                                feedback.textContent = message;
+                            }
+                        }
+                    });
+                }
+            }
+
+            function clearErrors(form) {
+                form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            }
+
+
+            // document.getElementById('placeOrder').addEventListener('click', async function(e) {
+            //     e.preventDefault();
+            //     const selectedAddress = document.querySelector('.address-card.active input[name="address"]:checked');
+            //     const selectedPayment = document.querySelector('.payment-option.active input[name="paymentMethod"]:checked');
+
+            //     if (!selectedAddress) {
+            //        Swal.fire('Error', 'Please select a shipping address', 'error');
+            //        return
+            //     }
+            //     if (!selectedPayment) {
+            //         Swal.fire('Error', 'Please select a payment method', 'error');
+            //         return;
+            //     }
+
+            //     const orderData = {
+            //         addressId: selectedAddress.value,
+            //         paymentMethod: selectedPayment.value
+            //     };
+
+            //     try {
+            //         const response = await fetch('/user/order/place', {
+            //             method: 'POST',
+            //             headers: { 'Content-Type': 'application/json' },
+            //             body: JSON.stringify(orderData)
+            //         });
+            //         const result = await response.json();
+            //         if (result.success) {
+
+            //             Swal.fire('success',result.message,'success')
+            //             window.location.href = '/user/order-success';
+            //         } else {
+            //             Swal.fire('Error',result.message || 'an error found', 'error');
+            //         }
+            //     } catch (error) {
+            //         console.error('Error placing order:', error);
+            //         alert('An error occurred while placing the order');
+            //     }
+            // });
+
+
+
+            document.getElementById('placeOrder').addEventListener('click', async function(e) {
+                e.preventDefault();
+                const selectedAddress = document.querySelector('.address-card.active input[name="address"]:checked');
+                const selectedPayment = document.querySelector('.payment-option.active input[name="paymentMethod"]:checked');
+
+                if (!selectedAddress) {
+                    Swal.fire('Error', 'Please select a shipping address', 'error');
+                    return;
+                }
+                if (!selectedPayment) {
+                    Swal.fire('Error', 'Please select a payment method', 'error');
+                    return;
+                }
+
+                const orderData = {
+                    addressId: selectedAddress.value,
+                    paymentMethod: selectedPayment.value
+                };
+
+                try {
+                    if (orderData.paymentMethod === 'Online') {
+                        const totalAmount = <%= checkoutData.summery.totalAmount %>;
+                        console.log('Total Amount:', totalAmount);
+                        if (!totalAmount || isNaN(totalAmount) || totalAmount <= 0) {
+                            Swal.fire('Error', 'Invalid order amount', 'error');
+                            return;
+                        }
+                        const response = await fetch('/user/create-razorpay-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ amount: totalAmount })
+                        });
+                        const result = await response.json();
+
+                        if (!result.success) {
+                            Swal.fire('Error', 'Failed to create payment order', 'error');
+                            return;
+                        }
+
+                        const options = {
+                            key: '<%= checkoutData.razorpayKeyId %>', // Use the passed key
+                            amount: result.order.amount,
+                            currency: 'INR',
+                            name: 'Your Business Name',
+                            description: 'Order Payment',
+                            order_id: result.order.id,
+                            handler: async function (response) {
+                                orderData.razorpay_payment_id = response.razorpay_payment_id;
+                                orderData.razorpay_order_id = response.razorpay_order_id;
+                                orderData.razorpay_signature = response.razorpay_signature;
+
+                                const placeOrderResponse = await fetch('/user/order/place', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(orderData)
+                                });
+                                const placeOrderResult = await placeOrderResponse.json();
+
+                                if (placeOrderResult.success) {
+                                    Swal.fire('Success', placeOrderResult.message, 'success');
+                                    window.location.href = '/user/order-success';
+                                } else {
+                                    Swal.fire('Error', placeOrderResult.message || 'An error occurred', 'error');
+                                }
+                            },
+                            prefill: {
+                                name: 'Customer Name',
+                                email: 'customer@example.com',
+                                contact: '9999999999'
+                            },
+                            theme: {
+                                color: '#F37254'
+                            }
+                        };
+
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                    } else {
+                        const response = await fetch('/user/order/place', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(orderData)
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            Swal.fire('Success', result.message, 'success');
+                            window.location.href = '/user/order-success';
+                        } else {
+                            Swal.fire('Error', result.message || 'An error occurred', 'error');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error placing order:', error);
+                    Swal.fire('Error', 'An error occurred while placing the order', 'error');
+                }
+            });
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //     const MAX_ADDRESSES = 10;
+        //     let addressCount = 3;
+ 
+        //     // Payment option selection
+        //     document.querySelectorAll('.payment-option').forEach(option => {
+        //         option.addEventListener('click', function() {
+        //             document.querySelectorAll('.payment-option').forEach(opt => {
+        //                 opt.classList.remove('active');
+        //             });
+        //             this.classList.add('active');
+        //             this.querySelector('input[type="radio"]').checked = true;
+
+        //             // Show/hide UPI options
+        //             document.querySelectorAll('.upi-options').forEach(upi => upi.style.display = 'none');
+        //             if (this.querySelector('#upi')) {
+        //                 this.querySelector('.upi-options').style.display = 'block';
+        //             }
+        //         });
+        //     });
+
+        //     // Address selection
+        //     document.querySelectorAll('.address-card').forEach(card => {
+        //         card.addEventListener('click', function(e) {
+        //             if (e.target.tagName !== 'BUTTON') {
+        //                 document.querySelectorAll('.address-card').forEach(c => {
+        //                     c.classList.remove('active');
+        //                 });
+        //                 this.classList.add('active');
+        //                 this.querySelector('input[type="radio"]').checked = true;
+        //             }
+        //         });
+        //     });
+
+        //     // Show more addresses
+        //     document.getElementById('showMore').addEventListener('click', function() {
+        //         document.querySelector('.more-addresses').style.display = 'block';
+        //         this.style.display = 'none';
+        //     });
+
+        //     // Edit address
+        //     document.querySelectorAll('.btn-edit').forEach(button => {
+        //         button.addEventListener('click', function() {
+        //             const addressId = this.getAttribute('data-address-id');
+        //             const addressData = {
+        //                 1: { name: 'John Doe', type: 'Home', line1: '123 Main Street, Apt 4B', city: 'Mumbai', landmark: 'Near Park', state: 'Maharashtra', pincode: '400001', phone: '+91 98765 43210', altPhone: '', isDefault: true },
+        //                 2: { name: 'John Doe', type: 'Work', line1: '456 Business Park', city: 'Bangalore', landmark: 'Tech Hub', state: 'Karnataka', pincode: '560001', phone: '+91 98765 43211', altPhone: '', isDefault: false },
+        //                 3: { name: 'John Doe', type: 'Other', line1: '789 Old Town', city: 'Delhi', landmark: 'Market', state: 'Delhi', pincode: '110001', phone: '+91 98765 43212', altPhone: '', isDefault: false }
+        //             };
+        //             const data = addressData[addressId];
+        //             if (data) {
+        //                 document.getElementById('editAddressId').value = addressId;
+        //                 document.getElementById('editAddressName').value = data.name;
+        //                 document.getElementById('editAddressType').value = data.type;
+        //                 document.getElementById('editAddressLine1').value = data.line1;
+        //                 document.getElementById('editAddressCity').value = data.city;
+        //                 document.getElementById('editAddressState').value = data.state;
+        //                 document.getElementById('editAddressPincode').value = data.pincode;
+        //                 document.getElementById('editAddressPhone').value = data.phone;
+        //                 document.getElementById('editAddressAltPhone').value = data.altPhone;
+        //                 document.getElementById('editDefaultAddress').checked = data.isDefault;
+        //                 document.getElementsByName('editLandmark')[0].value = data.landmark;
+        //             }
+        //         });
+        //     });
+
+        //     // Save new address
+        //     document.getElementById('saveNewAddress').addEventListener('click', function() {
+        //         if (addressCount >= MAX_ADDRESSES) {
+        //             document.getElementById('addressLimitWarning').classList.remove('d-none');
+        //             return;
+        //         }
+        //         alert('Address saved successfully!');
+        //         addressCount++;
+        //         document.getElementById('addAddressForm').reset();
+        //         bootstrap.Modal.getInstance(document.getElementById('addAddressModal')).hide();
+        //         document.getElementById('addressLimitWarning').classList.add('d-none');
+        //     });
+
+        //     // Save edited address
+        //     document.getElementById('saveEditedAddress').addEventListener('click', function() {
+        //         alert('Address updated successfully!');
+        //         bootstrap.Modal.getInstance(document.getElementById('editAddressModal')).hide();
+        //     });
+
+        //     // Place order
+        //     document.getElementById('placeOrder').addEventListener('click', function(e) {
+        //         e.preventDefault();
+        //         const selectedAddress = document.querySelector('.address-card.active');
+        //         const selectedPayment = document.querySelector('.payment-option.active');
+                
+        //         if (!selectedAddress) {
+        //             alert('Please select a shipping address');
+        //             return;
+        //         }
+                
+        //         if (!selectedPayment) {
+        //             alert('Please select a payment method');
+        //             return;
+        //         }
+                
+        //         if (selectedPayment.querySelector('#upi') && !document.querySelector('input[name="upiMethod"]:checked') && !document.querySelector('.upi-input-group input').value) {
+        //             alert('Please select a UPI method or enter a UPI ID');
+        //             return;
+        //         }
+                
+        //         alert('Order placed successfully!');
+        //     });
+        });
+    </script>
+<%- include('../partial/user/footer') %>

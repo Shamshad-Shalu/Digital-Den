@@ -187,5 +187,18 @@ body {
     height: 50px; /* Adjust as needed */
     object-fit: cover; /* Ensures the image covers the area without distortion */
     border-radius: 3px; /* Optional: Adds rounded corners */
-  }
+}
+
+
+body {
+    overflow-y: scroll !important;
+}
+
+body.modal-open {
+    padding-right: 0 !important;
+}
+body.swal2-shown {
+    overflow-y: scroll !important; 
+    padding-right: 0 !important;
+}
 

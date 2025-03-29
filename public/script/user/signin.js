@@ -90,3 +90,17 @@ document.addEventListener("DOMContentLoaded", ()=> {
         
     })
 })
+
+// Check for showAlert query parameter
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('showAlert') === 'true') {
+    // Swal.fire({
+    //     icon: 'warning',
+    //     title: 'Authentication Required',
+    //     text: 'Please sign in to continue.',
+    //     timer: 1500,
+    //     showConfirmButton: false
+    // });
+    // Remove the query parameter from the URL without reloading
+    window.history.replaceState({}, document.title, '/user/signin');
+}

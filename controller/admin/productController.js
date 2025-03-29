@@ -1,7 +1,8 @@
 const Product = require('../../model/productSchema');
 const Category = require('../../model/categorySchema');
 const Brand = require('../../model/brandSchema');
-const { validateProduct } = require('../../utils/productvalidation');
+const  {determineStatus} = require("../../utils/helper")
+const { validateProduct } = require('../../utils/validation');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -72,281 +73,6 @@ const productInfo = async (req, res) => {
     }
 }
 
-const getAddProductPage = async (req, res) => {
-    try {
-        const categories = await Category.find({ isListed: true, isDeleted: false });
-        const brands = await Brand.find({ isListed: true, isDeleted: false });
-        let product = null
-
-        if(req.params.id) {
-            product = await Product.findById(req.params.id)
-                           .populate("category")
-                           .populate("brand");
-
-            if (!product || product.isDeleted) {
-                return res.status(404).render("error", { message: "Product not found" });
-            }               
-                  
-        }
-        res.render('admin/addEditProducts', {
-            categories,
-            brands,
-            product
-
-        });
-    } catch (error) {
-        console.error('Error loading add product page:', error);
-        res.status(500).json({ success: false, message: 'Failed to load addEdit product page' });
-    }
-};
-
-const addProduct = async (req, res) => {
-    try {
-        console.log('Request Body:', req.body);
-        console.log('Files:', req.files);
-
-        const {
-            productName, description, category, brand,
-            regularPrice, salePrice, quantity, status
-        } = req.body;
-
-        // Parse specifications
-        let specifications = [];
-        if (req.body.specifications) {
-            specifications = Object.entries(req.body.specifications).map(([_, spec]) => ({
-                name: spec.name,
-                value: spec.value
-            }));
-        }
-
-        const cardImage = req.files?.['cardImage']?.[0]?.filename;
-        const productImages = req.files?.['productImages']?.map(file => file.filename) || [];
-
-        const product = {
-            productName,
-            description,
-            category,
-            brand,
-            regularPrice: parseFloat(regularPrice || 0),
-            salePrice: parseFloat(salePrice || 0),
-            productOffer: parseFloat((((regularPrice - salePrice) / regularPrice) * 100 || 0).toFixed(2)),
-            quantity: parseInt(quantity || 0),
-            specifications,
-            status,
-            cardImage,
-            productImages
-        };
-
-        // Validate product data
-        const errors = validateProduct(product);
-        if (Object.keys(errors).length > 0) {
-            console.log('Validation errors:', errors);
-            return res.status(400).json({ success: false, errors });
-        }
-
-        // Save to database
-        const newProduct = new Product(product);
-        await newProduct.save();
-
-        res.setHeader('Cache-Control', 'no-store');
-
-        console.log('Product added successfully:', newProduct);
-        return res.status(201).json({
-            success: true,
-            message: 'Product added successfully',
-            product: newProduct
-        });
-    } catch (error) {
-        console.error('Error adding product:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Server error: ' + error.message,
-            error: error.errors || error.message
-        });
-    }
-};
-
-// const editProduct = async (req, res) => {
-//     try {
-//         const productId = req.params.id;
-//         const { productName, description, category, brand, regularPrice, salePrice, quantity, status, specifications, removeCardImage, removedImages } = req.body;
-
-//         const existingProduct = await Product.findById(productId);
-//         if (!existingProduct) {
-//             return res.status(404).json({ success: false, message: 'Product not found' });
-//         }
-
-//         let parsedSpecifications = existingProduct.specifications;
-//         if (specifications) {
-//             parsedSpecifications = Object.entries(specifications).map(([_, spec]) => {
-//                 if (!spec.name || !spec.value) throw new Error('Invalid specification format');
-//                 return { name: spec.name, value: spec.value };
-//             });
-//         }
-
-//         const updateData = {
-//             productName, description, category, brand,
-//             regularPrice: parseFloat(regularPrice || 0),
-//             salePrice: parseFloat(salePrice || 0),
-//             productOffer: parseFloat((((regularPrice - salePrice) / regularPrice) * 100 || 0).toFixed(2)),
-//             quantity: parseInt(quantity || 0),
-//             specifications: parsedSpecifications,
-//             status,
-//             cardImage: req.files?.['cardImage']?.[0]?.filename || (removeCardImage === 'true' ? '' : existingProduct.cardImage),
-//             productImages: existingProduct.productImages
-//         };
-
-//         const uploadDir = path.join(__dirname, '../public/uploads/products');
-//         const deletedFiles = [];
-
-//         try {
-//             if (req.files?.['cardImage'] && existingProduct.cardImage) {
-//                 const oldCardImagePath = path.join(uploadDir, existingProduct.cardImage);
-//                 await fs.unlink(oldCardImagePath);
-//                 deletedFiles.push(oldCardImagePath);
-//             } else if (removeCardImage === 'true' && existingProduct.cardImage) {
-//                 const oldCardImagePath = path.join(uploadDir, existingProduct.cardImage);
-//                 await fs.unlink(oldCardImagePath);
-//                 deletedFiles.push(oldCardImagePath);
-//             }
-
-//             if (req.files?.['productImages']) {
-//                 for (const oldImage of existingProduct.productImages) {
-//                     const oldImagePath = path.join(uploadDir, oldImage);
-//                     await fs.unlink(oldImagePath);
-//                     deletedFiles.push(oldImagePath);
-//                 }
-//                 updateData.productImages = req.files['productImages'].map(file => file.filename);
-//             } else if (removedImages) {
-//                 const removedIndices = Object.keys(removedImages).map(index => parseInt(index));
-//                 const imagesToDelete = existingProduct.productImages.filter((_, index) => removedIndices.includes(index));
-//                 for (const image of imagesToDelete) {
-//                     const imagePath = path.join(uploadDir, image);
-//                     await fs.unlink(imagePath);
-//                     deletedFiles.push(imagePath);
-//                 }
-//                 updateData.productImages = existingProduct.productImages.filter((_, index) => !removedIndices.includes(index));
-//             }
-
-//             const errors = validateProduct(updateData);
-//             if (Object.keys(errors).length > 0) {
-//                 return res.status(400).json({ success: false, errors });
-//             }
-
-//             const updatedProduct = await Product.findByIdAndUpdate(productId, { $set: updateData }, { new: true, runValidators: true });
-//             res.json({ success: true, message: 'Product updated successfully', product: updatedProduct });
-//         } catch (error) {
-//             // Rollback file deletions if database update fails
-//             for (const filePath of deletedFiles) {
-//                 await fs.writeFile(filePath, '').catch(() => {}); // Simplified rollback; ideally restore original files
-//             }
-//             throw error;
-//         }
-//     } catch (error) {
-//         console.error('Edit product error:', error.stack);
-//         res.status(500).json({ success: false, message: 'Server error: ' + error.message });
-//     }
-// };
-
-const editProduct = async (req, res) => {
-    console.log("add product funtion")
-    try {
-        const productId = req.params.id;
-        const { 
-               productName, description, category,
-               brand, regularPrice, salePrice, quantity,
-                status ,specifications ,removeCardImage, removedImages
-            } = req.body;
-
-        console.log('Request body:', req.body);
-        console.log('Files:', req.files);
-
-        const existingProduct = await Product.findById(productId);
-        if (!existingProduct) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
-        }
-
-        let parsedSpecifications = existingProduct.specifications;
-        if (specifications) {
-            parsedSpecifications = Object.entries(specifications).map(([_, spec]) => ({
-                name: spec.name,
-                value: spec.value
-            }));
-        }
-
-        const updateData = {
-            productName,
-            description,
-            category,
-            brand,
-            regularPrice: parseFloat(regularPrice || 0),
-            salePrice: parseFloat(salePrice || 0),
-            productOffer: parseFloat((((regularPrice - salePrice) / regularPrice) * 100 || 0).toFixed(2)),
-            quantity: parseInt(quantity || 0),
-            specifications: parsedSpecifications,
-            status,
-            cardImage: req.files?.['cardImage']?.[0]?.filename || (removeCardImage === 'true' ? '' : existingProduct.cardImage),
-            productImages: existingProduct.productImages // Preserve existing images by default
-        };
-
-        // Define the upload directory
-        const uploadDir = path.join(__dirname, '../public/uploads/products');
-
-        // Clean up old card image 
-        if (req.files?.['cardImage'] && existingProduct.cardImage) {
-            const oldCardImagePath = path.join(uploadDir, existingProduct.cardImage);
-            await fs.unlink(oldCardImagePath).catch(err => console.log('Old card image deletion failed:', err));
-        } else if (removeCardImage === 'true' && existingProduct.cardImage) {
-            const oldCardImagePath = path.join(uploadDir, existingProduct.cardImage);
-            await fs.unlink(oldCardImagePath).catch(err => console.log('Old card image deletion failed:', err));
-        }
-
-        // Handle product images
-        if (req.files?.['productImages']) {
-            for (const oldImage of existingProduct.productImages) {
-                const oldImagePath = path.join(uploadDir, oldImage);
-                await fs.unlink(oldImagePath).catch(err => console.log('Old product image deletion failed:', err));
-            }
-            updateData.productImages = req.files['productImages'].map(file => file.filename);
-        } else if (removedImages) {
-            const removedIndices = Object.keys(removedImages).map(index => parseInt(index));
-            const imagesToDelete = existingProduct.productImages.filter((_, index) => removedIndices.includes(index));
-            for (const image of imagesToDelete) {
-                const imagePath = path.join(uploadDir, image);
-                await fs.unlink(imagePath).catch(err => console.log('Old product image deletion failed:', err));
-            }
-            updateData.productImages = existingProduct.productImages.filter((_, index) => !removedIndices.includes(index));
-        }
-
-        const errors = validateProduct(updateData);
-        if (Object.keys(errors).length > 0) {
-            console.log('Validation errors:', errors);
-            return res.status(400).json({ success: false, errors });
-        }
-
-        // Update product
-        const updatedProduct = await Product.findByIdAndUpdate(
-            productId,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        );
-
-        res.setHeader('Cache-Control', 'no-store');
-        res.json({
-            success: true,
-            message: 'Product updated successfully',
-            product: updatedProduct
-        });
-
-    } catch (error) {
-       console.error('Edit product error:', error.stack);
-        res.status(500).json({
-            success: false,
-            message: 'Server error: ' + error.message,
-            error: error.message
-        });
-    }
-};
 
 const viewProduct = async (req, res) => {
     try {
@@ -405,6 +131,9 @@ const deleteProduct = async (req , res) => {
           if(! product) {
               return res.status(404).json({ success: false, message: 'product not found' });
           }
+
+          product.status = await determineStatus(product._id);
+          await product.save();
   
           res.setHeader('Cache-Control', 'no-store');
           res.json({ 
@@ -429,6 +158,9 @@ const toggleProductStatus = async (req , res ) => {
            // Toggle Product status
            product.isListed = !product.isListed;
            await product.save();
+
+           product.status = await determineStatus(product._id);
+           await product.save();
    
            res.setHeader('Cache-Control', 'no-store');
            res.json({
@@ -443,13 +175,268 @@ const toggleProductStatus = async (req , res ) => {
        }
 }
 
+
+
+const addProduct = async (req, res) => {
+    try {
+      const {
+        productName,
+        description,
+        category,
+        brand,
+        regularPrice,
+        salePrice,
+        quantity,
+        specifications,
+      } = req.body;
+  
+      // Parse specifications 
+      let parsedSpecifications = [];
+      if (specifications) {
+        parsedSpecifications = Object.entries(specifications).map(([_, spec]) => ({
+          name: spec.name,
+          value: spec.value,
+        }));
+      }
+  
+      // Handle uploaded files
+      const cardImage = req.files?.['cardImage']?.[0]?.filename;
+      const productImages = req.files?.['productImages']?.map((file) => file.filename) || [];
+  
+      let parsedQuantity = parseInt(quantity || 0)
+      const isListed = true;
+
+      // Construct product object
+      const product = {
+        productName,
+        description,
+        category,
+        brand,
+        isListed,
+        regularPrice: parseFloat(regularPrice || 0),
+        salePrice: parseFloat(salePrice || 0),
+        productOffer: parseFloat((((regularPrice - salePrice) / regularPrice) * 100 || 0).toFixed(2)),
+        quantity: parsedQuantity,
+        specifications: parsedSpecifications,
+        cardImage,
+        productImages,
+      };
+  
+      // Validate
+      const errors = validateProduct(product);
+      if (Object.keys(errors).length > 0) {
+        await cleanupFiles(req.files);
+        return res.status(400).json({ success: false, errors });
+      }
+  
+      // Save to database
+      const newProduct = new Product(product);
+      await newProduct.save();
+  
+      newProduct.status = await determineStatus(newProduct._id);
+      await newProduct.save();
+      
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(201).json({
+        success: true,
+        message: 'Product added successfully',
+        product: newProduct,
+      });
+    } catch (error) {
+      await cleanupFiles(req.files);
+      console.error('Error adding product:', error);
+      return res.status(500).json({ success: false, message: 'Server error: in add product  ' + error.message });
+    }
+  };
+
+
+  // Edit Product
+const editProduct = async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const {
+        productName,
+        description,
+        category,
+        brand,
+        regularPrice,
+        salePrice,
+        quantity,
+        specifications,
+        removeCardImage,
+        removedImages,
+      } = req.body;
+  
+      // existing product
+      const existingProduct = await Product.findById(productId);
+      if (!existingProduct) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      // Parse specifications
+      let parsedSpecifications = existingProduct.specifications;
+      if (specifications) {
+        parsedSpecifications = Object.entries(specifications).map(([_, spec]) => ({
+          name: spec.name,
+          value: spec.value,
+        }));
+      }
+  
+      // Prepare image updates
+      let cardImage = existingProduct.cardImage;
+      let productImages = [...existingProduct.productImages]; // Start with existing images
+      const uploadDir = path.join(__dirname, '../public/uploads/products');
+      const deletedFiles = [];
+  
+      // Handle card image updates
+      if (req.files?.['cardImage']) {
+        cardImage = req.files['cardImage'][0].filename;
+        if (existingProduct.cardImage) {
+          deletedFiles.push(path.join(uploadDir, existingProduct.cardImage));
+        }
+      } else if (removeCardImage === 'true') {
+        if (existingProduct.cardImage) {
+          deletedFiles.push(path.join(uploadDir, existingProduct.cardImage));
+        }
+        cardImage = '';
+      }
+  
+      // Handle product images updates
+      if (req.files?.['productImages']) {
+        // Append new images 
+        const newImages = req.files['productImages'].map((file) => file.filename);
+        productImages = [...productImages, ...newImages];
+      }
+  
+      if (removedImages) {
+        const removedIndices = Object.keys(removedImages).map((index) => parseInt(index));
+        const imagesToDelete = existingProduct.productImages.filter((_, index) => removedIndices.includes(index));
+        deletedFiles.push(...imagesToDelete.map((image) => path.join(uploadDir, image)));
+        productImages = productImages.filter((_, index) => !removedIndices.includes(index));
+      }
+      let parsedQuantity = parseInt(quantity || 0)
+      const isListed = true;
+
+      const updateData = {
+        productName,
+        description,
+        category,
+        brand,
+        regularPrice: parseFloat(regularPrice || 0),
+        salePrice: parseFloat(salePrice || 0),
+        productOffer: parseFloat((((regularPrice - salePrice) / regularPrice) * 100 || 0).toFixed(2)),
+        quantity:parsedQuantity ,
+        isListed,
+        specifications: parsedSpecifications,
+        cardImage,
+        productImages,
+      };
+  
+      // Validate 
+      const errors = validateProduct(updateData);
+      if (Object.keys(errors).length > 0) {
+        await cleanupFiles(req.files);
+        return res.status(400).json({ success: false, errors });
+      }
+
+      if (productImages.length < 3 || productImages.length > 4) {
+        await cleanupFiles(req.files);
+        return res.status(400).json({
+          success: false,
+          errors: { productImages: 'Product images must be between 3 and 4' },
+        });
+      }
+  
+      // Update product
+      const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+
+      updatedProduct.status = await determineStatus(updatedProduct._id);
+      await updatedProduct.save();
+  
+      // Delete old files 
+      await Promise.all(
+        deletedFiles.map((filePath) =>
+          fs.unlink(filePath).catch((err) => console.log('File deletion failed:', err))
+        )
+      );
+      
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({success: true,
+        message: 'Product updated successfully',product: updatedProduct,
+     });
+    } catch (error) {
+      await cleanupFiles(req.files);
+      console.error('Error editing product:', error.stack);
+      return res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    }
+  };
+  
+  // Helper function to clean
+  async function cleanupFiles(files) {
+    if (!files) return;
+    const uploadDir = path.join(__dirname, '../public/uploads/products');
+    const filePaths = [
+      ...(files['cardImage'] || []).map((file) => path.join(uploadDir, file.filename)),
+      ...(files['productImages'] || []).map((file) => path.join(uploadDir, file.filename)),
+    ];
+    await Promise.all(filePaths.map((filePath) => fs.unlink(filePath).catch(() => {})));
+  }
+  
+
+  
+const getAddProductPage = async (req, res) => {
+    try {
+
+        const categories = await Category.find({ isListed: true, isDeleted: false });
+        const brands = await Brand.find({ isListed: true, isDeleted: false });
+
+        res.render('admin/addProduct', {
+            categories,
+            brands,
+
+        });
+    } catch (error) {
+        console.error('Error loading add product page:', error);
+        res.status(500).json({ success: false, message: 'Failed to load addEdit product page' });
+    }
+};
+  
+
+const getEditProductPage = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id)
+                .populate('category')
+                .populate('brand');
+
+        if (!product) {
+            return res.status(404).send('Product not found');
+        }
+
+        const categories = await Category.find({ isListed: true, isDeleted: false });
+        const brands = await Brand.find({ isListed: true, isDeleted: false });
+
+        res.render('admin/editProduct', { product, categories, brands });
+        
+    } catch (error) {
+        console.error('Error rendering edit product page:', error);
+        res.status(500).send('Server Error');
+    }
+};
+
+
 module.exports = { 
     getAddProductPage, 
-    addProduct,
     productInfo,
     viewProduct,
-    editProduct,
     getEditProduct,
     deleteProduct,
-    toggleProductStatus
+    toggleProductStatus,
+    addProduct,
+   editProduct,
+   getAddProductPage,
+   getEditProductPage,
 };

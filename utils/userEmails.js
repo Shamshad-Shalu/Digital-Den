@@ -71,7 +71,30 @@ async function sendSignupOtp(username,email,otp) {
             </div>
         `
     };
+ 
+    return await sendEmail({
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+    });
+}
 
+async function sendProfileUpdateOtp(username, email, otp) {
+    const emailContent = {
+        subject: "Profile Update OTP Verification",
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #007bff;">Profile Update Verification</h2>
+                <p>Dear ${username},</p>
+                <p>You’ve requested to update your email. Please use the following OTP to verify:</p>
+                <p>Your OTP is: <strong>${otp}</strong></p>
+                <p>This OTP is valid for 10 minutes. Do not share it.</p>
+                <p>If you didn’t request this, please contact support.</p>
+                <p>Regards,<br>Support Team</p>
+            </div>
+        `
+    };
+    console.log(`Sending OTP ${otp} to ${email} for ${username}`);
     return await sendEmail({
         to: email,
         subject: emailContent.subject,
@@ -80,8 +103,10 @@ async function sendSignupOtp(username,email,otp) {
 }
 
 
+
 module.exports = { 
     sendUserStatusEmail, 
     sendForgotOtp,
-    sendSignupOtp
+    sendSignupOtp,
+    sendProfileUpdateOtp
 };

@@ -6,6 +6,14 @@ const userSchema = new Schema({
         type:String,
         required:true
     },
+    firstName : {
+        type:String,
+        required:false
+    },
+    lastName : {
+        type:String,
+        required:false
+    },
     email:{
         type:String,
         required:true,
@@ -25,16 +33,6 @@ const userSchema = new Schema({
         unique:true,
         sparse: true 
     },
-    facebookId:{
-        type:String,
-        unique:true,
-        sparse: true 
-    },
-    xId:{
-        type:String,
-        unique:true,
-        sparse: true 
-    },
     password:{
         type:String,
         required:false
@@ -50,51 +48,54 @@ const userSchema = new Schema({
     profileImage: {
          type: String,
          required: false
-    },
-    cart:[{
-        type:Schema.Types.ObjectId ,
-        ref:"Cart"
-    }],
-    wallet:{
-        type:Number,
-        default:0
-    },
-    wishlist:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Wishlist"
-    }],
+    },    
     orderHistory:[{
         type:Schema.Types.ObjectId,
-        ref:"Order"
+        ref:"Order",
+        default: [],
     }],
-    referralCode:{
-        type:String,
-        // required:true
-    },
-    redeemed:{
-        type:Boolean,
-        // default:false
-    },
-    redeemedUsers:[{
-        type:Schema.Types.ObjectId,
-        ref:"User",
-        // required:true  
-    }],
-    searchHistory:[{
-        category:{
-            type:Schema.Types.ObjectId,
-            ref:"Category",
-            required: false
-        },
-        brand:{
-            type:String,
-            required: false
-        },
-        searchOn:{
-            type:Date,
-            default:Date.now
-        }
-    }]
+    
+    // cart:[{
+    //     type:Schema.Types.ObjectId ,
+    //     ref:"Cart"
+    // }],
+    // wallet:{
+    //     type:Number,
+    //     default:0
+    // },
+    // wishlist:[{
+    //     type:mongoose.Schema.Types.ObjectId,
+    //     ref:"Wishlist"
+    // }],
+
+    // referralCode:{
+    //     type:String,
+    //     // required:true
+    // },
+    // redeemed:{
+    //     type:Boolean,
+    //     // default:false
+    // },
+    // redeemedUsers:[{
+    //     type:Schema.Types.ObjectId,
+    //     ref:"User",
+    //     // required:true  
+    // }],
+    // searchHistory:[{
+    //     category:{
+    //         type:Schema.Types.ObjectId,
+    //         ref:"Category",
+    //         required: false
+    //     },
+    //     brand:{
+    //         type:String,
+    //         required: false
+    //     },
+    //     searchOn:{
+    //         type:Date,
+    //         default:Date.now
+    //     }
+    // }]
 
 },
 { timestamps: true })

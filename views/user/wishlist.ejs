@@ -1,0 +1,280 @@
+<%- include('../partial/user/header') %>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --accent-color: #007bff;
+            --sale-color: #dc3545;
+            --shadow-color: rgba(0,0,0,0.1);
+            --muted-text: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --header-bg: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --border-color: #3a3a3a;
+            --accent-color: #4BB6E8;
+            --sale-color: #ff6b6b;
+            --shadow-color: rgba(0,0,0,0.3);
+            --muted-text: #a7a3a3;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .wishlist-item {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            background-color: var(--card-bg);
+            border: 0.5px solid var(--border-color);
+        }
+
+        .wishlist-item:hover {
+            box-shadow: 0 5px 15px var(--shadow-color);
+            transform: translateY(-3px);
+        }
+
+        .product-img {
+            height: 120px;
+            width: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .price-tag {
+            font-weight: 600;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .sale-price {
+            color: var(--sale-color);
+            font-size: 1.2rem;
+        }
+
+        .savings {
+            background-color: var(--sale-color);
+            color: white;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .rating {
+            color: #ffc107;
+        }
+
+        .btn-remove {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--sale-color) ;
+            border: 1px solid var(--sale-color);
+            background-color: var(--card-bg);
+            transition: all 0.2s ease;
+        }
+
+        .btn-remove:hover {
+            background-color: var(--sale-color);
+            color: white;
+        }
+
+        .btn-add-to-cart {
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-add-to-cart:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 12px;
+        }
+        .status-available {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-out {
+            background-color: #ff6b6b ;
+            color: white;
+        }
+
+        .text-muted {
+            color: var(--muted-text) !important; 
+        }
+        .wishlist-item.updating {
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        } 
+
+    </style>
+
+
+    <div class="container py-5">
+        <h1 class="mb-4">Your Wishlist</h1>
+        <div class="row">
+            <div class="col-12">
+                <div class="wishlist-items " id="wishlistItems">
+                     <% if(wishlist && wishlist.products && wishlist.products.length > 0) { %>
+                        <% wishlist.products.forEach(product => {  %>
+                            <% const item  = product.product %>
+                            <% const savingsPercent = item.regularPrice > item.salePrice ? Math.round(((item.regularPrice - item.salePrice)/ item.regularPrice) * 100) : 0 %>
+                            <div class="wishlist-item p-3 mb-3 border  <%= item.status === "Available"  ? ''  :'updating' %> "  data-product-id="<%= item.id %>">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 mb-2 mb-md-0">
+                                        <img src="/uploads/products/<%= item.cardImage %>" alt="<%= item.name %>" class="product-img">
+                                    </div>
+                                    <div class="col-md-4 mb-2 mb-md-0">
+                                        <h5 class="mb-1"><a href="/user/product/<%= item.id %>" class="text-decoration-none text-reset"><%= item.name %></a></h5>
+                                        <div class="small text-muted">Brand: <%= item.brand %></div>
+                                        <div class="mt-1 mb-2 rating">
+                                            <% 
+                                                const rating = item.rating === "N/A" ? 0 : parseFloat(item.rating);
+                                                for (let i = 1; i <= 5; i++) {
+                                                    if (i <= rating) { %>
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    <% } else if (i - 0.5 <= rating) { %>
+                                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                                    <% } else { %>
+                                                        <i class="far fa-star text-warning"></i>
+                                                     <% }
+                                                }
+                                            %>
+                                            <span class="ms-1 text-muted">(<%= item.rating || 'N/A' %>)</span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <span class="status-badge <%= item.status === "Available" ?  'status-available' : 'status-out '%> ">
+                                                <i class="fas fa-<%= item.status === "Available"  ? 'check'  :'times' %>-circle me-1"></i>
+                                                <%= item.status %>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2 mb-md-0">
+                                        <div class="price-tag">
+                                            <div class="original-price">₹<%= item.regularPrice.toFixed(2) %></div>
+                                            <div class="sale-price">₹<%= item.salePrice.toFixed(2) %></div>
+                                            <% if (savingsPercent > 0) { %>
+                                                <div><span class="savings">SAVE <%= savingsPercent %>%</span></div>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 d-flex justify-content-end">
+                                        <button class="btn btn-outline-primary me-2 btn-add-to-cart"  <%= item.status === "Available"  ? ''  :'disabled'%> data-product-id="<%= item.id %>">
+                                            <i class="fas fa-shopping-cart me-1"></i>Add to Cart
+                                        </button>
+                                        <button class="btn-remove btn-delete" title="Remove from Wishlist" data-product-id="<%= item.id %>">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else {%>
+                        <div class="alert alert-info text-center">
+                            Your wishlist is empty. <a href="/user/products" class="alert-link">Start shopping now!</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // addto cart 
+            document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+                button.addEventListener('click', async function() {
+                    const productId = this.dataset.productId;
+                    try {
+                        const response = await fetch('/user/cart/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ productId, quantity: 1 })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: data.message || 'Item added to Cart!',
+                                timer: 1500, 
+                                showConfirmButton: "OK"
+                            }).then(() => {
+                                window.location.href = window.location.href;
+                            });
+                        } else {
+                            Swal.fire('Error', data.message || 'Failed to add item to cart', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error adding to cart:', error);
+                        Swal.fire('Error', 'Failed to add item to cart', 'error');
+                    }
+                });
+            });
+
+            // Remove from Wishlist functionality
+            document.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click',async function() {
+                    const productId = this.dataset.productId;
+                    try {
+                        const response = await fetch('/user/wishlist/remove', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ productId })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: data.message || 'Item removed from wishlist!',
+                                timer: 1500, 
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.href = window.location.href;
+                            });
+                        } else {
+                            Swal.fire('Error', data.message || 'Failed to remove item from wishlist', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error removing from wishlist:', error);
+                        Swal.fire('Error', 'Failed to remove item from wishlist', 'error');
+                    }
+                });
+            });
+    });
+    </script>
+<%- include('../partial/user/footer') %>
+
+    

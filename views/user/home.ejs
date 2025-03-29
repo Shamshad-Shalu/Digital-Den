@@ -1,7 +1,8 @@
 <%- include ("../../views/partial/user/header") %>
 <link rel="stylesheet" href="/style/user/home.css">
+
 <div class="home">
-    <!-- banner  Section -->
+    <!-- Banner Section -->
     <div class="container slider-container">
         <div class="row align-items-center">
             <div class="col-md-6">
@@ -11,17 +12,16 @@
                 <button class="btn btn-primary">Browse More</button>
             </div>
             <div class="col-md-6">
-                <img src="/images/user/products/banner1.png"
-                    alt="Laptop" class="img-fluid">
+                <img src="/images/user/products/banner1.png" alt="Laptop" class="img-fluid">
             </div>
         </div>
     </div>
-    <!-- sections -->
+
+    <!-- Categories Section -->
     <div class="container">
         <section class="categories-section">
             <h2>Shop By Categories</h2>
             <div class="carousel-container">
-                <!-- Carousel Buttons -->
                 <button id="prevBtn" class="carousel-button disabled" onclick="scrollCategories(-1)">
                     <i class="fa fa-chevron-left"></i>
                 </button>
@@ -29,8 +29,6 @@
                     <i class="fa fa-chevron-right"></i>
                 </button>
             </div>
-
-            <!-- Categories Wrapper -->
             <div class="categories-wrapper" id="categoriesWrapper" onscroll="updateButtons()">
                 <ul class="categories-list">
                     <li><a href="#"><i class="fa fa-headphones"></i> Headphone</a></li>
@@ -50,7 +48,7 @@
         </section>
     </div>
 
-    <!-- product section  -->
+    <!-- Main Product Section -->
     <div class="container">
         <div class="row">
             <% products.forEach(product => { %>
@@ -58,32 +56,41 @@
                     <a href="/user/product/<%= product._id %>" class="product-link">
                         <div class="product-card">
                             <div class="image-container">
-                                <!-- <% if(product.productOffer ) { %>
-                                    <div class="discount-badge"> - <%= Math.round(product.productOffer) %>%</div>
-                                <% } %> -->
-                                <img src="/uploads/products/<%= product.cardImage %>" alt="Product Image">
+                                <% if (product.regularPrice > product.salePrice) { %>
+                                    <div class="discount-badge">
+                                        -<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%
+                                    </div>
+                                <% } %>
+                                <img src="/uploads/products/<%= product.cardImage %>" alt="<%= product.productName %>">
+                                <button class="wishlist-btn <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'always-visible' : '' %>" 
+                                        data-product-id="<%= product._id %>" 
+                                        onclick="toggleWishlist('<%= product._id %>', this, event)">
+                                    <i class="fa fa-heart <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'fas text-danger' : 'far' %>"></i>
+                                </button>
                             </div>
                             <h4><%= product.category.name %></h4>
                             <h3><%= product.productName %></h3>
                             <div class="rating">
-                                <% if(product.rating ===undefined  ) { %>
-                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating">N/A
+                                <% if (product.rating === undefined) { %>
+                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating"> N/A
                                 <% } else { %>
-                                <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                    <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
                                 <% } %>
                             </div>
-                            <p class="price"><%= product.salePrice %>
-                                <% if(product.regularPrice > product.salePrice ) {%>
-                                <del class="mx-3"><%= product.regularPrice %></del></p>
-                            <% } %>
+                            <p class="price">
+                                <%= product.salePrice %>
+                                <% if (product.regularPrice > product.salePrice) { %>
+                                    <del class="mx-3"><%= product.regularPrice %></del>
+                                <% } %>
+                            </p>
                         </div>
                     </a>
                 </div>
-            <% }) %>  
+            <% }) %>
         </div>
     </div>
 
-    <!-- 2nd Banner section -->
+    <!-- 2nd Banner Section -->
     <div class="container banner-container">
         <div class="banner-left">
             <h2>Start from $300.00</h2>
@@ -102,58 +109,52 @@
                 <h2>Flash Sale On Products</h2>
             </div>
             <div class="row">
-                <!-- Weekly Best Product with Timer -->
                 <div class="col-lg-4 mt-3 offer-sec">
                     <div class="countdown-section">
                         <div class="countdown-sec">
                             <h1 class="h4 mb-3">Weekly Best Product</h1>
-                            <!-- Countdown Timer -->
                             <div class="countdown-container">
-                                <div>
-                                    <div class="countdown-item">05</div>
-                                    <div class="countdown-label">Days</div>
-                                </div>
-                                <div>
-                                    <div class="countdown-item">15</div>
-                                    <div class="countdown-label">Hours</div>
-                                </div>
-                                <div>
-                                    <div class="countdown-item">50</div>
-                                    <div class="countdown-label">Mins</div>
-                                </div>
-                                <div>
-                                    <div class="countdown-item">00</div>
-                                    <div class="countdown-label">Secs</div>
-                                </div>
+                                <div><div class="countdown-item">05</div><div class="countdown-label">Days</div></div>
+                                <div><div class="countdown-item">15</div><div class="countdown-label">Hours</div></div>
+                                <div><div class="countdown-item">50</div><div class="countdown-label">Mins</div></div>
+                                <div><div class="countdown-item">00</div><div class="countdown-label">Secs</div></div>
                             </div>
-
                             <button class="pre-order-btn">Pre Order Now</button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Flash Sale Products -->
                 <% offers.forEach(product => { %>
                     <div class="col-md-6 col-lg-4 col-xl-3 mt-3">
                         <a href="/user/product/<%= product._id %>" class="product-link">
                             <div class="product-card">
                                 <div class="image-container">
-                                    <!-- <% if(product.productOffer ) { %>
-                                        <div class="discount-badge"> - <%= Math.round(product.productOffer) %>%</div>
-                                    <% } %> -->
-                                    <img src="/uploads/products/<%=product.cardImage %>" alt="Product Image">
+                                    <% if (product.regularPrice > product.salePrice) { %>
+                                        <div class="discount-badge">
+                                            -<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%
+                                        </div>
+                                    <% } %>
+                                    <img src="/uploads/products/<%= product.cardImage %>" alt="<%= product.productName %>">
+                                    <button class="wishlist-btn <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'always-visible' : '' %>" 
+                                            data-product-id="<%= product._id %>" 
+                                            onclick="toggleWishlist('<%= product._id %>', this, event)">
+                                        <i class="fa fa-heart <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'fas text-danger' : 'far' %>"></i>
+                                    </button>
                                 </div>
                                 <h4><%= product.category.name %></h4>
                                 <h3><%= product.productName %></h3>
                                 <div class="rating">
-                                    <% if(product.rating ===undefined  ) { %>
+                                    <% if (product.rating === undefined) { %>
                                         <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
                                     <% } else { %>
-                                    <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                        <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
                                     <% } %>
                                 </div>
-                                <p class="price"><%= product.salePrice %><del><%= product.regularPrice %></del></p>
-                                <!-- <span class="offer-text"> <%= product.offer %></span> -->
+                                <p class="price">
+                                    <%= product.salePrice %>
+                                    <% if (product.regularPrice > product.salePrice) { %>
+                                        <del class="mx-3"><%= product.regularPrice %></del>
+                                    <% } %>
+                                </p>
                             </div>
                         </a>
                     </div>
@@ -162,7 +163,7 @@
         </div>
     </section>
 
-    <!-- Brand collections -->
+    <!-- Brand Collections -->
     <div class="container">
         <div class="row brand-container">
             <div class="col brand apple">Apple</div>
@@ -174,41 +175,66 @@
         </div>
     </div>
 
-    <!-- Top Rating Products  -->
+    <!-- Top Rated Products -->
     <div class="container mt-5">
         <h3 class="text-with-line">Top Products</h3>
         <div class="row g-3">
-            <!-- Top Rated Products -->
             <% topProducts.forEach(product => { %>
                 <div class="col-12 col-md-6 col-lg-4">
                     <a href="/user/product/<%= product._id %>" class="product-link">
-                        <div class="card product-card-last">
+                        <div class="product-card-last">
                             <div class="d-flex align-items-center">
                                 <div class="img-container p-2">
-                                    <img src= "/uploads/products/<%=product.cardImage %>" class="product-img-last">
+                                    <% if (product.regularPrice > product.salePrice) { %>
+                                        <div class="discount-badge">
+                                            -<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%
+                                        </div>
+                                    <% } %>
+                                    <img src="/uploads/products/<%= product.cardImage %>" class="product-img-last" alt="<%= product.productName %>">
+                                    <button class="wishlist-btn <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'always-visible' : '' %>" 
+                                            data-product-id="<%= product._id %>" 
+                                            onclick="toggleWishlist('<%= product._id %>', this, event)">
+                                        <i class="fa fa-heart <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'fas text-danger' : 'far' %>"></i>
+                                    </button>
                                 </div>
                                 <div class="flex-grow-1 p-2">
-                                    <h5 class="product-title-last"><%= product.productName%></h5>
+                                    <h5 class="product-title-last"><%= product.productName %></h5>
                                     <div class="rating-last">
-                                        <% if(product.rating ===undefined  ) { %>
+                                        <% if (product.rating === undefined) { %>
                                             <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
                                         <% } else { %>
-                                        <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
+                                            <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
                                         <% } %>
                                     </div>
-                                    <p class="product-price-last"><%= product.salePrice %></p>
+                                    <p class="product-price-last">
+                                        <%= product.salePrice %>
+                                        <% if (product.regularPrice > product.salePrice) { %>
+                                            <del class="mx-3"><%= product.regularPrice %></del>
+                                        <% } %>
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                     </a>
+                    </a>
                 </div>
             <% }) %>
         </div>
     </div>
 </div>
-<!--  -->
+
 <% if (locals.showBlockedNotification) { %>
     <%- include("../../views/partial/user/blockedNotification") %>
 <% } %>
-  
 <%- include ("../../views/partial/user/footer") %>
+<script src="/script/user/user.js"></script>
+
+
+
+
+
+
+
+
+
+
+

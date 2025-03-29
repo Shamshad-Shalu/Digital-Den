@@ -89,6 +89,12 @@
                                                 </div>
                                             <% } %>
                                             <img src="/uploads/products/<%= product.image %>" alt="<%= product.title %>">
+                                            <!-- Add Wishlist Button -->
+                                            <button class="wishlist-btn <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'always-visible' : '' %>" 
+                                                    data-product-id="<%= product._id %>" 
+                                                    onclick=" toggleWishlist('<%= product._id %>', this,event)">
+                                                <i class="fa fa-heart <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'fas text-danger' : 'far' %>"></i>
+                                            </button>
                                         </div>
                                         <div class="product-info">
                                             <div class="product-category"><%= product.category %></div>
@@ -184,7 +190,7 @@
             });
         }
     </script>
-            
+<script src="/script/user/user.js"></script>      
 <% if (locals.showBlockedNotification) { %>
     <%- include("../../views/partial/user/blockedNotification") %>
 <% } %>

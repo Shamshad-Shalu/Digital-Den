@@ -441,18 +441,60 @@ header .top-bar {
     letter-spacing: -1px;
 }
 
-.discount-badge {
+ /* Discount Badge */
+ .discount-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 10;
+}
+.wishlist-btn {
     position: absolute;
     top: 10px;
     right: 10px;
-    background-color: #ff6b6b;
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 20px;
-    z-index: 1;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+    z-index: 2;
 }
+
+.wishlist-btn i {
+    font-size: 14px;
+    color: #333;
+}
+
+.wishlist-btn .fas {
+    color: #dc3545; 
+}
+
+.product-card:hover .wishlist-btn:not(.always-visible) {
+    opacity: 1; 
+}
+
+.wishlist-btn.always-visible {
+    opacity: 1 !important; 
+    background: rgba(255, 255, 255, 1);
+}
+
+.wishlist-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #ccc;
+}
+
 
 .product-link {
     text-decoration: none; 
@@ -462,6 +504,18 @@ header .top-bar {
 
 .product-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+body {
+    overflow-y: scroll !important;
+}
+
+body.modal-open {
+    padding-right: 0 !important;
+}
+body.swal2-shown {
+    overflow-y: scroll !important; 
+    padding-right: 0 !important;
 }
 
 
