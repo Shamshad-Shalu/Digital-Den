@@ -78,8 +78,8 @@
                         <div class="row g-4 align-items-center mb-4">   
                             <div class="col-12 col-md-3 text-center">
                                 <div class="d-flex flex-column align-items-center">
-                                    <% if (user.cardImage) { %>
-                                        <img src="<%= user.cardImage %>" alt="Profile" class="profile-photo mb-3" id="profilePhotoPreview">
+                                    <% if (user.profileImage ) { %>
+                                        <img src="/uploads/user/profileimages/<%= user.profileImage %>" alt="<%= user.username %>" class="profile-photo mb-3" id="profilePhotoPreview">
                                     <% } else { %>
                                         <div class="default-profile-icon mb-3" id="profilePhotoPreview">
                                             <i class="bi bi-person-fill"></i>
@@ -88,10 +88,16 @@
                                     <label class="upload-btn">
                                         <i class="bi bi-camera me-2"></i>Change Photo
                                         <input type="file" class="d-none" id="photoUpload" name="profileImage" accept="image/*">
-                                    </label>
+                                    </label>                                    
                                     <button type="button" class="remove-btn" id="removePhotoBtn">
                                         <i class="bi bi-trash me-2"></i>Remove Photo
-                                    </button>
+                                    </button> 
+                                    <!-- Modal for Image Cropping -->
+                                    <div id="crop-modal" style="display: none;">
+                                        <img id="crop-image" style="max-width: 100%;">
+                                        <button type="button" id="confirm-crop" class="btn btn-success">Confirm Crop</button>
+                                    </div>
+
                                 </div>
                             </div>
                             <div class="col-12 col-md-9">
@@ -99,12 +105,12 @@
                                     <div class="row g-3">
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">First Name</label>
-                                            <input type="text" class="form-control" name="firstName" value="<%= user.firstName %>">
+                                            <input type="text" class="form-control" name="firstName" value="<%= user.firstName || ""%>">
                                             <div class="invalid-feedback"></div>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">Last Name</label>
-                                            <input type="text" class="form-control" name="lastName" value="<%= user.lastName %>">
+                                            <input type="text" class="form-control" name="lastName" value="<%= user.lastName || "" %>">
                                             <div class="invalid-feedback"></div>
                                         </div>
                                         <div class="col-12 col-md-6">
@@ -117,8 +123,8 @@
                                 <div class="phone-setting">
                                     <div class="row g-3">
                                         <div class="col-12 col-md-6">
-                                            <label class="form-label">Phone (Optional)</label>
-                                            <input type="tel" class="form-control" name="phone" value="<%= user.phone || '' %>">
+                                            <label class="form-label">Phone </label>
+                                            <input type="tel" class="form-control" name="phone" value="<%= user.phone || "" %>">
                                             <div class="invalid-feedback"></div>
                                             <div class="info-text">Note: Phone OTP will be sent to your email (<%= user.email %>) if you update this field.</div>
                                         </div>      
@@ -145,10 +151,7 @@
 
 <%- include('../partial/user/footer') %>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<!-- 
 <script>
 // Utility Functions
 function displayFormErrors(form, errors) {
@@ -240,10 +243,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 profilePhotoPreview.remove(); // Remove the current preview
 
                 const defaultIcon = document.createElement('div');
-                defaultIcon.className = 'default-profile-icon mb-3';
-                defaultIcon.id = 'profilePhotoPreview';
-                defaultIcon.innerHTML = '<i class="bi bi-person-fill"></i>';
-                parent.insertBefore(defaultIcon, parent.firstChild); // Insert at the top of the container
+                defaultIcon.className = 'default-profile-icon mb-3';   
+                 defaultIcon.id = 'profilePhotoPreview';
+                defaultIcon.innerHTML = '<i class="bi bi-person-fill"></i>';                  
+                parent.insertBefore(defaultIcon, parent.firstChild); 
                 isPhotoRemoved = true;
                 photoUpload.value = '';
                 console.log('Image removed, default icon displayed'); // Debug log
@@ -320,4 +323,158 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
-</script>
+</script> -->
+
+<script>
+    // Utility Functions
+    function displayFormErrors(form, errors) {
+      clearErrors(form);
+      if (errors && typeof errors === 'object') {
+        Object.entries(errors).forEach(([field, message]) => {
+          const input = form.querySelector(`[name="${field}"]`);
+          if (input) {
+            input.classList.add('is-invalid');
+            const feedback = input.parentElement.querySelector('.invalid-feedback');
+            if (feedback) {
+              feedback.textContent = message;
+              feedback.style.display = 'block';
+            }
+          }
+        });
+      }
+    }
+    
+    function clearErrors(form) {
+      form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+      form.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.textContent = '';
+        el.style.display = 'none';
+      });
+    }
+    
+    function showSwal(type, title, text, timer) {
+      return Swal.fire({
+        icon: type,
+        title,
+        text,
+        showConfirmButton: false,
+        timer,
+        timerProgressBar: true
+      });
+    }
+    
+    function showProcessingSwal(title, text) {
+      return Swal.fire({
+        title,
+        text,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Edit Profile Form
+      const editProfileForm = document.getElementById('editProfileForm');
+      if (editProfileForm) {
+        let isPhoneOtpSent = false;
+        let isPhotoRemoved = false;
+    
+        const photoUpload = document.getElementById('photoUpload');
+        const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+        const removePhotoBtn = document.getElementById('removePhotoBtn');
+    
+        if (photoUpload && profilePhotoPreview) {
+          photoUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const parent = profilePhotoPreview.parentElement;
+                profilePhotoPreview.remove();
+    
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.className = 'profile-photo mb-3';
+                img.id = 'profilePhotoPreview';
+                parent.insertBefore(img, parent.firstChild);
+                isPhotoRemoved = false;
+                console.log('Image preview updated:', img.src);
+              };
+              reader.readAsDataURL(file);
+            }
+          });
+        }
+    
+        if (removePhotoBtn) {
+          removePhotoBtn.addEventListener('click', () => {
+            const parent = profilePhotoPreview.parentElement;
+            profilePhotoPreview.remove();
+    
+            const defaultIcon = document.createElement('div');
+            defaultIcon.className = 'default-profile-icon mb-3';
+            defaultIcon.id = 'profilePhotoPreview';
+            defaultIcon.innerHTML = '<i class="bi bi-person-fill"></i>';
+            parent.insertBefore(defaultIcon, parent.firstChild);
+            isPhotoRemoved = true;
+            photoUpload.value = '';
+            console.log('Image removed, default icon displayed');
+          });
+        }
+    
+        editProfileForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          clearErrors(editProfileForm);
+    
+          // Prepare FormData
+          const formData = new FormData(editProfileForm);
+          formData.append('removePhoto', isPhotoRemoved.toString()); // Ensure boolean is sent as string
+    
+          // Client-side validation
+          const jsonData = Object.fromEntries(formData);
+          Object.keys(jsonData).forEach(key => {
+            if (typeof jsonData[key] === 'string') {
+              jsonData[key] = jsonData[key].trim();
+            }
+          });
+    
+          try {
+            const url = isPhoneOtpSent ? '/user/verify-phone-otp' : '/user/update-profile';
+            
+            const processingSwal = showProcessingSwal('Processing...', 'Please wait while we update your profile');
+    
+            const response = await fetch(url, {
+              method: 'POST',
+              body: formData,
+            });
+    
+            const data = await response.json();
+            console.log('Server response:', data); // Debug log
+            await processingSwal.close();
+    
+            if (!response.ok || !data.success) {
+              displayFormErrors(editProfileForm, data.errors);
+              await showSwal('error', 'Error', data.message || 'Profile update failed', 1500);
+              return;
+            }
+    
+            if (!isPhoneOtpSent && jsonData.phone && jsonData.phone !== '<%= user.phone || "" %>') {
+              document.getElementById('phoneOtpField').style.display = 'block';
+              isPhoneOtpSent = true;
+              await showSwal('success', 'OTP Sent', 'Please check your email for the phone verification OTP', 1000);
+            } else {
+              await showSwal('success', 'Success', 'Profile updated successfully', 500);
+              window.location.href = '/user/profile';
+            }
+          } catch (error) {
+            console.error('Profile update error:', error);
+            Swal.close();
+            await showSwal('error', 'Error', 'Something went wrong: ' + error.message, 1500);
+          }
+        });
+      } 
+    });
+    </script>

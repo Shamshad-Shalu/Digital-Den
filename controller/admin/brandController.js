@@ -117,7 +117,8 @@ const editBrand = async (req, res) => {
         const { id } = req.params;
 
         const existingBrand = await Brand.findOne({ 
-            brandName: { $regex: new RegExp(`^${name}$`, 'i') }
+            brandName: { $regex: new RegExp(`^${name}$`, 'i') },
+            _id: { $ne: id }
         });
         
         if (existingBrand) {

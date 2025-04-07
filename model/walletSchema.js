@@ -35,7 +35,7 @@ const walletSchema = new Schema({
         },
         method: {
             type: String,
-            enum: ["UPI", "Card", "Bank Transfer", "Cashback", "Refund"],
+            enum: ["Razorpay", "Cashback", "Refund"],
             required: true
         },
         status: {
@@ -58,5 +58,7 @@ const walletSchema = new Schema({
 }, {
     timestamps: true
 });
+
+walletSchema.index({ userId: 1 });
 
 module.exports = mongoose.model("Wallet", walletSchema);

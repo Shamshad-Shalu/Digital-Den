@@ -6,6 +6,9 @@ const categoryController = require("../controller/admin/categoryController.js");
 const brandController = require("../controller/admin/brandController.js");
 const productController = require("../controller/admin/productController.js");
 const orderController = require("../controller/admin/orderController.js");
+// const couponController = require("../controller/admin/couponController.js");
+const offerController = require("../controller/admin/offerController.js");
+
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
 
@@ -57,17 +60,32 @@ router.patch('/products/edit/:id', upload, productController.editProduct);
 router.get("/orders",orderController.getAllOrders);
 router.patch("/orders/update-status/:orderId",  orderController.updateOrderStatus);
 router.get("/orders/details/:orderId", orderController.getOrderDetails);
-router.post("/orders/return/:returnId", orderController.processReturnRequest);
-router.post("/orders/note/:orderId",  orderController.addOrderNote);
+router.post('/orders/return/:returnId', orderController.processReturnRequest);
+// router.get('/orders/return-requests/:orderId', orderController.getReturnRequestsByOrder);
 
 router.get("/banner",(req,res)=> {
     res.render("admin/banner")
 })
 
 
-router.get("/coupons",(req,res)=> {
-    res.render("admin/coupon")
+// // router.get("/offers",offerController.getOffers);
+//  router.post('/offers',offerController.addOffer);
+
+router.get('/offers', offerController.getOffers);
+router.post('/offers', offerController.addOffer);
+router.get('/offer-options', offerController.getOfferOptions);
+
+
+router.get("/sales",(req,res)=> {
+    res.render("admin/sales")
 })
+
+
+
+// coupon management 
+router.get("/coupons",(req,res)=> {
+    res.render("admin/coupons");
+});
 
 
 module.exports = router;

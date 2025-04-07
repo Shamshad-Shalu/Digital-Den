@@ -293,7 +293,6 @@ const trackOrder = async (req, res) => {
 };
 
 const cancelOrder = async (req , res) => {
-    
     try {
 
         if (res.locals.isUserBlocked) {
@@ -331,14 +330,16 @@ const cancelOrder = async (req , res) => {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
-        // Create a new OrderCancellation document
-        const orderCancellation = new OrderCancellation({
-            orderId: order._id,
+    
+        // Set cancellation details
+        order.cancellation = {
             reason,
             comments: comments || '',
-            canceledBy: user.id
-        });
-        await orderCancellation.save();
+            canceledBy: user._id,
+            canceledAt: new Date()
+      };
+      order.isCanceled = true;
+      order.status = 'Cancelled'; 
 
         // Increment stock for each product
         for (const item of order.orderedItems) {
@@ -347,8 +348,6 @@ const cancelOrder = async (req , res) => {
             await product.save();
         }
 
-        // Update status
-        order.status = 'Cancelled';
         await order.save();
         res.json({success: true,message: 'Order canceled successfully',});
         
@@ -359,188 +358,345 @@ const cancelOrder = async (req , res) => {
 }
 
 
-const returnOrder = async (req,res ) => {
+const returnOrder = async (req, res) => {
     try {
-
-        if (res.locals.isUserBlocked) {
+        const { isUserBlocked, userData } = res.locals;
+        if (isUserBlocked) {
             return res.status(403).json({ success: false, message: 'Account is blocked' });
         }
-    
-        const {userData } = res.locals;
+
         const { orderId } = req.params;
         const { reason } = req.body;
-    
-        // Validate request data
+
         const errors = validateReturnRequest({ reason });
         if (errors) {
             return res.status(400).json({ success: false, errors });
         }
 
-        const user = await User.findById(userData)
+        const user = await User.findById(userData);
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Find the order
         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        // Check if the user is authorized to cancel
-        if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
+        if (order.userId.toString() !== user._id.toString() && !user.isAdmin) {
             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
         }
 
-        //checking
         if (order.status !== 'Delivered') {
             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
         }
 
-        // Checking the order is already returned or has a return request
         if (['Return Request', 'Returned'].includes(order.status)) {
             return res.status(400).json({ success: false, message: 'Order is already in the return process' });
         }
 
         const returnRequest = new ReturnRequest({
             orderId: order._id,
-            itemId: null, //entere order 
+            itemIds: order.orderedItems.map(item => item._id.toString()), // Include all item IDs for whole order
             reason,
             requestedBy: user._id,
-            status: user.isAdmin ? 'Approved' : 'Pending', 
+            status: user.isAdmin ? 'Approved' : 'Pending',
         });
         await returnRequest.save();
+        console.log("Saved returnRequest _id:", returnRequest._id);
 
-        // increment stock for  approved requests  
         if (returnRequest.status === 'Approved') {
             for (const item of order.orderedItems) {
                 const product = item.product;
                 product.quantity += item.quantity;
                 await product.save();
-
-                // Update the return status of each item
                 item.returnStatus = 'Returned';
+                item.returnReason = reason; // Store reason for each item
             }
-
-            // Update the order status
             order.status = 'Returned';
             await order.save();
-
         } else {
-            // update the order status to Return Request  for pending  
+            for (const item of order.orderedItems) {
+                item.returnStatus = 'Return Requested';
+                item.returnReason = reason; // Store reason for each item
+            }
             order.status = 'Return Request';
             await order.save();
         }
 
         res.json({
             success: true,
-            message: returnRequest.status === 'Approved'? 'Order returned successfully'
-            : 'Return request submitted for review',
+            message: returnRequest.status === 'Approved' ? 'Order returned successfully' : 'Return request submitted for review',
         });
-        
     } catch (error) {
         console.error('Return order error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-}
- 
-//specific item 
-const returnItem = async (req,res ) => {
-    try {
+};
 
-        if (res.locals.isUserBlocked) {
+// const returnOrder = async (req,res ) => {
+//     try {
+//         const {isUserBlocked ,userData } = res.locals;
+//         if (isUserBlocked) {
+//             return res.status(403).json({ success: false, message: 'Account is blocked' });
+//         }
+
+//         const { orderId } = req.params;
+//         const { reason } = req.body;
+    
+//         // Validate request data
+//         const errors = validateReturnRequest({ reason });
+//         if (errors) {
+//             return res.status(400).json({ success: false, errors });
+//         }
+
+//         const user = await User.findById(userData)
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: 'User not found' });
+//         }
+
+//         // Find the order
+//         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
+
+//         // Check if the user is authorized to cancel
+//         if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
+//             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
+//         }
+
+//         //checking
+//         if (order.status !== 'Delivered') {
+//             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
+//         }
+
+//         // Checking the order is already returned or has a return request
+//         if (['Return Request', 'Returned'].includes(order.status)) {
+//             return res.status(400).json({ success: false, message: 'Order is already in the return process' });
+//         }
+
+//         const returnRequest = new ReturnRequest({
+//             orderId: order._id,
+//             itemId: null, 
+//             reason,
+//             requestedBy: user._id,
+//             status: user.isAdmin ? 'Approved' : 'Pending', 
+//         });
+//         await returnRequest.save();
+
+//         // increment stock for  approved requests  
+//         if (returnRequest.status === 'Approved') {
+//             for (const item of order.orderedItems) {
+//                 const product = item.product;
+//                 product.quantity += item.quantity;
+//                 await product.save();
+
+//                 // Update the return status of each item
+//                 item.returnStatus = 'Returned';
+//             }
+
+//             // Update the order status
+//             order.status = 'Returned';
+//             await order.save();
+
+//         } else {
+//             // update the order status to Return Request  for pending  
+//             order.status = 'Return Request';
+//             await order.save();
+//         }
+
+//         res.json({
+//             success: true,
+//             message: returnRequest.status === 'Approved'? 'Order returned successfully'
+//             : 'Return request submitted for review',
+//         });
+        
+//     } catch (error) {
+//         console.error('Return order error:', error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// }
+ 
+// //specific item 
+// const returnItem = async (req,res ) => {
+//     try {
+//         const {userData ,isUserBlocked } = res.locals;
+//         const { orderId ,itemId } = req.params;
+//         const { reason } = req.body;
+
+//         if (isUserBlocked) {
+//             return res.status(403).json({ success: false, message: 'Account is blocked' });
+//         }
+
+//         // Validate request data
+//         const errors = validateReturnRequest({ reason });
+//         if (errors) {
+//             return res.status(400).json({ success: false, errors });
+//         }
+
+//         const user = await User.findById(userData)
+//         if (!user) {
+//             return res.status(404).json({ success: false, message: 'User not found' });
+//         }
+
+//         // Find the order
+//         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
+
+//         //  user is authorized ?
+//         if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
+//             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
+//         }
+
+//         //checking
+//         if (order.status !== 'Delivered') {
+//             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
+//         }
+
+//         // Find the item in the orderedItems array
+//         const item = order.orderedItems.find(ite => ite._id.toString() === itemId);
+//         if (!item) {
+//             return res.status(404).json({ success: false, message: 'Item not found in order' });
+//         }
+
+//         // already returned or has a return request?
+//         if (['Return Requested', 'Returned'].includes(item.returnStatus)) {
+//             return res.status(400).json({ success: false, message: 'Item is already in the return process' });
+//         }
+
+//         const returnRequest = new ReturnRequest({
+//             orderId: order._id,
+//             itemId: item._id, 
+//             reason,
+//             requestedBy: user._id,
+//             status: user.isAdmin ? 'Approved' : 'Pending',
+//         });
+//         await returnRequest.save();
+
+//        //  update the item and increment stock
+//        if (returnRequest.status === 'Approved') {
+//             const product = item.product;
+//             product.quantity += item.quantity;
+//             await product.save();
+
+//             // Update the return status of the item
+//             item.returnStatus = 'Returned';
+
+//             // Check if all items are returned
+//             const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
+//             if (allItemsReturned) {
+//                 order.status = 'Returned';
+//             }
+
+//             await order.save();
+//         } else {
+//             // If pending case  "Return Requested"
+//             item.returnStatus = 'Return Requested';
+
+//             // Update the order status to "Return Request" if not already set
+//             if (order.status !== 'Return Request') {
+//                 order.status = 'Return Request';
+//             }
+
+//             await order.save();
+//         }
+
+//         res.json({
+//             success: true,message: returnRequest.status === 'Approved'? 'Item returned successfully'
+//                 : 'Return request submitted for review',
+//         });
+        
+//     } catch (error) {
+//         console.error('Return order error:', error);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// }
+
+const returnItem = async (req, res) => {
+    try {
+        const { userData, isUserBlocked } = res.locals;
+        const { orderId, itemId } = req.params;
+        const { reason } = req.body;
+
+        if (isUserBlocked) {
             return res.status(403).json({ success: false, message: 'Account is blocked' });
         }
-    
-        const {userData } = res.locals;
-        const { orderId ,itemId } = req.params;
-        const { reason } = req.body;
-    
-        // Validate request data
+
         const errors = validateReturnRequest({ reason });
         if (errors) {
             return res.status(400).json({ success: false, errors });
         }
 
-        const user = await User.findById(userData)
+        const user = await User.findById(userData);
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        // Find the order
         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
 
-        //  user is authorized ?
-        if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
+        if (order.userId.toString() !== user._id.toString() && !user.isAdmin) {
             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
         }
 
-        //checking
         if (order.status !== 'Delivered') {
             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
         }
 
-        // Find the item in the orderedItems array
-        const item = order.orderedItems.find(ite => ite._id.toString() === itemId);
+        const item = order.orderedItems.find(i => i._id.toString() === itemId);
         if (!item) {
             return res.status(404).json({ success: false, message: 'Item not found in order' });
         }
 
-        // already returned or has a return request?
         if (['Return Requested', 'Returned'].includes(item.returnStatus)) {
             return res.status(400).json({ success: false, message: 'Item is already in the return process' });
         }
 
         const returnRequest = new ReturnRequest({
             orderId: order._id,
-            itemId: item._id, 
+            itemIds: [itemId], // Store itemId as a string in the array
             reason,
             requestedBy: user._id,
             status: user.isAdmin ? 'Approved' : 'Pending',
         });
         await returnRequest.save();
 
-       //  update the item and increment stock
-       if (returnRequest.status === 'Approved') {
+        if (returnRequest.status === 'Approved') {
             const product = item.product;
             product.quantity += item.quantity;
             await product.save();
 
-            // Update the return status of the item
             item.returnStatus = 'Returned';
+            item.returnReason = reason; // Store reason in the order item
 
-            // Check if all items are returned
             const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
             if (allItemsReturned) {
                 order.status = 'Returned';
             }
-
-            await order.save();
         } else {
-            // If pending case  "Return Requested"
             item.returnStatus = 'Return Requested';
-
-            // Update the order status to "Return Request" if not already set
+            item.returnReason = reason; 
             if (order.status !== 'Return Request') {
                 order.status = 'Return Request';
             }
-
-            await order.save();
         }
 
+        await order.save();
+
         res.json({
-            success: true,message: returnRequest.status === 'Approved'? 'Item returned successfully'
-                : 'Return request submitted for review',
+            success: true,
+            message: returnRequest.status === 'Approved' ? 'Item returned successfully' : 'Return request submitted for review',
         });
-        
     } catch (error) {
         console.error('Return order error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-}
+};
 
 
 module.exports = {

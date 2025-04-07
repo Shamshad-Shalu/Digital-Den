@@ -2,113 +2,64 @@ const Order = require("../../model/orderSchema");
 const User = require("../../model/userSchema");
 const ReturnRequest = require("../../model/returnRequestModel");
 const Product = require("../../model/productSchema");
+const { sendEmail } = require('../../utils/email');
+const Wallet = require("../../model/walletSchema");
 
 // Get All Orders
 const getAllOrders = async (req, res) => {
   try {
-    const search = req.query.search || "";
-    const orderStatus = req.query.orderStatus || "All";
-    const paymentStatus = req.query.paymentStatus || "All";
-    const dateRange = req.query.dateRange || "All";
-    const page = parseInt(req.query.page) || 1;
+    const { search = '', orderStatus = 'All', paymentStatus = 'All', dateRange = 'All', page = 1 } = req.query;
     const limit = 5;
 
     let query = {};
-
-    // Search by order ID or username 
     if (search) {
-      const users = await User.find({
-        username: { $regex: search.trim(), $options: "i" },
-      });
-      const userIds = users.map((user) => user._id);
+      const users = await User.find({ username: { $regex: search.trim(), $options: 'i' } });
+      const userIds = users.map(user => user._id);
       query.$or = [
-        { orderId: { $regex: search.trim(), $options: "i" } },
-        {username: { $regex: search.trim(), $options: "i" } },
+        { orderId: { $regex: search.trim(), $options: 'i' } },
         { userId: { $in: userIds } },
       ];
     }
+    if (orderStatus !== 'All') query.status = orderStatus;
+    if (paymentStatus !== 'All') query.paymentStatus = paymentStatus;
 
-    // Filter by order status
-    if (orderStatus !== "All") {
-      query.status = orderStatus;
-    }
-
-    // Filter by payment status
-    if (paymentStatus !== "All") {
-      query.paymentStatus = paymentStatus;
-    }
-
-    // Filter by date range
     const now = new Date();
-    if (dateRange !== "All") {
+    if (dateRange !== 'All') {
       let startDate;
       switch (dateRange) {
-        case "Today":
-          startDate = new Date(now.setHours(0, 0, 0, 0));
-          break;
-        case "Yesterday":
-          startDate = new Date(now.setHours(0, 0, 0, 0));
-          startDate.setDate(startDate.getDate() - 1);
-          break;
-        case "Last7Days":
-          startDate = new Date(now.setHours(0, 0, 0, 0));
-          startDate.setDate(startDate.getDate() - 7);
-          break;
-        case "Last30Days":
-          startDate = new Date(now.setHours(0, 0, 0, 0));
-          startDate.setDate(startDate.getDate() - 30);
-          break;
-        case "ThisMonth":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "LastMonth":
-          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          break;
-        default:
-          startDate = null;
+        case 'Today': startDate = new Date(now.setHours(0, 0, 0, 0)); break;
+        case 'Yesterday': startDate = new Date(now.setHours(0, 0, 0, 0)); startDate.setDate(startDate.getDate() - 1); break;
+        case 'Last7Days': startDate = new Date(now.setHours(0, 0, 0, 0)); startDate.setDate(startDate.getDate() - 7); break;
+        case 'Last30Days': startDate = new Date(now.setHours(0, 0, 0, 0)); startDate.setDate(startDate.getDate() - 30); break;
+        case 'ThisMonth': startDate = new Date(now.getFullYear(), now.getMonth(), 1); break;
+        case 'LastMonth': startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1); break;
+        default: startDate = null;
       }
       if (startDate) {
         query.createdAt = { $gte: startDate };
-        if (dateRange === "Yesterday") {
-          query.createdAt.$lt = new Date(startDate).setHours(23, 59, 59, 999);
-        }
+        if (dateRange === 'Yesterday') query.createdAt.$lt = new Date(startDate).setHours(23, 59, 59, 999);
       }
     }
 
-    // Fetch total orders for pagination
     const totalOrders = await Order.countDocuments(query);
-
-  
     const orders = await Order.find(query)
-      .populate("userId", "username email")
+      .populate('userId', 'username email')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-    // Map orders to  customer details
-    const ordersWithDetails = orders.map((order) => {
-      return {
-        ...order.toObject(),
-        customer: {
-          name: order.userId.username,
-          email: order.userId.email,
-        },
-      };
-    });
+    const ordersWithDetails = orders.map(order => ({
+      ...order.toObject(),
+      customer: { name: order.userId?.username || 'N/A', email: order.userId?.email || 'N/A' },
+    }));
 
     if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
-        return res.json({
-            orders: ordersWithDetails,
-            page,
-            limit,
-            count: totalOrders,
-        });
+      return res.json({ orders: ordersWithDetails, page: parseInt(page), limit, count: totalOrders });
     }
 
-    // Render the orders page
-    res.render("admin/orders", {
+    res.render('admin/orders', {
       orders: ordersWithDetails,
-      page,
+      page: parseInt(page),
       limit,
       count: totalOrders,
       search,
@@ -117,8 +68,8 @@ const getAllOrders = async (req, res) => {
       dateRange,
     });
   } catch (error) {
-    console.error("Error in getAllOrders:", error);
-    res.status(500).render("error", { message: "Error fetching orders" });
+    console.error('Error in getAllOrders:', error);
+    res.status(500).render('error', { message: 'Error fetching orders' });
   }
 };
 
@@ -128,64 +79,54 @@ const updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    const order = await Order.findOne({ orderId }).populate("orderedItems.product");
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
+    const order = await Order.findOne({ orderId }).populate('orderedItems.product');
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
-    // Validate status transition
     const validTransitions = {
-      Pending: ["Processing", "Cancelled"],
-      Processing: ["Shipped", "Cancelled"],
-      Shipped: ["Out for Delivery", "Cancelled"],
-      "Out for Delivery": ["Delivered"],
-      Delivered: ["Return Request"],
-      "Return Request": ["Delivered", "Returned"],
-      Returned: [],
-      Cancelled: [],
+      'Pending': ['Processing', 'Cancelled'],
+      'Processing': ['Shipped', 'Cancelled'],
+      'Shipped': ['Out for Delivery', 'Cancelled'],
+      'Out for Delivery': ['Delivered'],
+      'Delivered': ['Return Request'],
+      'Return Request': ['Delivered', 'Returned'],
+      'Returned': [],
+      'Cancelled': [],
     };
 
-    if (!validTransitions[order.status].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot change status from ${order.status} to ${status}`,
-      });
+    if (!validTransitions[order.status]?.includes(status)) {
+      return res.status(400).json({ success: false, message: `Cannot change status from ${order.status} to ${status}` });
     }
 
-    // Update inventory if order is cancelled or returned
-    if (["Cancelled", "Returned"].includes(status)) {
+    if (status === 'Cancelled' && !order.isCanceled) {
+      order.cancellation = {
+        reason: req.body.reason || 'Admin cancellation',
+        canceledBy: req.user?._id,
+        canceledAt: new Date(),
+      };
+      order.isCanceled = true;
+    }
+
+    if (['Cancelled', 'Returned'].includes(status) && !order.isCanceled && order.status !== 'Returned') {
       for (const item of order.orderedItems) {
         const product = await Product.findById(item.product._id);
-        product.quantity += item.quantity;
-        await product.save();
+        if (product) {
+          product.quantity += item.quantity;
+          await product.save();
+        }
       }
     }
 
-    // Update order status
     order.status = status;
-    if (status === "Delivered") {
-      order.paymentStatus = "Paid";
-    } else if (status === "Cancelled") {
-      order.paymentStatus = "Failed";
-    } else if (status === "Returned") {
-      order.paymentStatus = "Refunded";
-    }
+    if (status === 'Delivered') order.paymentStatus = 'Paid';
+    else if (status === 'Cancelled') order.paymentStatus = 'Failed';
+    else if (status === 'Returned') order.paymentStatus = 'Refunded';
     order.updatedAt = new Date();
 
-    // Add note
-    order.notes = order.notes || [];
-    order.notes.push({
-      author: "Admin",
-      content: `Order status updated to ${status}`,
-      date: new Date(),
-    });
-
     await order.save();
-
     res.json({ success: true, message: `Order status updated to ${status}` });
   } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error updating order status:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -195,161 +136,143 @@ const getOrderDetails = async (req, res) => {
     const { orderId } = req.params;
 
     const order = await Order.findOne({ orderId })
-      .populate("userId", "username email phone createdAt orderHistory")
-      .populate("orderedItems.product", "productName cardImage");
+      .populate('userId', 'username email phone createdAt orderHistory')
+      .populate('orderedItems.product', 'productName sku');
 
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (!order.userId) return res.status(500).json({ success: false, message: 'User data missing' });
 
-    // Calculate customer statistics
-    const customerStats = {
-      totalOrders: order.userId.orderHistory.length,
-      totalSpent: await Order.aggregate([
-        { $match: { userId: order.userId._id, status: { $ne: "Cancelled" } } },
-        { $group: { _id: null, total: { $sum: "$finalAmount" } } },
-      ]).then((result) => (result[0] ? result[0].total : 0)),
-      totalReturns: await ReturnRequest.countDocuments({
-        orderId: { $in: order.userId.orderHistory },
-        status: "Approved",
-      }),
-    };
-
-    res.json({ order, customerStats });
+    res.json(
+      {
+        success: true,
+        order: order.toObject(),
+      });
   } catch (error) {
-    console.error("Error fetching order details:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error fetching order details:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch order details' });
   }
 };
 
-// Process Return Request
 const processReturnRequest = async (req, res) => {
   try {
     const { returnId } = req.params;
-    const { returnStatus, refundMethod, statusNote, internalNote, sendNotification } = req.body;
+    const { returnStatus } = req.body;
 
-    const returnRequest = await ReturnRequest.findById(returnId).populate({
-      path: "orderId",
+    const returnRequest = await ReturnRequest.findOne({ orderId: returnId }).populate({
+      path: 'orderId',
       populate: [
-        { path: "userId", select: "email wallet" },
-        { path: "orderedItems.product", select: "productName cardImage quantity" },
+        { path: 'userId', select: 'email username' },
+        { path: 'orderedItems.product', select: 'productName quantity' },
       ],
     });
 
-    if (!returnRequest) {
-      return res.status(404).json({ success: false, message: "Return request not found" });
-    }
+    if (!returnRequest) return res.status(404).json({ success: false, message: 'Return request not found' });
 
     const order = returnRequest.orderId;
 
     // Update return request status
-    returnRequest.status =
-      returnStatus === "approved"
-        ? "Approved"
-        : returnStatus === "rejected"
-        ? "Rejected"
-        : "More Info Requested";
-    returnRequest.refundMethod = returnStatus === "approved" ? refundMethod : null;
-    returnRequest.statusNote = statusNote;
-    returnRequest.internalNote = internalNote;
+    returnRequest.status = returnStatus === 'approved' ? 'Approved' : returnStatus === 'rejected' ? 'Rejected' : 'Pending';
     await returnRequest.save();
 
-    // If approved, process refund and update inventory
-    if (returnStatus === "approved") {
-      if (refundMethod === "Wallet") {
-        order.userId.wallet += order.finalAmount;
-        await order.userId.save();
-      }
-      order.paymentStatus = "Refunded";
-      order.status = "Returned";
+    console.log(returnRequest.status)
 
-      // Update inventory
-      if (returnRequest.itemId) {
-        const item = order.orderedItems.find(
-          (i) => i._id.toString() === returnRequest.itemId.toString()
-        );
-        const product = await Product.findById(item.product._id);
-        product.quantity += item.quantity;
-        await product.save();
-        item.returnStatus = "Returned";
-      } else {
-        for (const item of order.orderedItems) {
-          if (item.returnStatus === "Return Requested") {
-            const product = await Product.findById(item.product._id);
+    if (returnStatus === 'approved') {
+      // Find or create the user's wallet
+      let wallet = await Wallet.findOne({ userId: order.userId._id });
+      if (!wallet) {
+        wallet = new Wallet({
+          userId: order.userId._id,
+          balance: 0,
+          currency: 'INR',
+        });
+      }
+      wallet.balance += order.finalAmount;
+      wallet.transactions.push({
+        amount: order.finalAmount,
+        type: 'Credit',
+        method: 'Refund',
+        description: `Refund for order #${order.orderId}`,
+      });
+      await wallet.save();
+
+      // Update order status and payment status
+      order.paymentStatus = 'Refunded';
+      order.status = 'Returned';
+      for (const item of order.orderedItems) {
+        if (returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())) {
+          const product = await Product.findById(item.product._id);
+          if (product) {
             product.quantity += item.quantity;
             await product.save();
-            item.returnStatus = "Returned";
           }
+          item.returnStatus = 'Returned';
         }
       }
-    } else if (returnStatus === "rejected") {
-      order.status = "Delivered";
-      if (returnRequest.itemId) {
-        const item = order.orderedItems.find(
-          (i) => i._id.toString() === returnRequest.itemId.toString()
-        );
-        item.returnStatus = "Not Returned";
-      } else {
-        order.orderedItems.forEach((item) => {
-          if (item.returnStatus === "Return Requested") {
-            item.returnStatus = "Not Returned";
-          }
-        });
+    } else if (returnStatus === 'rejected') {
+      order.status = 'Delivered';
+      for (const item of order.orderedItems) {
+        if (returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())) {
+          item.returnStatus = 'Not Returned';
+        }
       }
     }
 
-    // Add note to order
-    order.notes = order.notes || [];
-    order.notes.push({
-      author: "Admin",
-      content: `Return request ${returnStatus}. Note: ${statusNote || "None"}`,
-      date: new Date(),
-    });
     await order.save();
 
-    // Send email notification (simulated)
-    if (sendNotification) {
-      console.log(`Sending email to ${order.userId.email}: Return request ${returnStatus}`);
+    // Send email notification
+    if (returnStatus === 'approved') {
+      await sendEmail({
+        to: order.userId.email,
+        subject: 'Return Request Approved',
+        html: `<p>Dear ${order.userId.username}, your return request for order #${order.orderId} has been approved. ₹${order.finalAmount.toLocaleString('en-IN')} has been credited to your wallet.</p>`,
+      });
+    } else if (returnStatus === 'rejected') {
+      await sendEmail({
+        to: order.userId.email,
+        subject: 'Return Request Rejected',
+        html: `<p>Dear ${order.userId.username}, your return request for order #${order.orderId} has been rejected.</p>`,
+      });
     }
 
     res.json({ success: true, message: `Return request ${returnStatus} successfully` });
   } catch (error) {
-    console.error("Error processing return request:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Error processing return request:', error);
+    res.status(500).json({ success: false, message: `Server error: ${error.message}` });
   }
 };
 
+// const getReturnRequestsByOrder = async (req, res) => {
+//   try {
+//     const { orderId } = req.params;
+//     if (!mongoose.Types.ObjectId.isValid(orderId)) {
+//       return res.status(400).json({ success: false, message: 'Invalid order ID format' });
+//     }
 
-// Add Order Note
-const addOrderNote = async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const { note } = req.body;
+//     const returnRequests = await ReturnRequest.find({ orderId: mongoose.Types.ObjectId(orderId) })
+//       .populate({
+//         path: 'orderId',
+//         populate: {
+//           path: 'orderedItems.product',
+//           select: 'productName'
+//         }
+//       })
+//       .lean();
 
-    const order = await Order.findOne({ orderId });
-    if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
-    }
+//     if (!returnRequests || returnRequests.length === 0) {
+//       return res.status(404).json({ success: false, message: `No return requests found for order #${orderId}` });
+//     }
 
-    order.notes = order.notes || [];
-    order.notes.push({
-      author: "Admin",
-      content: note,
-      date: new Date(),
-    });
-    await order.save();
-
-    res.json({ success: true, message: "Note added successfully" });
-  } catch (error) {
-    console.error("Error adding note:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-};
+//     res.json({ success: true, returnRequests });
+//   } catch (error) {
+//     console.error('Error fetching return requests:', error);
+//     res.status(500).json({ success: false, message: `Failed to fetch return requests: ${error.message}` });
+//   }
+// };
 
 module.exports = {
   getAllOrders,
   updateOrderStatus,
   getOrderDetails,
   processReturnRequest,
-  addOrderNote,
 };
+

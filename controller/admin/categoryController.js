@@ -118,14 +118,15 @@ const editCategory = async (req, res) => {
     try {
 
         const { name, description, categoryOffer } = req.body;
-        const { id } = req.params;
+        const { id } = req.params;  
 
         if (!name) {
             return res.status(400).json({ success: false, message: 'Invalid Category name' });
         }
 
         const existingCategory = await Category.findOne({ 
-            name: { $regex: new RegExp(`^${name}$`, 'i') }
+            name: { $regex: new RegExp(`^${name}$`, 'i') },
+            _id: { $ne: id }
         });
         
         if (existingCategory) {

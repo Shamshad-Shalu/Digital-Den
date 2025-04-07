@@ -335,15 +335,53 @@ function validateCoupon(coupon) {
         errors.maxDiscount = 'Maximum discount must be a non-negative integer';
     }
 
-    if (!coupon.expiry) {
-        errors.expiry = 'Expiry date is required';
-    } else if (new Date(coupon.expiry) <= new Date()) {
-        errors.expiry = 'Expiry date must be in the future';
+    if (!coupon.expireOn) {
+        errors.expireOn = 'Expiry date is required';
+    } else if (new Date(coupon.expireOn) <= new Date()) {
+        errors.expireOn = 'Expiry date must be in the future';
     }
 
     return Object.keys(errors).length > 0 ? errors : null;
 }
 
+// user-profile 
+async function validateUserProfile(user) {
+    let errors = {};
+
+    if (!user.username) {
+        errors.username = 'Username is required';
+    } else if (!validator.isAlphanumeric(user.username.replace(/\s/g, ''))) {
+        errors.username = 'Please enter a valid Username';
+    }
+    
+    if (user.phone && !validator.isMobilePhone(user.phone, 'any')) {
+        errors.phone = 'Invalid phone number format';
+    } else if (user.phone) {
+        const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
+        if (existingUser) {
+            errors.phone = 'Phone number is already in use';
+        }
+    }
+
+    // First name 
+    if (user.firstName) {
+        if (!validator.isAlpha(user.firstName.replace(/\s/g, ''))) {
+            errors.firstName = 'First name should only contain letters';
+        } else if (user.firstName.length < 3 || user.firstName.length > 20) {
+            errors.firstName = 'First name must be 3-20 characters';
+        }
+    }
+
+    // Last name 
+    if (user.lastName) {
+        if (!validator.isAlpha(user.lastName.replace(/\s/g, ''))) {
+            errors.lastName = 'Last name should only contain letters';
+        } else if (user.lastName.length < 3 || user.lastName.length > 20) {
+            errors.firstName = 'First name must be 3-20 characters';
+        }
+    }
+    return Object.keys(errors).length > 0 ? errors : null;
+}
 
 
 module.exports = { 
@@ -353,5 +391,6 @@ module.exports = {
     validateReturnRequest,
     validatePassword,
     validateEmail,
-    validateCoupon
+    validateCoupon,
+    validateUserProfile
 };

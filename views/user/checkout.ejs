@@ -803,48 +803,6 @@
                 form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
             }
 
-
-            // document.getElementById('placeOrder').addEventListener('click', async function(e) {
-            //     e.preventDefault();
-            //     const selectedAddress = document.querySelector('.address-card.active input[name="address"]:checked');
-            //     const selectedPayment = document.querySelector('.payment-option.active input[name="paymentMethod"]:checked');
-
-            //     if (!selectedAddress) {
-            //        Swal.fire('Error', 'Please select a shipping address', 'error');
-            //        return
-            //     }
-            //     if (!selectedPayment) {
-            //         Swal.fire('Error', 'Please select a payment method', 'error');
-            //         return;
-            //     }
-
-            //     const orderData = {
-            //         addressId: selectedAddress.value,
-            //         paymentMethod: selectedPayment.value
-            //     };
-
-            //     try {
-            //         const response = await fetch('/user/order/place', {
-            //             method: 'POST',
-            //             headers: { 'Content-Type': 'application/json' },
-            //             body: JSON.stringify(orderData)
-            //         });
-            //         const result = await response.json();
-            //         if (result.success) {
-
-            //             Swal.fire('success',result.message,'success')
-            //             window.location.href = '/user/order-success';
-            //         } else {
-            //             Swal.fire('Error',result.message || 'an error found', 'error');
-            //         }
-            //     } catch (error) {
-            //         console.error('Error placing order:', error);
-            //         alert('An error occurred while placing the order');
-            //     }
-            // });
-
-
-
             document.getElementById('placeOrder').addEventListener('click', async function(e) {
                 e.preventDefault();
                 const selectedAddress = document.querySelector('.address-card.active input[name="address"]:checked');

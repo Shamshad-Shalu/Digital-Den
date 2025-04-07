@@ -177,6 +177,29 @@
     [data-theme="dark"] .profile-img-container {
         background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
     }
+
+    .default-profile-icon {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background-color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--card-bg);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .default-profile-icon:hover {
+        transform: scale(1.05);
+    }
+
+    .default-profile-icon i {
+        font-size: 60px;
+        color: white;
+    }
 </style>
 
 <div class="body">
@@ -190,10 +213,10 @@
                     <div class="row g-4 align-items-center mb-4">
                         <div class="col-12 col-md-3 text-center">
                             <div class="d-flex flex-column align-items-center">
-                                <% if (user.cardImage) { %>
-                                    <img src="<%= user.cardImage %>" alt="Profile" class="profile-photo mb-3" data-bs-toggle="modal" data-bs-target="#profileImageModal">
+                                <% if (user.profileImage) { %>
+                                    <img src="/uploads/user/profileImages/<%= user.profileImage %>" alt="Profile" class="profile-photo mb-3" data-bs-toggle="modal" data-bs-target="#profileImageModal">
                                 <% } else { %>
-                                    <div class="default-profile-icon mb-3" >
+                                    <div class="default-profile-icon mb-3">
                                         <i class="bi bi-person-fill"></i>
                                     </div>
                                 <% } %>
@@ -233,7 +256,7 @@
     </div>
 </div>
 
-<!-- Simplified Profile Image Modal -->
+<!--Profile Image Modal -->
 <div class="modal fade" id="profileImageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -245,11 +268,7 @@
             </button>   
             <!-- Profile image -->
             <div class="profile-img-container">
-                <% if(user.cardImage) { %>
-                    <img src="/uploads/user/profileimages/<%= user.cardImage%>" alt="<%= user.username %>" id="modalProfileImg">
-                <% } else { %>
-                    <img src="/images/user/products/headset-samsung-removebg-preview.png" alt="Profile photo" id="modalProfileImg">
-                <% } %>
+                <img src="/uploads/user/profileImages/<%= user.profileImage %>" alt="<%= user.username %>" id="modalProfileImg">
             </div>
             <!-- Username -->
             <div class="profile-name">

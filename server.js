@@ -12,6 +12,17 @@ const path = require("path");
 const app = express();
 
 
+app.use(express.static('public', {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.css')) {
+        res.set('Content-Type', 'text/css');
+      } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+        res.set('Content-Type', 'image/jpeg');
+      }
+    }
+  }));
+  
+
 app.use(session({
     secret: "your_secret_key",
     resave: false,

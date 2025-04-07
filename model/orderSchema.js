@@ -26,12 +26,13 @@ const orderSchema = new Schema({
         price:{
             type:Number,
             required: true
-        }
-        ,returnStatus: {
+        },
+        returnStatus: {
             type: String,
             enum: ["Not Returned", "Return Requested", "Returned"],
             default: "Not Returned",
-        }
+        },
+        returnReason: { type: String, trim: true }
     }],
     totalPrice:{
         type:Number,
@@ -84,6 +85,12 @@ const orderSchema = new Schema({
         enum:["Pending","Processing","Shipped", "Out for Delivery","Delivered","Cancelled","Return Request","Returned"],
         default:"Pending"   
     },
+    paymentStatus:{
+        type:String,
+        required:true,
+        enum:["Pending","Paid","Failed", "Refunded"],
+        default:"Pending"  
+    },
     couponApplied:{
         type:Boolean,
         default:false
@@ -95,7 +102,15 @@ const orderSchema = new Schema({
     razorpay_order_id: {
         type: String,
         required: false 
-    }
+    },
+    cancellation: {
+        reason: String,
+        comments: String,
+        canceledBy: { type: Schema.Types.ObjectId, ref: 'User' },
+        canceledAt: Date
+    },
+    isCanceled: { type: Boolean, default: false }
+
 },
 {timestamps:true});
 

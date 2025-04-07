@@ -54,20 +54,20 @@ const userSchema = new Schema({
         ref:"Order",
         default: [],
     }],
-    
-    // cart:[{
-    //     type:Schema.Types.ObjectId ,
-    //     ref:"Cart"
-    // }],
-    // wallet:{
-    //     type:Number,
-    //     default:0
-    // },
-    // wishlist:[{
-    //     type:mongoose.Schema.Types.ObjectId,
-    //     ref:"Wishlist"
-    // }],
-
+    referralCode: {
+        type: String,
+        unique: true,
+        // required: true
+    },
+    redeemed: {
+        type: Boolean,
+        default: false
+    },
+    redeemedUsers: [{
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: []
+    }]
     // referralCode:{
     //     type:String,
     //     // required:true

@@ -28,17 +28,9 @@ const cartSchema = new Schema({
         totalPrice:{
             type:Number,
             required:true
-        },
-        // status:{
-        //     type:String,
-        //     default:'placed'
-        // },
-        // cancellationReason:{
-        //     type:String,
-        //     default:"none"
-        // }
+        }
     }],
-    subtotal: {  // (salePrice × quantity)
+    subtotal: { 
         type: Number,
         required: true,
         default: 0
@@ -55,18 +47,22 @@ const cartSchema = new Schema({
         type: Number,
         default: 0
     },
-    totalAmount: {  //(subtotal - discount + tax + shipping)
+    totalAmount: {  
         type: Number,
         required: true,
+        default: 0
+    },
+    appliedCoupon: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Coupon',
+        default: null
+    },
+    couponDiscount: { 
+        type: Number,
         default: 0
     }
 },{
     timestamps: true,
   })
-// cartSchema.methods.calculateTotalPrice = function () {
-//     this.subtotal = this.items.reduce((sum, item) => sum + item.totalPrice, 0);
-//     return this.subtotal;
-// };
-
 
 module.exports = mongoose.model("Cart",cartSchema);

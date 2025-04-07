@@ -92,7 +92,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Crop functionality
     document.getElementById('cropButton').addEventListener('click', () => {
         if (!cropper) return;
-        const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+        const canvas = cropper.getCroppedCanvas(
+            { width: 500,
+              height: 500,
+              imageSmoothingEnabled: true,
+              imageSmoothingQuality: 'high',
+              fillColor: 'transparent'  
+            });
         canvas.toBlob(blob => {
             const croppedFile = new File([blob], `cropped_${Date.now()}.jpg`, { type: 'image/jpeg' });
             if (currentFileInput === 'cardImageUpload') {
@@ -102,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             cropModal.hide();
             destroyCropper();
-        }, 'image/jpeg', 0.9);
+        }, 'image/png', 1.0);
     });
 
     // Zoom and rotate controls
@@ -145,9 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
             movable: true,
             minCropBoxWidth: 100,
             minCropBoxHeight: 100,
-            background: false,
+            background: true, 
             responsive: true,
             autoCropArea: 1,
+            transparent: true, 
         });
     }
 

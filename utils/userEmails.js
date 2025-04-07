@@ -33,8 +33,7 @@ async function sendUserStatusEmail(user) {
 }
 
 
-async function sendForgotOtp (user, otp) {
-    
+async function sendForgotOtp (user, otp) { 
     const emailContent = {
         subject :"Password Reset OTP",
         html :`
@@ -55,8 +54,7 @@ async function sendForgotOtp (user, otp) {
     });
 }
 
-async function sendSignupOtp(username,email,otp) {
-    
+async function sendSignupOtp(username,email,otp) {  
     const emailContent = {
         subject: "Account Verification OTP",
         html: `

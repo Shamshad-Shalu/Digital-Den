@@ -9,10 +9,10 @@ const profileController = require("../controller/user/profileController.js")
 const { checkBlockedStatus ,checkSignupSession,
       checkUserLoggedIn} = require('../middleware/userAuthMiddleware.js');
 const passport = require("passport");
-const { createUpload, uploadSingle } = require('../middleware/userUpload.js'); // Import the refactored Multer middleware
+// const { createUpload, uploadSingle } = require('../middleware/userUpload.js'); // Import the refactored Multer middleware
 
 // Configure Multer for user profile images (single file upload)
-const userUpload = uploadSingle('/uploads/user/profileimages', 'profileImage');
+// const userUpload = uploadSingle('/uploads/user/profileimages', 'profileImage');
 
 // user router 
 router.get("/signin",userController.loadLoagin);
@@ -56,22 +56,21 @@ router.get("/products", productsController.getProducts);
 router.get('/product/:id', productsController.getProductDetails);
 router.use(checkUserLoggedIn)
 
-
 // wishlist 
 router.get("/wishlist",cartController.getWishlistPage);
 router.post("/wishlist/add",cartController.addToWishlist);
 router.post('/wishlist/remove', cartController.removeFromWishlist);
 
-
 // Cart
 router.get("/cart" ,cartController.getCartPage);
 router.post('/cart/add', cartController.addToCart);
 router.post("/cart/update",cartController.updateCart);
-router.post("/cart/remove",cartController.removeFromCart)
+router.post("/cart/remove",cartController.removeFromCart);
+router.post('/cart/apply-coupon', cartController.applyCoupon);
 
 // error-page 
 router.get("/error-404",userController.pageNotFound);
-
+ 
 // checkout-section
 router.get("/checkout",cartController.getCheckoutpage);
 router.post("/checkout",cartController. proceedToCheckout);
@@ -105,15 +104,10 @@ router.post('/change-password', profileController.changePassword);
 router.post("/add-password",profileController.addPassword);
 router.post('/change-email', profileController.changeEmail);
 router.post('/verify-email-otp', profileController.verifyEmailOtp);
-router.post('/update-profile', profileController.updateProfile); 
-router.post('/verify-phone-otp', profileController.verifyPhoneOtp);
+const userUpload = require("../middleware/userUpload.js");
 
-
-
-
-
-
-
+router.post('/update-profile',userUpload ,profileController.updateProfile); 
+router.post('/verify-phone-otp',userUpload ,profileController.verifyPhoneOtp);
 
 
 module.exports = router;
