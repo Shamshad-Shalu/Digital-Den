@@ -354,14 +354,17 @@ async function validateUserProfile(user) {
         errors.username = 'Please enter a valid Username';
     }
     
-    if (user.phone && !validator.isMobilePhone(user.phone, 'any')) {
-        errors.phone = 'Invalid phone number format';
-    } else if (user.phone) {
-        const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
-        if (existingUser) {
-            errors.phone = 'Phone number is already in use';
+    if(user.phone){
+        if (!validator.isMobilePhone(user.phone, 'any')) {
+            errors.phone = 'Invalid phone number format';
+        } else if (user.phone) {
+            const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
+            if (existingUser) {
+                errors.phone = 'Phone number is already in use';
+            }
         }
     }
+   
 
     // First name 
     if (user.firstName) {

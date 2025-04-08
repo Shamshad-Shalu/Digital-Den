@@ -61,7 +61,7 @@ const couponSchema = new Schema({
         ref: 'User',
         default: null
     }],
-    isReferral: { // Add a flag to indicate if this is a referral coupon
+    isReferral: { 
         type: Boolean,
         default: false
     }

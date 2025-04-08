@@ -22,7 +22,7 @@ async function validateUserProfile(data, userId) {
         if (existingUser) {
             errors.email = 'Email is already in use';
         }
-    }
+    } 
 
     if (data.phone && !validator.isMobilePhone(data.phone, 'any')) {
         errors.phone = 'Invalid phone number format';

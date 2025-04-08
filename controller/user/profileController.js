@@ -195,121 +195,6 @@ const verifyEmailOtp = async (req , res) => {
     }
 }
 
-// const updateProfile = async (req, res) => {
-//     try {
-
-//         const user = await User.findById(res.locals.userData);
-//         if(!user ){
-//             return res.status(403).json({ success: false, message: "User not found" });
-//         }
-
-//         const { firstName, lastName, username, phone } = req.body;
-//         let image;
-
-//         if(req.file){
-//             image = req.file.filename;
-//         }
-
-//         console.log(firstName, lastName , username , phone)
-
-//         const updateData = {
-//             firstName,
-//             lastName,
-//             phone ,
-//             username,
-//         };
-
-//         console.log(updateData );
-
-//         if(image){
-//             if(user.profileImage){
-//                 let oldImagePath = `uploads/user/profileimages/${user.profileImage}`;
-//             }
-            
-//             if(fs.existsSync(oldImagePath)){
-//                 fs.unlinkSync(oldImagePath);
-//             }
-
-//             user.profileImage = image;
-//         };
-
-//         const errors = await validateUserProfile(updateData);
-//         if (errors) {
-//             console.log('Validation errors:', errors); 
-//             return res.status(400).json({ success: false, errors});
-//         }
-
-//         user.firstName = firstName;
-//         user.lastName = lastName;
-//         user.username = username;
-
-//         if (phone && phone !== user.phone) {
-//             const otp = genarateOtp();
-//             req.session.phoneOtp = otp
-//             req.session.tempPhone = phone;
-//             console.log('Generated OTP:', otp, 'Stored in session:', req.session.phoneOtp); 
-
-//             const emailSent = await sendProfileUpdateOtp(user.username, user.email, otp);
-//             if (!emailSent) {
-//                 console.log('Failed to send OTP'); 
-//                 return res.status(500).json({
-//                     success: false,
-//                     message: 'Failed to send OTP. Please try again later.'
-//                 });
-//             }
-
-//             await user.save();
-//             console.log('OTP sent, user saved:', user); 
-//             return res.status(200).json({ success: true, message: "OTP sent to email for phone verification" });
-//         }
-
-//     } catch (error) {
-
-//         console.error('Profile update error:', error);
-//         return res.status(500).json({ success: false, message: 'Server error occurred' });
-//     }
-// };
-
-// const verifyPhoneOtp = async (req, res) => {
-//     try {
-//         console.log('Received verifyPhoneOtp request:', req.body); // Debug log
-//         const { userData } = res.locals;
-//         const { phoneOtp } = req.body;
-
-//         const user = await User.findById(userData._id);
-//         if (!user) {
-//             console.log('User not found'); // Debug log
-//             return res.status(403).json({ success: false, message: "User not found" });
-//         }
-
-//         const errors = {};
-//         if (!phoneOtp) {
-//             errors.phoneOtp = "Please enter OTP";
-//         } else if (phoneOtp.length !== 6) {
-//             errors.phoneOtp = "OTP must be 6 digits";
-//         } else if (phoneOtp !== req.session.phoneOtp) { 
-//             console.log('OTP comparison failed:', { entered: phoneOtp, stored: req.session.phoneOtp }); // Debug log
-//             errors.phoneOtp = "Invalid OTP";
-//         }
-
-//         if (Object.keys(errors).length > 0) {
-//             console.log('Validation errors:', errors); // Debug log
-//             return res.status(400).json({ success: false, errors });
-//         }
-
-//         user.phone = req.session.tempPhone;
-//         delete req.session.phoneOtp;
-//         delete req.session.tempPhone;
-//         await user.save();
-//         console.log('Phone number updated:', user); // Debug log
-
-//         return res.status(200).json({ success: true, message: "Phone number updated successfully" });
-//     } catch (error) {
-//         console.error('Phone OTP verification error:', error);
-//         return res.status(500).json({ success: false, message: 'Server error occurred' });
-//     }
-// };
-
 
 const updateProfile = async (req, res) => {
     try {
@@ -322,7 +207,8 @@ const updateProfile = async (req, res) => {
         const updateData = {
             firstName,
             lastName,
-            username
+            username,
+            phone
         };
       
         // profile image
@@ -347,7 +233,10 @@ const updateProfile = async (req, res) => {
         const errors = await validateUserProfile(updateData); 
         if (errors) {
             return res.status(400).json({ success: false, errors });
+            console.log(errors);
         }
+
+        delete updateData.phone;
         Object.assign(user, updateData);
   
         //  phone verification 
@@ -386,115 +275,6 @@ const updateProfile = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error occurred' });
     }
 };
-
-// const updateProfile = async (req, res) => {
-//     try {
-//       const user = await User.findById(res.locals.userData._id); 
-//       if (!user) {
-//         return res.status(403).json({ success: false, message: 'User not found' });
-//       }
-  
-//       const { firstName, lastName, username, phone, removePhoto } = req.body;
-//       let image;
-  
-//       if (req.file) {
-//         image = req.file.filename;
-//       }
-  
-//       const updateData = {
-//         firstName,
-//         lastName,
-//         username,
-//         phone,
-//       };
-  
-//     //   if (image || removePhoto === 'true') {
-//         if(image){
-//         if (user.profileImage) {
-//           const oldImagePath = path.join(__dirname, '../public/uploads/user/profileImages', user.profileImage);
-//         //   if (await fs.access(oldImagePath).then(() => true).catch(() => false)) {
-//         //     fs.unlink(oldImagePath);
-//         //   }
-//             if(fs.existsSync(oldImagePath)){
-//                 fs.unlinkSync(oldImagePath);
-//             }
-//         }
-//         user.profileImage = image || null; 
-//       }
-  
-//       const errors = await validateUserProfile(updateData); 
-//       if (errors) {
-//         return res.status(400).json({ success: false, errors });
-//       }
-  
-//       Object.assign(user, updateData);
-  
-//       if (phone && phone !== user.phone) {
-//         const otp = genarateOtp(); 
-//         req.session.phoneOtp = otp;
-//         req.session.tempPhone = phone;
-
-//         console.log('Generated OTP:', otp, 'mobile No:', req.session.phoneOtp); 
-//         const emailSent = await sendProfileUpdateOtp(user.username, user.email, otp);
-//         if (!emailSent) {
-//           return res.status(500).json({
-//             success: false,
-//             message: 'Failed to send OTP. Please try again later.',
-//           });
-//         }
-  
-//         await user.save();
-//         return res.status(200).json({ success: true, message: 'OTP sent to email for phone verification' });
-//       }
-  
-//       await user.save();
-//       return res.status(200).json({ success: true, message: 'Profile updated successfully' });
-//     } catch (error) {
-//       console.error('Profile update error:', error);
-//       return res.status(500).json({ success: false, message: 'Server error occurred' });
-//     }
-//   };
-  
-
-
-
-
-
-//   const verifyPhoneOtp = async (req, res) => {
-//     console.log("this is phone verify page ...")
-//     try {
-//       const { userData } = res.locals;
-//       const { phoneOtp } = req.body;
-  
-//       const user = await User.findById(userData._id);
-//       if (!user) {
-//         return res.status(403).json({ success: false, message: 'User not found' });
-//       }
-  
-//       const errors = {};
-//       if (!phoneOtp) {
-//         errors.phoneOtp = 'Please enter OTP';
-//       } else if (phoneOtp.length !== 6) {
-//         errors.phoneOtp = 'OTP must be 6 digits';
-//       } else if (phoneOtp !== req.session.phoneOtp) {
-//         errors.phoneOtp = 'Invalid OTP';
-//       }
-  
-//       if (Object.keys(errors).length > 0) {
-//         return res.status(400).json({ success: false, errors });
-//       }
-  
-//       user.phone = req.session.tempPhone;
-//       delete req.session.phoneOtp;
-//       delete req.session.tempPhone;
-//       await user.save();
-   
-//       return res.status(200).json({ success: true, message: 'Phone number updated successfully' });
-//     } catch (error) {
-//       console.error('Phone OTP verification error:', error);
-//       return res.status(500).json({ success: false, message: 'Server error occurred' });
-//     }
-//   };
 
 
 const verifyPhoneOtp = async (req, res) => {

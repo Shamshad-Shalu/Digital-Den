@@ -85,10 +85,6 @@ router.post('/order/return/:orderId', orderController.returnOrder);
 router.post('/order/return-item/:orderId/:itemId', orderController.returnItem);
  
 
-
-
-
-
 router.use(checkUserLoggedIn);
 //address -section
 router.get("/address",addressController.loadAddresspage);
@@ -108,6 +104,18 @@ const userUpload = require("../middleware/userUpload.js");
 
 router.post('/update-profile',userUpload ,profileController.updateProfile); 
 router.post('/verify-phone-otp',userUpload ,profileController.verifyPhoneOtp);
+
+// const User = require("../model/userSchema.js")
+// const Wallet = require("../model/walletSchema.js");
+
+// router.get("/wallet",async  (req,res)=>{
+//     const {userData } = res.locals;
+
+//     const user = await User.findById(userData);
+//     let wallet = await Wallet.findOne({ userId: order.userId._id });
+
+//     res.render("user/wallet",{user , wallet});
+// })
 
 
 module.exports = router;

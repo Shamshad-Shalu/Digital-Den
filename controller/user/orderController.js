@@ -1,8 +1,5 @@
-const Cart = require("../../model/cartSchema");
-const Category = require("../../model/categorySchema");
 const User = require("../../model/userSchema");
 const Order  = require("../../model/orderSchema"); 
-const OrderCancellation = require("../../model/OrderCancellations");
 const ReturnRequest = require("../../model/returnRequestModel"); 
 const {validateCancelOrder ,validateReturnRequest} = require("../../utils/validation");
 
@@ -22,7 +19,6 @@ const getorderSuccessPage = async (req, res) => {
         res.status(500).send('Server error');
     }
 };
-
 
 // const getOrders = async (req , res) => {
 //     const {userData } = res.locals;
@@ -150,7 +146,6 @@ const getorderSuccessPage = async (req, res) => {
 //         res.status(500).send('Server error');
 //     }
 // }
-
 
 const getOrders = async (req, res) => {
     const { userData } = res.locals;
@@ -356,7 +351,6 @@ const cancelOrder = async (req , res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 }
-
 
 const returnOrder = async (req, res) => {
     try {
@@ -697,7 +691,6 @@ const returnItem = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
 
 module.exports = {
     getorderSuccessPage,

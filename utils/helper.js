@@ -77,53 +77,51 @@ async function determineStatus(productId) {
     }
 }
 
+const updateProductsForBrand = async (brandId) => {
+    try {
+        console.log(`Starting product status update for brand ${brandId}...`);
+        const products = await Product.find({ brand: brandId })
+            .populate('category')
+            .populate('brand');
 
+        for (let product of products) {
+            const newStatus = await determineStatus(product._id);
+            if (product.status !== newStatus) {
+                console.log(`Updating status for product ${product._id} from ${product.status} to ${newStatus}`);
+                product.status = newStatus;
+                await product.save();
+            } else {
+                console.log(`No status change for product ${product._id}, current status: ${product.status}`);
+            }
+        }
+        console.log(`Product status update for brand ${brandId} completed.`);
+    } catch (error) {
+        console.error(`Error updating product statuses for brand ${brandId}:`, error.stack);
+    }
+};
 
-// const updateProductsForBrand = async (brandId) => {
-//     try {
-//         console.log(`Starting product status update for brand ${brandId}...`);
-//         const products = await Product.find({ brand: brandId })
-//             .populate('category')
-//             .populate('brand');
+const updateProductsForCategory = async (categoryId) => {
+    try {
+        console.log(`Starting product status update for category ${categoryId}...`);
+        const products = await Product.find({ category: categoryId })
+            .populate('category')
+            .populate('brand');
 
-//         for (let product of products) {
-//             const newStatus = await determineStatus(product._id);
-//             if (product.status !== newStatus) {
-//                 console.log(`Updating status for product ${product._id} from ${product.status} to ${newStatus}`);
-//                 product.status = newStatus;
-//                 await product.save();
-//             } else {
-//                 console.log(`No status change for product ${product._id}, current status: ${product.status}`);
-//             }
-//         }
-//         console.log(`Product status update for brand ${brandId} completed.`);
-//     } catch (error) {
-//         console.error(`Error updating product statuses for brand ${brandId}:`, error.stack);
-//     }
-// };
-
-// const updateProductsForCategory = async (categoryId) => {
-//     try {
-//         console.log(`Starting product status update for category ${categoryId}...`);
-//         const products = await Product.find({ category: categoryId })
-//             .populate('category')
-//             .populate('brand');
-
-//         for (let product of products) {
-//             const newStatus = await determineStatus(product._id);
-//             if (product.status !== newStatus) {
-//                 console.log(`Updating status for product ${product._id} from ${product.status} to ${newStatus}`);
-//                 product.status = newStatus;
-//                 await product.save();
-//             } else {
-//                 console.log(`No status change for product ${product._id}, current status: ${product.status}`);
-//             }
-//         }
-//         console.log(`Product status update for category ${categoryId} completed.`);
-//     } catch (error) {
-//         console.error(`Error updating product statuses for category ${categoryId}:`, error.stack);
-//     }
-// };
+        for (let product of products) {
+            const newStatus = await determineStatus(product._id);
+            if (product.status !== newStatus) {
+                console.log(`Updating status for product ${product._id} from ${product.status} to ${newStatus}`);
+                product.status = newStatus;
+                await product.save();
+            } else {
+                console.log(`No status change for product ${product._id}, current status: ${product.status}`);
+            }
+        }
+        console.log(`Product status update for category ${categoryId} completed.`);
+    } catch (error) {
+        console.error(`Error updating product statuses for category ${categoryId}:`, error.stack);
+    }
+};
 
 
 // const updateAllProductStatuses = async () => {
@@ -177,7 +175,7 @@ module.exports = {
     validateUser,
     genarateOtp,
     determineStatus,
-    // updateProductsForBrand,
+    updateProductsForBrand,
     // updateAllProductStatuses,
-    // updateProductsForCategory
+    updateProductsForCategory
 }
