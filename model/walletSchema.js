@@ -26,7 +26,7 @@ const walletSchema = new Schema({
         },
         amount: {
             type: Number,
-            required: true
+            required: true        
         },
         type: {
             type: String,
@@ -41,14 +41,15 @@ const walletSchema = new Schema({
         status: {
             type: String,
             enum: ["Pending", "Completed", "Failed"],
-            default: "Completed"
+            default: "Pending"
         },
         date: {
             type: Date,
             default: Date.now
         },
         description: {
-            type: String
+            type: String,
+            default: "No description provided"
         }
     }],
     lastUpdated: {

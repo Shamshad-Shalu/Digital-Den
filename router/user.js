@@ -6,13 +6,11 @@ const cartController = require("../controller/user/cartController.js");
 const addressController = require("../controller/user/addressController.js");
 const orderController = require("../controller/user/orderController.js");
 const profileController = require("../controller/user/profileController.js")
+const walletController = require("../controller/user/walletController.js")
 const { checkBlockedStatus ,checkSignupSession,
       checkUserLoggedIn} = require('../middleware/userAuthMiddleware.js');
 const passport = require("passport");
-// const { createUpload, uploadSingle } = require('../middleware/userUpload.js'); // Import the refactored Multer middleware
-
-// Configure Multer for user profile images (single file upload)
-// const userUpload = uploadSingle('/uploads/user/profileimages', 'profileImage');
+const userUpload = require("../middleware/userUpload.js");
 
 // user router 
 router.get("/signin",userController.loadLoagin);
@@ -100,22 +98,14 @@ router.post('/change-password', profileController.changePassword);
 router.post("/add-password",profileController.addPassword);
 router.post('/change-email', profileController.changeEmail);
 router.post('/verify-email-otp', profileController.verifyEmailOtp);
-const userUpload = require("../middleware/userUpload.js");
-
 router.post('/update-profile',userUpload ,profileController.updateProfile); 
 router.post('/verify-phone-otp',userUpload ,profileController.verifyPhoneOtp);
 
-// const User = require("../model/userSchema.js")
-// const Wallet = require("../model/walletSchema.js");
-
-// router.get("/wallet",async  (req,res)=>{
-//     const {userData } = res.locals;
-
-//     const user = await User.findById(userData);
-//     let wallet = await Wallet.findOne({ userId: order.userId._id });
-
-//     res.render("user/wallet",{user , wallet});
-// })
+//walllet management 
+router.get("/wallet",walletController.getWalletPage);
+router.post('/wallet/add', walletController.addAmountWallet);
+router.post('/wallet/verify-payment', walletController.verifyPayment);
+router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
 
 module.exports = router;

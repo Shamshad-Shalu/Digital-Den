@@ -9,7 +9,10 @@ const path = require('path');
 
 const getUserProfile = async (req, res) => {
     try {
-       const user = res.locals.userData;   
+       const user = res.locals.userData; 
+       if (!user) {
+        return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/user/signin" });
+    }  
 
         res.render('user/profile', { user ,  });
     } catch (error) {
@@ -38,7 +41,7 @@ const addPassword = async (req , res ) => {
         const user = await User.findById(res.locals.userData);
         if (!user) {
             return res.status(403).json({
-                message: "User not found with this ID",redirectUrl: '/user/login'
+                message: "User not found with this ID",redirectUrl: '/user/signin'
             });
         }
         const data = {
