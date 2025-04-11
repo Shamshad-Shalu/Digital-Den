@@ -6,7 +6,7 @@ const categoryController = require("../controller/admin/categoryController.js");
 const brandController = require("../controller/admin/brandController.js");
 const productController = require("../controller/admin/productController.js");
 const orderController = require("../controller/admin/orderController.js");
-// const couponController = require("../controller/admin/couponController.js");
+const couponController = require("../controller/admin/couponController.js");
 const offerController = require("../controller/admin/offerController.js");
 
 const {adminAuth} = require("../middleware/auth.js");
@@ -83,9 +83,19 @@ router.get("/sales",(req,res)=> {
 
 
 // coupon management 
-router.get("/coupons",(req,res)=> {
-    res.render("admin/coupons");
-});
+router.get("/coupons",couponController.getCoupons);
+router.post('/coupon/add', couponController.addCoupon);
+router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
+router.patch('/coupon/edit/:id',couponController.editCoupon);
+
+
+
+
+
+
+router.get("pageError",(req,res)=>{
+    res.render("admin/pageError")
+})
 
 
 module.exports = router;

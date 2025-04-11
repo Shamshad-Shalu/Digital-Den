@@ -60,6 +60,4 @@ const walletSchema = new Schema({
     timestamps: true
 });
 
-walletSchema.index({ userId: 1 });
-
 module.exports = mongoose.model("Wallet", walletSchema);

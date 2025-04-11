@@ -56,15 +56,15 @@ const couponSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    users: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        default: null
-    }],
-    isReferral: { 
-        type: Boolean,
-        default: false
-    }
+    // users: [{
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'User',
+    //     default: null
+    // }],
+    // isReferral: { 
+    //     type: Boolean,
+    //     default: false
+    // }
 
     // userId:[{
     //     type:Schema.Types.ObjectId,

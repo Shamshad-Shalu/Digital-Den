@@ -1658,6 +1658,12 @@ const placeOrder = async (req, res) => {
                 if(!product){
                     return res.status(400).json({success:false,message:"products in your cart are no longer available"})
                 }
+                if (product.quantity < item.quantity) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Insufficient stock for ${product.productName}. Only ${product.quantity} units available.`,
+                    });
+                }
 
                 const status = await determineStatus(product._id);
                 product.status = status;

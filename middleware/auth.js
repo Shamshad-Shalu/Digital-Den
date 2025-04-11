@@ -12,7 +12,6 @@ const adminAuth = async (req, res, next) => {
             console.log("not admin found ");
             req.session.destroy();
             return res.redirect("/admin/login");
-           
         }
 
         next();

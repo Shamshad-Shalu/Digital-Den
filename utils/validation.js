@@ -302,23 +302,34 @@ const validateReturnRequest = (data) => {
 };
  
 // coupon Function
-function validateCoupon(coupon) {
+async function validateCoupon(coupon,couponId = null) {
     let errors = {};
 
     if (!coupon.code) {
         errors.code = 'Coupon code is required';
-    } else if (!validator.isLength(coupon.code, { min: 4, max: 20 })) {
-        errors.code = 'Coupon code must be 4-20 characters';
+    } else if (!validator.isLength(coupon.code, { min: 4, max: 10 })) {
+        errors.code = 'Coupon code must be 4-10 characters';
     } else if (!validator.matches(coupon.code, /^[A-Z0-9]+$/)) {
         errors.code = 'Coupon code must be alphanumeric and uppercase';
+    }else{
+        let query = { code: { $regex: coupon.code, $options: 'i' } };
+        
+        if (couponId) {
+            query._id = { $ne: couponId };
+        }
+        
+        const existingCoupon = await Coupon.findOne(query);
+        if (existingCoupon) {
+            errors.code = 'Coupon code already exists';
+        }
     }
 
     if (!coupon.discount) {
         errors.discount = 'Discount value is required';
     } else if (!validator.isInt(coupon.discount.toString(), { min: 1 })) {
         errors.discount = 'Discount must be a positive integer';
-    } else if (coupon.type === 'Percentage' && coupon.discount > 100) {
-        errors.discount = 'Percentage discount cannot exceed 100';
+    } else if (coupon.type === 'Percentage' && coupon.discount > 20) {
+        errors.discount = 'Percentage discount cannot exceed 20';
     }
 
     if (!coupon.type || !['Percentage', 'Fixed'].includes(coupon.type)) {
@@ -338,7 +349,7 @@ function validateCoupon(coupon) {
     if (!coupon.expireOn) {
         errors.expireOn = 'Expiry date is required';
     } else if (new Date(coupon.expireOn) <= new Date()) {
-        errors.expireOn = 'Expiry date must be in the future';
+        errors.expireOn = 'Expiry date must be a valid future date';
     }
 
     return Object.keys(errors).length > 0 ? errors : null;

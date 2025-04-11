@@ -1,291 +1,541 @@
 <%- include("../../views/partial/admin/header") %>
 
+<!-- Offers Management Section -->
 <div class="container-fluid py-4">
-  <h1 class="h3 mb-4">Offers Management</h1>
-  <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#addOfferModal">
-    <i class="fas fa-plus me-2"></i>Add New Offer
-  </button>
-
-  <div class="card">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover" id="offersTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Discount</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Applies To</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (offers && offers.length > 0) { %>
-              <% offers.forEach((offer, index) => { %>
-                <% 
-                  const now = new Date();
-                  const status = offer.isActive && new Date(offer.startDate) <= now && new Date(offer.endDate) >= now
-                    ? 'Active'
-                    : new Date(offer.startDate) > now
-                    ? 'Upcoming'
-                    : 'Expired';
-                  const appliesToText = offer.isAll ? `All ${offer.appliesTo}` : `${offer.appliesTo} (${offer.targetIds.length} selected)`;
-                %>
-                <tr>
-                  <td><%= (page - 1) * limit + index + 1 %></td>
-                  <td><%= offer.name %></td>
-                  <td><%= offer.discountPercentage %>%</td>
-                  <td><%= new Date(offer.startDate).toLocaleDateString() %></td>
-                  <td><%= new Date(offer.endDate).toLocaleDateString() %></td>
-                  <td><%= appliesToText %></td>
-                  <td>
-                    <span class="badge <%= status === 'Active' ? 'bg-success' : status === 'Upcoming' ? 'bg-warning' : 'bg-danger' %>">
-                      <%= status %>
-                    </span>
-                  </td>
-                </tr>
-              <% }) %>
-            <% } else { %>
-              <tr><td colspan="7" class="text-center">No offers found. Add some!</td></tr>
-            <% } %>
-          </tbody>
-        </table>
-      </div>
-      <% if (total > limit) { %>
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <div>Showing <%= (page - 1) * limit + 1 %> to <%= Math.min(page * limit, total) %> of <%= total %> Offers</div>
-          <nav>
-            <ul class="pagination mb-0">
-              <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
-                <a class="page-link" href="/admin/offers?page=<%= page - 1 %>" aria-label="Previous"><i class="fas fa-chevron-left"></i></a>
-              </li>
-              <% for (let i = 1; i <= totalPages; i++) { %>
-                <li class="page-item <%= i === page ? 'active' : '' %>">
-                  <a class="page-link" href="/admin/offers?page=<%= i %>"><%= i %></a>
-                </li>
-              <% } %>
-              <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
-                <a class="page-link" href="/admin/offers?page=<%= page + 1 %>" aria-label="Next"><i class="fas fa-chevron-right"></i></a>
-              </li>
-            </ul>
-          </nav>
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3">Offers Management</h1>
+            <p class="text-muted">Create and manage promotional offers</p>
         </div>
-      <% } %>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOfferModal">
+                <i class="fas fa-plus me-2"></i>Add New Offer
+            </button>
+        </div>
     </div>
-  </div>
+    
+    <!-- Search and Filter Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/admin/offers" method="get" class="row g-3" id="offerFilterForm">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search offers..." name="search" value="">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        <a href="/admin/offers" class="btn btn-secondary">Clear</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="All" selected>All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Expired">Expired</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Offers Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle user-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Discount</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Products</th>
+                            <th width="120">Status</th>
+                            <th width="150">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td class="fw-medium">Summer Sale</td>
+                            <td>
+                                <span class="badge bg-success">30%</span>
+                            </td>
+                            <td>May 15, 2025</td>
+                            <td>Jun 15, 2025</td>
+                            <td>24 products</td>
+                            <td>
+                                <button class="btn btn-sm status-btn bg-success text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-status="Active"
+                                    data-name="Summer Sale"
+                                    data-id="offer1">
+                                    <span class="status-text">Active</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editOfferModal"
+                                        data-id="offer1"
+                                        data-name="Summer Sale">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer1"
+                                        data-name="Summer Sale">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td class="fw-medium">Black Friday</td>
+                            <td>
+                                <span class="badge bg-success">50%</span>
+                            </td>
+                            <td>Nov 25, 2025</td>
+                            <td>Nov 30, 2025</td>
+                            <td>42 products</td>
+                            <td>
+                                <button class="btn btn-sm status-btn bg-warning text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-status="Upcoming"
+                                    data-name="Black Friday"
+                                    data-id="offer2">
+                                    <span class="status-text">Upcoming</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editOfferModal"
+                                        data-id="offer2"
+                                        data-name="Black Friday">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer2"
+                                        data-name="Black Friday">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td class="fw-medium">Winter Clearance</td>
+                            <td>
+                                <span class="badge bg-success">25%</span>
+                            </td>
+                            <td>Jan 1, 2025</td>
+                            <td>Jan 31, 2025</td>
+                            <td>18 products</td>
+                            <td>
+                                <button class="btn btn-sm status-btn bg-danger text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-status="Expired"
+                                    data-name="Winter Clearance"
+                                    data-id="offer3">
+                                    <span class="status-text">Expired</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editOfferModal"
+                                        data-id="offer3"
+                                        data-name="Winter Clearance">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer3"
+                                        data-name="Winter Clearance">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td class="fw-medium">New Year Special</td>
+                            <td>
+                                <span class="badge bg-success">20%</span>
+                            </td>
+                            <td>Dec 20, 2025</td>
+                            <td>Jan 5, 2026</td>
+                            <td>32 products</td>
+                            <td>
+                                <button class="btn btn-sm status-btn bg-warning text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-status="Upcoming"
+                                    data-name="New Year Special"
+                                    data-id="offer4">
+                                    <span class="status-text">Upcoming</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editOfferModal"
+                                        data-id="offer4"
+                                        data-name="New Year Special">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer4"
+                                        data-name="New Year Special">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td class="fw-medium">Back to School</td>
+                            <td>
+                                <span class="badge bg-success">15%</span>
+                            </td>
+                            <td>Aug 1, 2025</td>
+                            <td>Aug 31, 2025</td>
+                            <td>15 products</td>
+                            <td>
+                                <button class="btn btn-sm status-btn bg-secondary text-white"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#statusModal"
+                                    data-status="Inactive"
+                                    data-name="Back to School"
+                                    data-id="offer5">
+                                    <span class="status-text">Inactive</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editOfferModal"
+                                        data-id="offer5"
+                                        data-name="Back to School">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer5"
+                                        data-name="Back to School">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Showing <span class="fw-bold">1</span> to <span class="fw-bold">5</span> of <span class="fw-bold">5</span> Offers
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item active">
+                            <a class="page-link" href="#">1</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Are you sure you want to delete this offer? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Confirmation Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Change Offer Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="statusMessage">Are you sure you want to change the status of this offer?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatus">Confirm</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add New Offer</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form id="addOfferForm">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Discount (%)</label>
-            <input type="number" class="form-control" name="discountPercentage" min="0" max="100" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Minimum Purchase</label>
-            <input type="number" class="form-control" name="minPurchase" min="0">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Max Discount Amount</label>
-            <input type="number" class="form-control" name="maxDiscount" min="0">
-          </div>
-          <div class="row mb-3">
-            <div class="col">
-              <label class="form-label">Start Date</label>
-              <input type="date" class="form-control" name="startDate" required>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="col">
-              <label class="form-label">End Date</label>
-              <input type="date" class="form-control" name="endDate" required>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Status</label>
-            <select class="form-select" name="isActive" required>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Applies To</label>
-            <select class="form-select" name="appliesTo" id="appliesTo" required>
-              <option value="products">Products</option>
-              <option value="categories">Categories</option>
-              <option value="brands">Brands</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Selection Type</label>
-            <select class="form-select" name="isAll" id="isAll" required>
-              <option value="true">All</option>
-              <option value="false">Specific</option>
-            </select>
-          </div>
-          <div class="mb-3" id="specificItemsField" style="display: none;">
-            <label class="form-label">Select Items</label>
-            <select class="form-select" name="targetIds" id="targetIds" multiple style="width: 100%;"></select>
-          </div>
+            <form id="addOfferForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                        <div class="invalid-feedback" id="nameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Discount (%)</label>
+                        <input type="number" class="form-control" name="discount" id="discount" step="1" value="0">
+                        <div class="invalid-feedback" id="discountError"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="startDate" id="startDate">
+                            <div class="invalid-feedback" id="startDateError"></div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="endDate" id="endDate">
+                            <div class="invalid-feedback" id="endDateError"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Products</label>
+                        <select class="form-select" name="products" id="products" multiple>
+                            <option value="1">iPhone 14 Pro</option>
+                            <option value="2">Samsung Galaxy S23</option>
+                            <option value="3">MacBook Pro M2</option>
+                            <option value="4">iPad Air</option>
+                            <option value="5">Sony WH-1000XM5</option>
+                            <option value="6">Nintendo Switch</option>
+                        </select>
+                        <div class="invalid-feedback" id="productsError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Upcoming">Upcoming</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="addBtn">Add</button>
+                </div>
+            </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Add</button>
-        </div>
-      </form>
     </div>
-  </div>
+</div>
+
+<!-- Edit Offer Modal -->
+<div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editOfferModalLabel">Edit Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editOfferForm">
+                <input type="hidden" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                        <div class="invalid-feedback nameError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Discount (%)</label>
+                        <input type="number" class="form-control" id="discount" name="discount" step="1" value="0">
+                        <div class="invalid-feedback discountError"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="startDate" id="startDate">
+                            <div class="invalid-feedback startDateError"></div>
+                        </div>
+                        <div class="col">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="endDate" id="endDate">
+                            <div class="invalid-feedback endDateError"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Products</label>
+                        <select class="form-select" name="products" id="editProducts" multiple>
+                            <option value="1">iPhone 14 Pro</option>
+                            <option value="2">Samsung Galaxy S23</option>
+                            <option value="3">MacBook Pro M2</option>
+                            <option value="4">iPad Air</option>
+                            <option value="5">Sony WH-1000XM5</option>
+                            <option value="6">Nintendo Switch</option>
+                        </select>
+                        <div class="invalid-feedback productsError"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="editStatus">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Upcoming">Upcoming</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
 <script>
-  async function loadOffers() {
-    try {
-      const response = await fetch('/admin/offers');
-      const data = await response.json();
-      if (!data.success) throw new Error(data.message);
-      const { offers, total, page, limit } = data;
-      const tbody = document.querySelector('#offersTable tbody');
-      tbody.innerHTML = '';
-      if (offers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No offers found. Add some!</td></tr>';
-        return;
-      }
-      offers.forEach((offer, index) => {
-        const now = new Date();
-        const status = offer.isActive && new Date(offer.startDate) <= now && new Date(offer.endDate) >= now
-          ? 'Active'
-          : new Date(offer.startDate) > now
-          ? 'Upcoming'
-          : 'Expired';
-        const appliesToText = offer.isAll ? `All ${offer.appliesTo}` : `${offer.appliesTo} (${offer.targetIds.length} selected)`;
-
-        tbody.innerHTML += `
-          <tr>
-            <td>${(page - 1) * limit + index + 1}</td>
-            <td>${offer.name}</td>
-            <td>${offer.discountPercentage}%</td>
-            <td>${new Date(offer.startDate).toLocaleDateString()}</td>
-            <td>${new Date(offer.endDate).toLocaleDateString()}</td>
-            <td>${appliesToText}</td>
-            <td><span class="badge ${status === 'Active' ? 'bg-success' : status === 'Upcoming' ? 'bg-warning' : 'bg-danger'}">${status}</span></td>
-          </tr>
-        `;
-      });
-    } catch (err) {
-      console.error('Error loading offers:', err);
-    }
-  }
-
-  async function loadOptions(appliesTo) {
-  try {
-    console.log('Loading options for:', appliesTo);
-    const response = await fetch(`/admin/offer-options?appliesTo=${appliesTo}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    console.log('Response data:', data);
-    if (!data.success) throw new Error(data.message);
-    const { options } = data;
-    if (!options || options.length === 0) {
-      console.warn('No options available for:', appliesTo);
-      alert(`No ${appliesTo} found in the database. Please add some ${appliesTo} first.`);
-      return;
-    }
-    const select = $('#targetIds');
-    select.empty();
-    options.forEach(opt => {
-      // Fix this part to properly handle different entity types
-      let displayName;
-      if (appliesTo === 'products') {
-        displayName = opt.productName || 'Unnamed Product';
-      } else if (appliesTo === 'categories') {
-        displayName = opt.name || 'Unnamed Category';
-      } else if (appliesTo === 'brands') {
-        displayName = opt.brandName || 'Unnamed Brand';
-      } else {
-        displayName = 'Unnamed';
-      }
-      const option = new Option(displayName, opt._id);
-      select.append(option);
+    // Basic script to handle modal data
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete modal functionality
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const offerName = button.getAttribute('data-name');
+                const offerId = button.getAttribute('data-id');
+                
+                const deleteMessage = document.getElementById('deleteMessage');
+                deleteMessage.textContent = `Are you sure you want to delete the offer "${offerName}"? This action cannot be undone.`;
+                
+                const confirmButton = document.getElementById('confirmDelete');
+                confirmButton.setAttribute('data-id', offerId);
+            });
+        }
+        
+        // Status modal functionality
+        const statusModal = document.getElementById('statusModal');
+        if (statusModal) {
+            statusModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const status = button.getAttribute('data-status');
+                const offerName = button.getAttribute('data-name');
+                const offerId = button.getAttribute('data-id');
+                
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = `Are you sure you want to change the status of "${offerName}"?`;
+                
+                const confirmButton = document.getElementById('confirmStatus');
+                confirmButton.setAttribute('data-id', offerId);
+            });
+        }
+        
+        // Edit modal functionality
+        const editModal = document.getElementById('editOfferModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const offerId = button.getAttribute('data-id');
+                const offerName = button.getAttribute('data-name');
+                
+                const form = editModal.querySelector('form');
+                form.querySelector('input[name="id"]').value = offerId;
+                form.querySelector('input[name="name"]').value = offerName;
+                
+                // Populate with dummy data based on the offer id
+                switch(offerId) {
+                    case 'offer1':
+                        form.querySelector('input[name="discount"]').value = 30;
+                        form.querySelector('input[name="startDate"]').value = '2025-05-15';
+                        form.querySelector('input[name="endDate"]').value = '2025-06-15';
+                        form.querySelector('select[name="status"]').value = 'Active';
+                        break;
+                    case 'offer2':
+                        form.querySelector('input[name="discount"]').value = 50;
+                        form.querySelector('input[name="startDate"]').value = '2025-11-25';
+                        form.querySelector('input[name="endDate"]').value = '2025-11-30';
+                        form.querySelector('select[name="status"]').value = 'Upcoming';
+                        break;
+                    case 'offer3':
+                        form.querySelector('input[name="discount"]').value = 25;
+                        form.querySelector('input[name="startDate"]').value = '2025-01-01';
+                        form.querySelector('input[name="endDate"]').value = '2025-01-31';
+                        form.querySelector('select[name="status"]').value = 'Inactive';
+                        break;
+                    case 'offer4':
+                        form.querySelector('input[name="discount"]').value = 20;
+                        form.querySelector('input[name="startDate"]').value = '2025-12-20';
+                        form.querySelector('input[name="endDate"]').value = '2026-01-05';
+                        form.querySelector('select[name="status"]').value = 'Upcoming';
+                        break;
+                    case 'offer5':
+                        form.querySelector('input[name="discount"]').value = 15;
+                        form.querySelector('input[name="startDate"]').value = '2025-08-01';
+                        form.querySelector('input[name="endDate"]').value = '2025-08-31';
+                        form.querySelector('select[name="status"]').value = 'Inactive';
+                        break;
+                }
+            });
+        }
     });
-    // Reinitialize Select2 after adding options
-    if (!select.hasClass('select2-hidden-accessible')) {
-      select.select2({ placeholder: `Select ${appliesTo}`, allowClear: true });
-    } else {
-      select.trigger('change.select2'); // Refresh if already initialized
-    }
-  } catch (err) {
-    console.error('Error loading options:', err);
-    alert('Failed to load options. Check console for details.');
-  }
-}
-
-  function updateForm() {
-    const appliesTo = document.getElementById('appliesTo').value;
-    const isAll = document.getElementById('isAll').value === 'true';
-    const specificItemsField = document.getElementById('specificItemsField');
-
-    specificItemsField.style.display = isAll ? 'none' : 'block';
-    if (!isAll) {
-      loadOptions(appliesTo);
-    } else {
-      $('#targetIds').select2('destroy').empty();
-    }
-  }
-
-  document.getElementById('addOfferForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    if (data.isAll === 'false') {
-      data.targetIds = $('#targetIds').val() || [];
-    } else {
-      data.targetIds = [];
-    }
-
-    try {
-      const response = await fetch('/admin/offers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      const result = await response.json();
-      if (result.success) {
-        bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
-        loadOffers();
-      } else {
-        alert(result.message);
-      }
-    } catch (err) {
-      console.error('Error submitting offer:', err);
-      alert('An error occurred while adding the offer.');
-    }
-  });
-
-  document.getElementById('appliesTo').addEventListener('change', updateForm);
-  document.getElementById('isAll').addEventListener('change', updateForm);
-
-  $(document).ready(function() {
-    $('#targetIds').select2({ placeholder: 'Select items', allowClear: true });
-    updateForm(); // Initial call to set up the form
-  });
-
-  loadOffers();
 </script>
 <%- include("../../views/partial/admin/footer.ejs") %>
+
+
+
+
