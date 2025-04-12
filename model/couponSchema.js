@@ -55,34 +55,7 @@ const couponSchema = new Schema({
     updatedAt: {
         type: Date,
         default: Date.now
-    },
-    // users: [{
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'User',
-    //     default: null
-    // }],
-    // isReferral: { 
-    //     type: Boolean,
-    //     default: false
-    // }
-
-    // userId:[{
-    //     type:Schema.Types.ObjectId,
-    //     ref:"User",
-    // }]
-     
-    // isList:{
-    //     type:Boolean,
-    //     default:true
-    // },                                        
-    // offerPrice:{
-    //     type:Number,
-    //     required:true
-    // },                      
-    // userId:[{
-    //     type:Schema.Types.ObjectId,
-    //     ref:"User",
-    // }]
+    }
 });
 
 module.exports = mongoose.model("Coupon",couponSchema);

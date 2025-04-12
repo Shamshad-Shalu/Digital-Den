@@ -75,48 +75,101 @@
 // offerSchema.index({ code: 1, startDate: 1, endDate: 1 });
 // module.exports = mongoose.model('Offer', offerSchema);
 
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
+// const { Schema } = mongoose;
+
+// const offerSchema = new Schema({
+//   name: { type: String, required: true },
+//   discountPercentage: { type: Number, min: 0, max: 100, required: true },
+//   minPurchase: { type: Number, default: 0 },
+//   maxDiscount: { type: Number },
+//   startDate: { type: Date, required: true },
+//   endDate: { type: Date, required: true },
+//   isActive: { type: Boolean, default: true },
+//   appliesTo: {
+//     type: String,
+//     enum: ['products', 'categories', 'brands'],
+//     required: true
+//   },
+//   isAll: { type: Boolean, default: true },
+//   targetIds: [{ type: Schema.Types.ObjectId, refPath: 'appliesToModel' }],
+//   appliesToModel: {
+//     type: String,
+//     enum: ['Product', 'Category', 'Brand'],
+//     required: true
+//   }
+// }, { timestamps: true });
+
+// offerSchema.pre('save', function (next) {
+//   switch (this.appliesTo) {
+//     case 'products':
+//       this.appliesToModel = 'Product';
+//       break;
+//     case 'categories':
+//       this.appliesToModel = 'Category';
+//       break;
+//     case 'brands':
+//       this.appliesToModel = 'Brand';
+//       break;
+//     default:
+//       throw new Error('Invalid appliesTo value');
+//   }
+//   if (this.isAll) this.targetIds = [];
+//   next();
+// });
+
+// offerSchema.index({ appliesTo: 1, startDate: 1, endDate: 1 });
+// module.exports = mongoose.model('Offer', offerSchema);
+
+
+
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const offerSchema = new Schema({
-  name: { type: String, required: true },
-  discountPercentage: { type: Number, min: 0, max: 100, required: true },
-  minPurchase: { type: Number, default: 0 },
-  maxDiscount: { type: Number },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
-  isActive: { type: Boolean, default: true },
-  appliesTo: {
-    type: String,
-    enum: ['products', 'categories', 'brands'],
-    required: true
+  name: { 
+    type: String, 
+    required: true 
   },
-  isAll: { type: Boolean, default: true },
-  targetIds: [{ type: Schema.Types.ObjectId, refPath: 'appliesToModel' }],
-  appliesToModel: {
-    type: String,
-    enum: ['Product', 'Category', 'Brand'],
-    required: true
-  }
-}, { timestamps: true });
-
-offerSchema.pre('save', function (next) {
-  switch (this.appliesTo) {
-    case 'products':
-      this.appliesToModel = 'Product';
-      break;
-    case 'categories':
-      this.appliesToModel = 'Category';
-      break;
-    case 'brands':
-      this.appliesToModel = 'Brand';
-      break;
-    default:
-      throw new Error('Invalid appliesTo value');
-  }
-  if (this.isAll) this.targetIds = [];
-  next();
+  description:{
+    type:String,
+    required:true
+  }, 
+  discountType: { 
+    type: String, 
+    enum: ["percentage", "fixed"], 
+    required: true 
+  },
+  discountValue: { 
+    type: Number, 
+    required: true 
+  },
+  startDate: { 
+    type: Date, 
+    required: true 
+  },
+  endDate: { 
+    type: Date, 
+    required: true 
+  },
+  appliedOn: { 
+    type: String, 
+    enum: ["category", "brand", "product"], 
+    required: true 
+  },
+  categories: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Category" 
+  }],
+  brands: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Brand" 
+  }],
+  products: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Product" 
+  }],
+  isActive: { type: Boolean, default: true }
 });
 
-offerSchema.index({ appliesTo: 1, startDate: 1, endDate: 1 });
-module.exports = mongoose.model('Offer', offerSchema);
+module.exports = mongoose.model("Offer", offerSchema);

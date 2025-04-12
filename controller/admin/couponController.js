@@ -1,7 +1,7 @@
 const Coupon = require("../../model/couponSchema");
 const User = require("../../model/userSchema");
-
 const {validateCoupon } = require("../../utils/validation");
+
 
 const getCoupons = async (req,res)=>{
     try {
@@ -15,10 +15,11 @@ const getCoupons = async (req,res)=>{
         if (search) {
             query.code = { $regex: search.trim(), $options: 'i' };
         }
-        
+
+        await updateCouponStatuses();
+
         if (type !== 'All') query.type = type;
         if (status !== 'All') query.status = status;
-       
         if (start || end) {
             query.expireOn = {};
             
@@ -27,9 +28,9 @@ const getCoupons = async (req,res)=>{
             }
             
             if (end) {
-                query.expireOn.$lte = new Date(end);
-                // Set time to end of day for the end date
-                query.expireOn.$lte.setHours(23, 59, 59, 999);
+                const endDate = new Date(end);
+                endDate.setHours(23, 59, 59, 999);
+                query.expireOn.$lte = endDate;
             }
         }
         const count = await Coupon.countDocuments(query);
@@ -117,17 +118,28 @@ const editCoupon = async (req , res)=> {
             console.log(errors)
             return res.status(400).json({ success: false, errors });
         };
-        const coupon = await Coupon.findByIdAndUpdate( 
-            id,
-            {...couponData,
-                updatedAt: Date.now()
-            },
-            { new: true }
-        );
 
-        if(!coupon){
-            return res.status(404).json({ success: false, message: 'coupon not found' });
-        } 
+
+        const coupon = await Coupon.findById(id);
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: 'Coupon not found' });
+        }
+
+        // Determine updated status
+        const now = new Date();
+        const expireDate = new Date(expireOn);
+        const status =
+            expireDate < now ? 'Expired' :
+            coupon.status === 'Disabled' ? 'Disabled' : 'Active';
+
+        // Update the coupon
+        coupon.set({
+            ...couponData,
+            status,
+            updatedAt: Date.now()
+        });
+        await coupon.save();
+    
 
         res.setHeader('Cache-Control', 'no-store');
         res.json({
@@ -143,10 +155,9 @@ const editCoupon = async (req , res)=> {
 
 const toggleCouponStatus = async(req ,res)=>{
     try {
+        await updateCouponStatuses();
         const id = req.params.id;
         const {status} = req.body;
-
-        console.log("coupon status:",status)
 
         const coupon = await Coupon.findById(id); 
         if (!coupon) {
@@ -159,7 +170,6 @@ const toggleCouponStatus = async(req ,res)=>{
 
         coupon.status = status;
         await coupon.save();
-
 
         console.log( `coupon status updated to ${status}`);
 
@@ -175,6 +185,38 @@ const toggleCouponStatus = async(req ,res)=>{
         res.status(500).json({ success: false, message: 'Failed to update status' });
     }
 }
+
+// update coupon status
+const updateCouponStatuses = async () => {
+    try {
+        const now = new Date();
+
+        const coupons = await Coupon.find();
+        const bulkOps = coupons.map(coupon => {
+            const newStatus = new Date(coupon.expireOn) < now ? 'Expired' :
+            coupon.status === 'Disabled' ? 'Disabled' : 'Active'; 
+            
+            if (coupon.status !== newStatus) {
+                return {
+                    updateOne: {
+                        filter: { _id: coupon._id },
+                        update: { $set: { status: newStatus, updatedAt: new Date() } }
+                    }
+                };
+                
+            }
+        }).filter(Boolean); 
+
+        if (bulkOps.length > 0) {
+            await Coupon.bulkWrite(bulkOps);
+            
+            console.log(`Updated ${bulkOps.length} coupon status(es).`);
+        }
+       
+    } catch (error) {
+        console.error('Error updating coupon statuses:', error.message);
+    }
+};
 
 module.exports ={
     getCoupons,

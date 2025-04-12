@@ -434,7 +434,8 @@
                                 ${new Date(coupon.expireOn || coupon.updatedAt).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}
                             </td>
                             <td>
-                                <button class="btn btn-sm status-btn ${coupon.status === "Active" ? 'bg-success' : 'bg-danger'} text-white" 
+                                <button class="btn btn-sm status-btn ${coupon.status === "Active" ? 'bg-success' :  coupon.status === "Disabled" ? 'bg-danger'  : 'bg-secondary'} text-white"
+                                        ${coupon.status === 'Expired' ? 'disabled' : ''}
                                         data-bs-toggle="modal" 
                                         data-bs-target="#statusModal" 
                                         data-id="${coupon._id}" 
@@ -446,7 +447,7 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                    <button class="btn btn-sm btn-outline-primary mx-2 edit-btn" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#editCouponModal" 
                                             data-id="${coupon._id}"
@@ -591,7 +592,11 @@
                         timer: 1500,
                     })
                 } else {
-                    throw new Error(data.message);
+                    statusText.classList.remove('d-none');
+                    button.querySelector('.spinner-border').classList.add('d-none');
+                    bootstrap.Modal.getInstance(statusModal).hide();
+                    Swal.fire({icon: 'error',text: data.message,timer: 1000,});
+                    fetchCoupon();
                 }
             } catch (error) {
                 Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to update status' });

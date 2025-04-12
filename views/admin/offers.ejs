@@ -69,6 +69,7 @@
                             <td>May 15, 2025</td>
                             <td>Jun 15, 2025</td>
                             <td>24 products</td>
+
                             <td>
                                 <button class="btn btn-sm status-btn bg-success text-white"
                                     data-bs-toggle="modal"
@@ -82,19 +83,20 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
+                                
+                                <button class="btn btn-sm text-primary cursor-pointer view-details"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="offer1"
+                                        data-name="Summer Sale">
+                                        <i class="fas fa-info-circle"></i> 
+                                    </button>
                                     <button class="btn btn-sm btn-outline-primary edit-btn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editOfferModal"
                                         data-id="offer1"
                                         data-name="Summer Sale">
                                         <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer1"
-                                        data-name="Summer Sale">
-                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </td>
@@ -324,7 +326,7 @@
 </div>
 
 <!-- Add Offer Modal -->
-<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+<!-- <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -383,7 +385,7 @@
             </form>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- Edit Offer Modal -->
 <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
@@ -447,9 +449,162 @@
         </div>
     </div>
 </div>
+<!-- addOfferModal -->
+<!-- <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <!-- Increased width for better layout -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addOfferForm">
+                <div class="modal-body">
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <div class="mb-3">
+                        <label class="form-label">Offer Name</label>
+                        <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Discount Type</label>
+                        <select class="form-select" name="discountType" id="discountType">
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed (₹)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Discount Value</label>
+                        <input type="number" class="form-control" name="discount" id="discount" value="10">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="startDate" id="startDate">
+                        </div>
+                        <div class="col">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="endDate" id="endDate">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Apply Offer On</label>
+                        <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="category">Category</option>
+                            <option value="brand">Brand</option>
+                            <option value="product">Product</option>
+                        </select>
+                    </div>
+
+                    <!-- Category Selection -->
+                    <div class="mb-3 d-none" id="categorySection">
+                        <label class="form-label">Select Categories</label><br>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="laptops" id="cat1">
+                            <label class="form-check-label" for="cat1">Laptops</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="monitors" id="cat2">
+                            <label class="form-check-label" for="cat2">Monitors</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="headsets" id="cat3">
+                            <label class="form-check-label" for="cat3">Headsets</label>
+                        </div>
+                    </div>
+
+                    <!-- Brand Selection -->
+                    <div class="mb-3 d-none" id="brandSection">
+                        <label class="form-label">Select Brands</label><br>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="apple" id="brand1">
+                            <label class="form-check-label" for="brand1">Apple</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="samsung" id="brand2">
+                            <label class="form-check-label" for="brand2">Samsung</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="sony" id="brand3">
+                            <label class="form-check-label" for="brand3">Sony</label>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection -->
+                    <div class="mb-3 d-none" id="productSection">
+                        <label class="form-label">Product Option</label>
+                        <div>
+                            <input type="radio" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductCheckboxes(false)">
+                            <label for="allProducts">All Products</label>
+                        </div>
+                        <div>
+                            <input type="radio" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductCheckboxes(true)">
+                            <label for="specificProducts">Select Specific Products</label>
+                        </div>
+                        <div id="productCheckboxes" class="mt-2 d-none">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="iphone14" id="prod1">
+                                <label class="form-check-label" for="prod1">iPhone 14 Pro</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="macbook" id="prod2">
+                                <label class="form-check-label" for="prod2">MacBook Pro M2</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="sonyheadset" id="prod3">
+                                <label class="form-check-label" for="prod3">Sony WH-1000XM5</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Upcoming">Upcoming</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> -->
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
 <script>
+    function handleOfferTargetChange() {
+        const selected = document.getElementById("appliedOn").value;
+
+        // Hide all first
+        document.getElementById("categorySection").classList.add("d-none");
+        document.getElementById("brandSection").classList.add("d-none");
+        document.getElementById("productSection").classList.add("d-none");
+
+        if (selected === "category") {
+            document.getElementById("categorySection").classList.remove("d-none");
+        } else if (selected === "brand") {
+            document.getElementById("brandSection").classList.remove("d-none");
+        } else if (selected === "product") {
+            document.getElementById("productSection").classList.remove("d-none");
+        }
+    }
+
+    function toggleProductCheckboxes(show) {
+        const productBox = document.getElementById("productCheckboxes");
+        productBox.classList.toggle("d-none", !show);
+    }
+
+
+
     // Basic script to handle modal data
     document.addEventListener('DOMContentLoaded', function() {
         // Delete modal functionality
