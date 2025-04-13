@@ -68,18 +68,12 @@ router.get("/banner",(req,res)=> {
 })
 
 
-// // router.get("/offers",offerController.getOffers);
-//  router.post('/offers',offerController.addOffer);
-
 router.get('/offers', offerController.getOffers);
 router.post('/offer/add', offerController.addOffer);
-router.get('/offer-options', offerController.getOfferOptions);
-
-
-router.get("/sales",(req,res)=> {
-    res.render("admin/sales")
-})
-
+router.post('/offer/add', offerController.addOffer);
+router.post('/offer/add', offerController.addOffer);
+router.patch('/offer/update-status/:id',offerController.toggleOfferStatus);
+router.patch('/offer/edit/:id',offerController.editOffer);
 
 
 // coupon management 
@@ -89,6 +83,9 @@ router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
 router.patch('/coupon/edit/:id',couponController.editCoupon);
 
 
+router.get("/sales",(req,res)=> {
+    res.render("admin/sales")
+})
 
 
 

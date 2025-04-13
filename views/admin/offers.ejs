@@ -93,88 +93,188 @@
     </div>
 </div>
 
-<!-- Status Confirmation Modal -->
-<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="statusModalLabel">Change Offer Status</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="statusMessage">Are you sure you want to change the status of this offer?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmStatus">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Edit Offer Modal -->
 <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editOfferModalLabel">Edit Offer</h5>
+                <h5 class="modal-title" id="editOfferModalLabel">Add New Offer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="editOfferForm">
-                <input type="hidden" name="id">
                 <div class="modal-body">
+                    <!-- Basic Offer Details -->
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="name" id="name">
-                        <div class="invalid-feedback nameError"></div>
+                        <label class="form-label">Offer Name</label>
+                        <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
+                        <div class="invalid-feedback"></div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Discount (%)</label>
-                        <input type="number" class="form-control" id="discount" name="discount" step="1" value="0">
-                        <div class="invalid-feedback discountError"></div>
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                        <div class="invalid-feedback"></div>
                     </div>
+
                     <div class="row mb-3">
-                        <div class="col">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" name="type" id="discountType">
+                                <option value="Percentage">Percentage (%)</option>
+                                <option value="Fixed">Fixed (₹)</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" name="discount" id="discount" placeholder="Enter value">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label class="form-label">Start Date</label>
                             <input type="date" class="form-control" name="startDate" id="startDate">
-                            <div class="invalid-feedback startDateError"></div>
+                            <div class="invalid-feedback"></div>
                         </div>
-                        <div class="col">
+                        <div class="col-md-6">
                             <label class="form-label">End Date</label>
                             <input type="date" class="form-control" name="endDate" id="endDate">
-                            <div class="invalid-feedback endDateError"></div>
+                            <div class="invalid-feedback"></div>
                         </div>
                     </div>
+                    <!-- Offer Target Selection -->
                     <div class="mb-3">
-                        <label class="form-label">Products</label>
-                        <select class="form-select" name="products" id="editProducts" multiple>
-                            <option value="1">iPhone 14 Pro</option>
-                            <option value="2">Samsung Galaxy S23</option>
-                            <option value="3">MacBook Pro M2</option>
-                            <option value="4">iPad Air</option>
-                            <option value="5">Sony WH-1000XM5</option>
-                            <option value="6">Nintendo Switch</option>
+                        <label class="form-label">Apply Offer On</label>
+                        <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="category">Category</option>
+                            <option value="brand">Brand</option>
+                            <option value="product">Product</option>
                         </select>
-                        <div class="invalid-feedback productsError"></div>
+                        <div class="invalid-feedback"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" id="editStatus">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Upcoming">Upcoming</option>
-                        </select>
+
+                    <!-- Category Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="categorySection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Categories</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." onkeyup="filterItems('category')">
+                            </div>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="categoryList">
+                                <!-- categories -->
+                                <% if (locals.categories && categories.length > 0) { %>
+                                    <% categories.forEach((category, index) => { %>
+                                        <div class="form-check category-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="<%= category._id %>">
+                                            <label class="form-check-label" for="<%= category._id %>"><%= category.name %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                            <div id="noCategoriesFound" class="text-center py-2 d-none text-muted">
+                                <small>No categories found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreCategories" onclick="toggleAdditionalItems('category')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Brand Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="brandSection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Brands</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="brandSearch" placeholder="Search brands..." onkeyup="filterItems('brand')">
+                            </div>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="brandList">
+                                <!-- Initial 5 brands -->
+                                <% if (locals.brands && brands.length > 0) { %>
+                                    <% brands.forEach((brand, index) => { %>
+                                        <div class="form-check brand-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="<%= brand._id %>">
+                                            <label class="form-check-label" for="<%= brand._id %>"><%= brand.brandName %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                            <div id="noBrandsFound" class="text-center py-2 d-none text-muted">
+                                <small>No brands found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreBrands" onclick="toggleAdditionalItems('brand')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="productSection">
+                        <div class="mb-2">
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductSelector(false)">
+                                <label class="form-check-label" for="allProducts">All Products</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductSelector(true)">
+                                <label class="form-check-label" for="specificProducts">Select Specific Products</label>
+                            </div>
+                        </div>
+                        
+                        <div id="productSelector" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0 fw-bold">Select Products</label>
+                                <div class="input-group input-group-sm" style="width: 60%;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="productSearch" placeholder="Search products..." onkeyup="filterItems('product')">
+                                </div>
+                            </div>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                <div id="productList">
+                                       <!--products -->
+                                    <% if (locals.products && products.length > 0) { %>
+                                        <% products.forEach((product, index) => { %>
+                                            <div class="form-check product-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="<%= product._id %>">
+                                                <label class="form-check-label" for="<%= product._id %>"><%= product.productName %></label>
+                                            </div>
+                                        <% }) %>
+                                    <% } %>
+                                </div>
+                                <div id="noProductsFound" class="text-center py-2 d-none text-muted">
+                                    <small>No products found</small>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-link btn-sm" id="showMoreProducts" onclick="toggleAdditionalItems('product')">
+                                        <span class="show-more-text">Show more</span>
+                                        <span class="show-less-text d-none">Show less</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" form="editOfferForm" class="btn btn-primary"id="confirmEditForm"> Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
 
 <!-- add offer modal  -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
@@ -359,6 +459,25 @@
     </div>
 </div>
 
+<!-- Status Change Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Change Offer Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="statusMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmStatus">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 
 async function fetchOffer( page=1 ){
@@ -434,8 +553,8 @@ async function fetchOffer( page=1 ){
                                         ${offer.status === 'Expired' || offer.status === 'Upcoming' ? 'disabled' : ''}
                                         data-bs-toggle="modal" 
                                         data-bs-target="#statusModal" 
-                                        data-id="${offer._id}" 
-                                        data-code="${offer.code}" 
+                                        data-id = "${offer._id}" 
+                                        data-name ="${offer.name}" 
                                         data-status="${offer.status}">
                                     <span class="status-text">${offer.status}</span>
                                     <span class="spinner-border spinner-border-sm d-none" role="status"></span>
@@ -444,14 +563,20 @@ async function fetchOffer( page=1 ){
                             <td>
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-sm btn-outline-primary edit-btn" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editofferModal" 
+                                             data-bs-toggle="modal" 
+                                            data-bs-target="#editOfferModal"
                                             data-id="${offer._id}"
-                                            data-code="${offer.name}"
-                                            data-type="${offer.type}"
-                                            data-discount="${offer.discount}"
+                                            data-name ="${offer.name}"
+                                            data-type ="${offer.type}"
+                                            data-description = "${offer.description}"
+                                            data-discount ="${offer.discount}"
                                             data-start-date="${new Date(offer.startDate).toISOString().split('T')[0]}"
                                             data-end-date="${new Date(offer.endDate).toISOString().split('T')[0]}"
+                                            data-appliedOn = "${offer.appliedOn}"
+                                            data-brands="${Array.isArray(offer.brands) ? offer.brands.map(brand => brand._id).join(',') : ''}"
+                                            data-products="${Array.isArray(offer.products) ? offer.products.map(prodcut => prodcut._id).join(',') : ''}"
+                                            data-categories="${Array.isArray(offer.categories) ? offer.categories.map(category => category._id).join(',') : ''}"
+                                            data-all-products="${offer.allProducts || false}"
                                             title="Edit offer">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -531,10 +656,8 @@ async function fetchOffer( page=1 ){
             console.error('Error fetching offer:', error);
             Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load offers' });   
         }
-    };
+    };``
     
-
-
     document.addEventListener("DOMContentLoaded",()=> {
         const offerFilterForm = document.getElementById("offerFilterForm");
         const clearFiltersBtn = document.getElementById('clearFilters');
@@ -602,6 +725,8 @@ async function fetchOffer( page=1 ){
 
         fetchOffer()
         checkFilters();
+        statusChange();
+
 
         // add offer
         const addOfferForm = document.getElementById("addOfferForm");
@@ -670,11 +795,204 @@ async function fetchOffer( page=1 ){
             }
         });
 
-    
-    })
-    
 
-   
+        // Edit Offer
+        const editOfferModal = document.getElementById('editOfferModal');
+        let offerId ;
+        editOfferModal.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            offerId = button.getAttribute('data-id');
+            console.log("offerId ",offerId)
+            const form = document.getElementById('editOfferForm');
+
+            form.elements['name'].value = button.getAttribute('data-name');
+            form.elements['type'].value = button.getAttribute('data-type');
+            form.elements['discount'].value = button.getAttribute('data-discount');
+            form.elements['description'].value = button.getAttribute('data-description');
+            form.elements['startDate'].value = button.getAttribute('data-start-date');
+            form.elements['endDate'].value = button.getAttribute('data-end-date');
+
+            // Applied On
+            const appliedOn = button.getAttribute('data-appliedOn');
+                form.elements['appliedOn'].value = appliedOn;
+                handleOfferTargetChange(); 
+
+                console.log('Offer Data:', {
+                    offerId,
+                    appliedOn,
+                    categories: button.getAttribute('data-categories'),
+                    brands: button.getAttribute('data-brands'),
+                    products: button.getAttribute('data-products'),
+                    allProducts: button.getAttribute('data-all-products'),
+                });
+
+                // Reset all checkboxes
+                document.querySelectorAll('#editOfferForm input[type="checkbox"]').forEach(input => {
+                    input.checked = false;
+                });
+
+                // Handle checkbox values
+                if (appliedOn === 'category') {
+                    const categories = button.getAttribute('data-categories')?.split(',') || [];
+                    console.log(categories)
+                    categories.forEach(id => {
+                        const checkbox = document.querySelector(`#categoryList input[value="${id.trim()}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                } else if (appliedOn === 'brand') {
+                    const brands = button.getAttribute('data-brands')?.split(',') || [];
+                    console.log(brands)
+                    brands.forEach(id => {
+                        const checkbox = document.querySelector(`#brandList input[value="${id.trim()}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                } else if (appliedOn === 'product') {
+                    const products = button.getAttribute('data-products')?.split(',') || [];
+                    console.log(products)
+
+                    if (products.includes('all')) {
+                        document.getElementById('allProducts').checked = true;
+                        toggleProductSelector(false);
+                    } else {
+                        document.getElementById('specificProducts').checked = true;
+                        toggleProductSelector(true);
+
+                        products.forEach(id => {
+                            const checkbox = document.querySelector(`#productList input[value="${id.trim()}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+            });
+
+        // edit submit form 
+        const editOfferForm = document.getElementById('editOfferForm');
+        editOfferForm.addEventListener('submit',async (e) => {
+            e.preventDefault();
+            clearErrors(editOfferForm);
+
+            const formData = new FormData(editOfferForm);
+            const jsonData = Object.fromEntries(formData);
+            //trim all values 
+            Object.keys(jsonData).forEach(key => {
+                if (typeof jsonData[key] === 'string') {
+                    jsonData[key] = jsonData[key].trim();
+                }
+            });
+
+             // Get applied checkboxes
+            const appliedOn = jsonData.appliedOn;
+            console.log("applaidon",appliedOn);
+
+            if (appliedOn === 'category') {
+                jsonData.categories = Array.from(document.querySelectorAll('#categoryList input:checked')).map(input => input.value);
+            } else if (appliedOn === 'brand') {
+                jsonData.brands = Array.from(document.querySelectorAll('#brandList input:checked')).map(input => input.value);
+            } else if (appliedOn === 'product') {
+                const allSelected = document.querySelector('input[name="productChoice"]:checked');
+
+                if (allSelected && allSelected.value === 'all') {
+                    jsonData.allProducts = true;
+                    jsonData.products = Array.from(new Set(
+                    Array.from(document.querySelectorAll('#productList input[type="checkbox"]:checked'))
+                        .map(input => input.value)
+                    ));
+
+                } else {
+                    jsonData.products = Array.from(document.querySelectorAll('#productList input:checked')).map(input => input.value);
+                }
+            }
+
+            try {
+                const response = await fetch(`/admin/offer/edit/${offerId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    displayFormErrors(editOfferForm, data.errors);
+                    Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
+                } else {
+                    bootstrap.Modal.getInstance(document.getElementById('editOfferModal')).hide();
+                    Swal.fire('Success', 'Offer edited successfully', 'success')
+                        .then(() => fetchOffer());
+                }
+            } catch (error) {
+                console.error('edit Offer error:', error);
+                Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+            }
+
+        });
+    });
+
+    function statusChange(){
+        // Status Change
+        const statusModal = document.getElementById('statusModal');
+        let currentOfferId = '';
+        statusModal.addEventListener('show.bs.modal', (event) => {
+            const button = event.relatedTarget;
+            currentOfferId = button.getAttribute('data-id');
+            console.log("offer id:",currentOfferId)
+            const currentStatus = button.getAttribute('data-status');
+            const offerName = button.getAttribute('data-name');
+            const newStatus = currentStatus === 'Active' ? 'Disabled' : 'Active';
+
+            document.getElementById('statusMessage').textContent = 
+                `Are you sure you want to change "${offerName }" from ${currentStatus} to ${newStatus}?`;
+            document.getElementById('confirmStatus').className = `btn ${newStatus === 'Active' ? 'btn-success' : 'btn-danger'}`;
+        });
+
+        document.getElementById('confirmStatus').addEventListener('click',async () => {
+            const button = document.querySelector(`.status-btn[data-id="${currentOfferId}"]`);
+            console.log("offer id in conformation:",currentOfferId)
+            const statusText = button.querySelector('.status-text');
+            const currentStatus = button.getAttribute('data-status');
+            const newStatus = currentStatus === 'Active' ? 'Disabled' : 'Active';
+
+            // loading
+            statusText.classList.add('d-none');
+            button.querySelector('.spinner-border').classList.remove('d-none');
+            try {
+                const response = await fetch(`/admin/offer/update-status/${currentOfferId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ status: newStatus }),
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    statusText.textContent = newStatus;
+                    button.classList.remove('bg-success', 'bg-secondary');
+                    button.classList.add(newStatus === 'Active' ? 'bg-success' : 'bg-secondary');
+                    button.setAttribute('data-status', newStatus);
+                    statusText.classList.remove('d-none');
+                    button.querySelector('.spinner-border').classList.add('d-none');
+
+                    bootstrap.Modal.getInstance(statusModal).hide();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Status Updated',
+                        text: data.message,
+                        timer: 1500,
+                    })
+                } else {
+                    statusText.classList.remove('d-none');
+                    button.querySelector('.spinner-border').classList.add('d-none');
+                    bootstrap.Modal.getInstance(statusModal).hide();
+                    Swal.fire({icon: 'error',text: data.message,timer: 1000,});
+                    fetchOffer();
+                }
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to update status' });
+            }
+        })
+    };
+
     // Function to handle the offer target change
     function handleOfferTargetChange() {
         const selected = document.getElementById("appliedOn").value;
@@ -701,6 +1019,7 @@ async function fetchOffer( page=1 ){
 
     // Function to toggle showing additional items (Show more/Show less)
     function toggleAdditionalItems(type) {
+
         const additionalItems = document.querySelectorAll(`#${type}List .additional-item`);
         const showMoreBtn = document.getElementById(`showMore${type.charAt(0).toUpperCase() + type.slice(1)}s`);
         const showMoreText = showMoreBtn.querySelector('.show-more-text');
@@ -753,110 +1072,6 @@ async function fetchOffer( page=1 ){
             });
         }
     }
-
-    // // Initialize the date inputs with the current date and a default end date (7 days from today)
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const today = new Date();
-    //     const nextWeek = new Date(today);
-    //     nextWeek.setDate(nextWeek.getDate() + 7);
-        
-    //     // Format dates for input
-    //     const formatDate = (date) => {
-    //         const year = date.getFullYear();
-    //         const month = String(date.getMonth() + 1).padStart(2, '0');
-    //         const day = String(date.getDate()).padStart(2, '0');
-    //         return `${year}-${month}-${day}`;
-    //     };
-        
-    //     document.getElementById('startDate').value = formatDate(today);
-    //     document.getElementById('endDate').value = formatDate(nextWeek);
-    // });
-
-
-
-    // // Basic script to handle modal data
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     // Delete modal functionality
-    //     const deleteModal = document.getElementById('deleteModal');
-    //     if (deleteModal) {
-    //         deleteModal.addEventListener('show.bs.modal', function(event) {
-    //             const button = event.relatedTarget;
-    //             const offerName = button.getAttribute('data-name');
-    //             const offerId = button.getAttribute('data-id');
-                
-    //             const deleteMessage = document.getElementById('deleteMessage');
-    //             deleteMessage.textContent = `Are you sure you want to delete the offer "${offerName}"? This action cannot be undone.`;
-                
-    //             const confirmButton = document.getElementById('confirmDelete');
-    //             confirmButton.setAttribute('data-id', offerId);
-    //         });
-    //     }
-        
-    //     // Status modal functionality
-    //     const statusModal = document.getElementById('statusModal');
-    //     if (statusModal) {
-    //         statusModal.addEventListener('show.bs.modal', function(event) {
-    //             const button = event.relatedTarget;
-    //             const status = button.getAttribute('data-status');
-    //             const offerName = button.getAttribute('data-name');
-    //             const offerId = button.getAttribute('data-id');
-                
-    //             const statusMessage = document.getElementById('statusMessage');
-    //             statusMessage.textContent = `Are you sure you want to change the status of "${offerName}"?`;
-                
-    //             const confirmButton = document.getElementById('confirmStatus');
-    //             confirmButton.setAttribute('data-id', offerId);
-    //         });
-    //     }
-        
-    //     // Edit modal functionality
-    //     const editModal = document.getElementById('editOfferModal');
-    //     if (editModal) {
-    //         editModal.addEventListener('show.bs.modal', function(event) {
-    //             const button = event.relatedTarget;
-    //             const offerId = button.getAttribute('data-id');
-    //             const offerName = button.getAttribute('data-name');
-                
-    //             const form = editModal.querySelector('form');
-    //             form.querySelector('input[name="id"]').value = offerId;
-    //             form.querySelector('input[name="name"]').value = offerName;
-                
-    //             // Populate with dummy data based on the offer id
-    //             switch(offerId) {
-    //                 case 'offer1':
-    //                     form.querySelector('input[name="discount"]').value = 30;
-    //                     form.querySelector('input[name="startDate"]').value = '2025-05-15';
-    //                     form.querySelector('input[name="endDate"]').value = '2025-06-15';
-    //                     form.querySelector('select[name="status"]').value = 'Active';
-    //                     break;
-    //                 case 'offer2':
-    //                     form.querySelector('input[name="discount"]').value = 50;
-    //                     form.querySelector('input[name="startDate"]').value = '2025-11-25';
-    //                     form.querySelector('input[name="endDate"]').value = '2025-11-30';
-    //                     form.querySelector('select[name="status"]').value = 'Upcoming';
-    //                     break;
-    //                 case 'offer3':
-    //                     form.querySelector('input[name="discount"]').value = 25;
-    //                     form.querySelector('input[name="startDate"]').value = '2025-01-01';
-    //                     form.querySelector('input[name="endDate"]').value = '2025-01-31';
-    //                     form.querySelector('select[name="status"]').value = 'Inactive';
-    //                     break;
-    //                 case 'offer4':
-    //                     form.querySelector('input[name="discount"]').value = 20;
-    //                     form.querySelector('input[name="startDate"]').value = '2025-12-20';
-    //                     form.querySelector('input[name="endDate"]').value = '2026-01-05';
-    //                     form.querySelector('select[name="status"]').value = 'Upcoming';
-    //                     break;
-    //                 case 'offer5':
-    //                     form.querySelector('input[name="discount"]').value = 15;
-    //                     form.querySelector('input[name="startDate"]').value = '2025-08-01';
-    //                     form.querySelector('input[name="endDate"]').value = '2025-08-31';
-    //                     form.querySelector('select[name="status"]').value = 'Inactive';
-    //                     break;
-    //             }
-    //         });
-    //     }
-    // });
 
     function displayFormErrors(form, errors) {
         clearErrors(form);

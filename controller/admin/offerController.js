@@ -5,42 +5,6 @@ const Brand = require('../../model/brandSchema');
 const { validateOffer } = require('../../utils/validation');
 
 
-// update offer status
-const updateOfferStatuses = async () => {
-    try {
-
-        const now = new Date();
-        const offers = await Offer.find();
-        const bulkOps = offers.map(offer => {
-            const startDate = new Date(offer.startDate); 
-            const endDate = new Date(offer.endDate); 
-            
-            const newStatus = startDate > now ?  "Upcoming" :
-                  endDate < now ?  'Expired' :
-                  offer.status === 'Disabled' ? 'Disabled' : 'Active';
-            
-            if (offer.status !== newStatus) {
-                return {
-                    updateOne: {
-                        filter: { _id: offer._id },
-                        update: { $set: { status: newStatus, updatedAt: new Date() } }
-                    }
-                };
-                
-            }
-        }).filter(Boolean); 
-
-        if (bulkOps.length > 0) {
-            await Offer.bulkWrite(bulkOps);
-            
-            console.log(`Updated ${bulkOps.length} offer status(es).`);
-        }
-       
-    } catch (error) {
-        console.error('Error updating offer statuses:', error.message);
-    }
-};
-
 const getOffers = async (req, res) => {
    try {
 
@@ -133,17 +97,8 @@ const getOffers = async (req, res) => {
 const addOffer = async (req, res) => {
     try {
         const {
-          name,
-          description,
-          type,
-          discount,
-          startDate,
-          endDate,
-          appliedOn,
-          categories = [],
-          brands = [],
-          products = [],
-          allProducts = false
+          name,description,type,discount,startDate,endDate,appliedOn,   
+          brands = [], products = [], allProducts = false
         } = req.body;
 
         const offerData = {
@@ -179,29 +134,136 @@ const addOffer = async (req, res) => {
     }
 };
 
-const getOfferOptions = async (req, res) => {
+
+const editOffer = async (req , res)=> {
   try {
-    const { appliesTo } = req.query;
-    console.log('Fetching options for appliesTo:', appliesTo);
+      const { id } = req.params;
+      const { 
+        name,description,type,discount,startDate,endDate,appliedOn,   
+        brands = [], products = [], allProducts = false ,categories = []
+      } = req.body;
 
-    let options = [];
-    if (appliesTo === 'products') {
-      options = await Product.find({}, { productName: 1, _id: 1 }).lean();
-    } else if (appliesTo === 'categories') {
-      options = await Category.find({}, { name: 1, _id: 1 }).lean();
-    } else if (appliesTo === 'brands') {
-      options = await Brand.find({}, { brandName: 1, _id: 1 }).lean();
-    }
+      const offerData = {
+           name,
+          description,
+          type,
+          discount,
+          startDate,
+          endDate,
+          appliedOn,
+          categories: appliedOn === 'category' ? categories : [],
+          brands: appliedOn === 'brand' ? brands : [],
+          products: appliedOn === 'product' ? products : [],
+          allProducts: appliedOn === 'product' ? allProducts : false
+      };
 
-    console.log('Options fetched:', JSON.stringify(options, null, 2));
-    if (options.length === 0) {
-      console.warn('No options found for:', appliesTo);
-    }
-    res.json({ success: true, options });
+      const errors = await validateOffer(offerData);
+      if (errors) {
+          console.log(errors)
+          return res.status(400).json({ success: false, errors });
+      };
+
+      const offer = await Offer.findById(id);
+      if (!offer) {
+          return res.status(404).json({ success: false, message:  'offer not found' });
+      }
+
+      await updateOfferStatuses();
+      // Update the offer
+     offer.set({
+          ... offerData,
+          updatedAt: Date.now()
+      });
+      await offer.save();
+  
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({
+          success: true,
+          message: 'offer updated successfully',
+      });
+      
   } catch (error) {
-    console.error('Error fetching offer options:', error);
-    res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+      console.error('Error editing offer:', error);
+      res.status(500).json({ success: false, message: 'Failed to edit offer' });
   }
 };
 
-module.exports = { getOffers, addOffer, getOfferOptions };
+const toggleOfferStatus = async(req ,res)=>{
+  try {
+
+      const id = req.params.id;
+      const {status} = req.body;
+      console.log("in backend:",id)
+
+      const offer = await Offer.findById(id); 
+      if (!offer) {
+        console.log("offer not found")
+          return res.status(404).json({ success: false, message:"offer not found" });
+      }
+      await updateOfferStatuses();
+      if (offer.status === "Expired" || offer.status === "Upcoming"){
+          return res.status(404).json({ success: false, message: "Cannot take action on expired  or upcoming offer" });
+      }
+
+      offer.status = status;
+      await offer.save();
+
+      console.log(`offer status updated to ${status}`);
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({
+          success: true,
+          status: offer.status,
+          message:`offer status updated to ${status}`
+      });
+
+  } catch (error) {
+      console.error('Error toggling status:', error);
+      res.status(500).json({ success: false, message: 'Failed to update status' });
+  }
+};
+
+// update offer status
+const updateOfferStatuses = async () => {
+  try {
+
+      const now = new Date();
+      const offers = await Offer.find();
+      const bulkOps = offers.map(offer => {
+          const startDate = new Date(offer.startDate); 
+          const endDate = new Date(offer.endDate); 
+          
+          const newStatus = startDate > now ?  "Upcoming" :
+                endDate < now ?  'Expired' :
+                offer.status === 'Disabled' ? 'Disabled' : 'Active';
+          
+          if (offer.status !== newStatus) {
+              return {
+                  updateOne: {
+                      filter: { _id: offer._id },
+                      update: { $set: { status: newStatus, updatedAt: new Date() } }
+                  }
+              };
+              
+          }
+      }).filter(Boolean); 
+
+      if (bulkOps.length > 0) {
+          await Offer.bulkWrite(bulkOps);
+          
+          console.log(`Updated ${bulkOps.length} offer status(es).`);
+      }
+     
+  } catch (error) {
+      console.error('Error updating offer statuses:', error.message);
+  }
+};
+
+
+module.exports = { 
+  getOffers, 
+  addOffer, 
+  editOffer , 
+  toggleOfferStatus
+ };
