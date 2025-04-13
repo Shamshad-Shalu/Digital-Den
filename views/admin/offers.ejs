@@ -18,25 +18,45 @@
     <!-- Search and Filter Bar -->
     <div class="card mb-4">
         <div class="card-body">
-            <form action="/admin/offers" method="get" class="row g-3" id="offerFilterForm">
-                <div class="col-md-8">
+            <form class="row g-3" id="offerFilterForm">
+                <div class="col-md-2">
                     <div class="input-group">
                         <span class="input-group-text bg-transparent border-end-0">
                             <i class="fas fa-search"></i>
                         </span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search offers..." name="search" value="">
-                        <button class="btn btn-primary" type="submit">Search</button>
-                        <a href="/admin/offers" class="btn btn-secondary">Clear</a>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search offers..." id="searchInput">
+                        <button class="btn btn-secondary " type="button" id="clearFilters" >Clear</button>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <select class="form-select" id="statusFilter" name="status">
-                        <option value="All" selected>All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Expired">Expired</option>
+                <div class="col-md-2">
+                    <select class="form-select" id="appliedOnFilter">
+                      <option value="All" <%= appliedOn ==="All" ? 'selected' : '' %> >All Types</option>
+                      <option value="category" <%= appliedOn === "category" ? 'selected' : '' %>>Category</option>
+                      <option value="brand" <%= appliedOn === "brand" ? 'selected' : '' %>>Brand</option>
+                      <option value="product" <%= appliedOn === "product" ? 'selected' : '' %>>Product</option>
                     </select>
+                  </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="typeFilter">
+                        <option value="All" <%= type ==="All" ? 'selected' : '' %> >All Types</option>
+                        <option value="Percentage" <%= type ==="Percentage" ? 'selected' : '' %> >Percentage</option>
+                        <option value="Fixed" <%= type ==="Fixed" ? 'selected' : '' %> >Fixed Amount</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="statusFilter">
+                        <option value="All" <%= status ==="All" ? 'selected' : '' %>>All Status</option>
+                        <option value="Active" <%= status ==="Active" ? 'selected' : '' %> >Active</option>
+                        <option value="Disabled" <%= status ==="Disabled" ? 'selected' : '' %> >Disabled</option>
+                        <option value="Upcoming" <%= status ==="Upcoming" ? 'selected' : '' %>>Upcoming</option>
+                        <option value="Expired" <%= status ==="Expired" ? 'selected' : '' %>>Expired</option>
+                    </select>
+                </div>
+                <div class="col-md-2" id="startDate">
+                    <input type="date" class="form-control" placeholder="statDate">
+                </div>
+                <div class="col-md-2" id="endDate">
+                    <input type="date" class="form-control" placeholder="endDate">
                 </div>
             </form>
         </div>
@@ -52,255 +72,22 @@
                             <th>#</th>
                             <th>Name</th>
                             <th>Discount</th>
+                            <th>Offer On</th>
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Products</th>
                             <th width="120">Status</th>
-                            <th width="150">Actions</th>
+                            <th width="50">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td class="fw-medium">Summer Sale</td>
-                            <td>
-                                <span class="badge bg-success">30%</span>
-                            </td>
-                            <td>May 15, 2025</td>
-                            <td>Jun 15, 2025</td>
-                            <td>24 products</td>
-
-                            <td>
-                                <button class="btn btn-sm status-btn bg-success text-white"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#statusModal"
-                                    data-status="Active"
-                                    data-name="Summer Sale"
-                                    data-id="offer1">
-                                    <span class="status-text">Active</span>
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                
-                                <button class="btn btn-sm text-primary cursor-pointer view-details"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer1"
-                                        data-name="Summer Sale">
-                                        <i class="fas fa-info-circle"></i> 
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary edit-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editOfferModal"
-                                        data-id="offer1"
-                                        data-name="Summer Sale">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td class="fw-medium">Black Friday</td>
-                            <td>
-                                <span class="badge bg-success">50%</span>
-                            </td>
-                            <td>Nov 25, 2025</td>
-                            <td>Nov 30, 2025</td>
-                            <td>42 products</td>
-                            <td>
-                                <button class="btn btn-sm status-btn bg-warning text-white"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#statusModal"
-                                    data-status="Upcoming"
-                                    data-name="Black Friday"
-                                    data-id="offer2">
-                                    <span class="status-text">Upcoming</span>
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editOfferModal"
-                                        data-id="offer2"
-                                        data-name="Black Friday">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer2"
-                                        data-name="Black Friday">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td class="fw-medium">Winter Clearance</td>
-                            <td>
-                                <span class="badge bg-success">25%</span>
-                            </td>
-                            <td>Jan 1, 2025</td>
-                            <td>Jan 31, 2025</td>
-                            <td>18 products</td>
-                            <td>
-                                <button class="btn btn-sm status-btn bg-danger text-white"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#statusModal"
-                                    data-status="Expired"
-                                    data-name="Winter Clearance"
-                                    data-id="offer3">
-                                    <span class="status-text">Expired</span>
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editOfferModal"
-                                        data-id="offer3"
-                                        data-name="Winter Clearance">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer3"
-                                        data-name="Winter Clearance">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td class="fw-medium">New Year Special</td>
-                            <td>
-                                <span class="badge bg-success">20%</span>
-                            </td>
-                            <td>Dec 20, 2025</td>
-                            <td>Jan 5, 2026</td>
-                            <td>32 products</td>
-                            <td>
-                                <button class="btn btn-sm status-btn bg-warning text-white"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#statusModal"
-                                    data-status="Upcoming"
-                                    data-name="New Year Special"
-                                    data-id="offer4">
-                                    <span class="status-text">Upcoming</span>
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editOfferModal"
-                                        data-id="offer4"
-                                        data-name="New Year Special">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer4"
-                                        data-name="New Year Special">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td class="fw-medium">Back to School</td>
-                            <td>
-                                <span class="badge bg-success">15%</span>
-                            </td>
-                            <td>Aug 1, 2025</td>
-                            <td>Aug 31, 2025</td>
-                            <td>15 products</td>
-                            <td>
-                                <button class="btn btn-sm status-btn bg-secondary text-white"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#statusModal"
-                                    data-status="Inactive"
-                                    data-name="Back to School"
-                                    data-id="offer5">
-                                    <span class="status-text">Inactive</span>
-                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-primary edit-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editOfferModal"
-                                        data-id="offer5"
-                                        data-name="Back to School">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger delete-btn"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal"
-                                        data-id="offer5"
-                                        data-name="Back to School">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="tableBody">
+                        <!-- Dynamically Populated -->
                     </tbody>
                 </table>
             </div>
             <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="text-muted">
-                    Showing <span class="fw-bold">1</span> to <span class="fw-bold">5</span> of <span class="fw-bold">5</span> Offers
-                </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination mb-0">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" aria-label="Previous">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active">
-                            <a class="page-link" href="#">1</a>
-                        </li>
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" aria-label="Next">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Offer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="deleteMessage">Are you sure you want to delete this offer? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            <div class="d-flex justify-content-between align-items-center mt-4" id="paginationSection">
+                <!-- Dynamically Populated -->
             </div>
         </div>
     </div>
@@ -324,68 +111,6 @@
         </div>
     </div>
 </div>
-
-<!-- Add Offer Modal -->
-<!-- <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addOfferForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" name="name" id="name">
-                        <div class="invalid-feedback" id="nameError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Discount (%)</label>
-                        <input type="number" class="form-control" name="discount" id="discount" step="1" value="0">
-                        <div class="invalid-feedback" id="discountError"></div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="startDate" id="startDate">
-                            <div class="invalid-feedback" id="startDateError"></div>
-                        </div>
-                        <div class="col">
-                            <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="endDate" id="endDate">
-                            <div class="invalid-feedback" id="endDateError"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Products</label>
-                        <select class="form-select" name="products" id="products" multiple>
-                            <option value="1">iPhone 14 Pro</option>
-                            <option value="2">Samsung Galaxy S23</option>
-                            <option value="3">MacBook Pro M2</option>
-                            <option value="4">iPad Air</option>
-                            <option value="5">Sony WH-1000XM5</option>
-                            <option value="6">Nintendo Switch</option>
-                        </select>
-                        <div class="invalid-feedback" id="productsError"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" id="status">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Upcoming">Upcoming</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="addBtn">Add</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div> -->
 
 <!-- Edit Offer Modal -->
 <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
@@ -449,9 +174,11 @@
         </div>
     </div>
 </div>
-<!-- addOfferModal -->
-<!-- <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg"> <!-- Increased width for better layout -->
+
+
+<!-- add offer modal  -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
@@ -459,36 +186,47 @@
             </div>
             <form id="addOfferForm">
                 <div class="modal-body">
-
+                    <!-- Basic Offer Details -->
                     <div class="mb-3">
                         <label class="form-label">Offer Name</label>
                         <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
+                        <div class="invalid-feedback"></div>
                     </div>
-
                     <div class="mb-3">
-                        <label class="form-label">Discount Type</label>
-                        <select class="form-select" name="discountType" id="discountType">
-                            <option value="percentage">Percentage (%)</option>
-                            <option value="fixed">Fixed (₹)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Discount Value</label>
-                        <input type="number" class="form-control" name="discount" id="discount" value="10">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                        <div class="invalid-feedback"></div>
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="startDate" id="startDate">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" name="type" id="discountType">
+                                <option value="Percentage">Percentage (%)</option>
+                                <option value="Fixed">Fixed (₹)</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
                         </div>
-                        <div class="col">
-                            <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="endDate" id="endDate">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" name="discount" id="discount" placeholder="10">
+                            <div class="invalid-feedback"></div>
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="startDate" id="startDate">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="endDate" id="endDate">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <!-- Offer Target Selection -->
                     <div class="mb-3">
                         <label class="form-label">Apply Offer On</label>
                         <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
@@ -497,98 +235,456 @@
                             <option value="brand">Brand</option>
                             <option value="product">Product</option>
                         </select>
+                        <div class="invalid-feedback"></div>
                     </div>
 
-                    <!-- Category Selection -->
-                    <div class="mb-3 d-none" id="categorySection">
-                        <label class="form-label">Select Categories</label><br>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="laptops" id="cat1">
-                            <label class="form-check-label" for="cat1">Laptops</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="monitors" id="cat2">
-                            <label class="form-check-label" for="cat2">Monitors</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="headsets" id="cat3">
-                            <label class="form-check-label" for="cat3">Headsets</label>
-                        </div>
-                    </div>
-
-                    <!-- Brand Selection -->
-                    <div class="mb-3 d-none" id="brandSection">
-                        <label class="form-label">Select Brands</label><br>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="apple" id="brand1">
-                            <label class="form-check-label" for="brand1">Apple</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="samsung" id="brand2">
-                            <label class="form-check-label" for="brand2">Samsung</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="sony" id="brand3">
-                            <label class="form-check-label" for="brand3">Sony</label>
-                        </div>
-                    </div>
-
-                    <!-- Product Selection -->
-                    <div class="mb-3 d-none" id="productSection">
-                        <label class="form-label">Product Option</label>
-                        <div>
-                            <input type="radio" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductCheckboxes(false)">
-                            <label for="allProducts">All Products</label>
-                        </div>
-                        <div>
-                            <input type="radio" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductCheckboxes(true)">
-                            <label for="specificProducts">Select Specific Products</label>
-                        </div>
-                        <div id="productCheckboxes" class="mt-2 d-none">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="iphone14" id="prod1">
-                                <label class="form-check-label" for="prod1">iPhone 14 Pro</label>
+                    <!-- Category Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="categorySection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Categories</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." onkeyup="filterItems('category')">
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="macbook" id="prod2">
-                                <label class="form-check-label" for="prod2">MacBook Pro M2</label>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="categoryList">
+                                <!-- categories -->
+                                <% if (locals.categories && categories.length > 0) { %>
+                                    <% categories.forEach((category, index) => { %>
+                                        <div class="form-check category-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="<%= category._id %>">
+                                            <label class="form-check-label" for="<%= category._id %>"><%= category.name %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="sonyheadset" id="prod3">
-                                <label class="form-check-label" for="prod3">Sony WH-1000XM5</label>
+                            <div id="noCategoriesFound" class="text-center py-2 d-none text-muted">
+                                <small>No categories found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreCategories" onclick="toggleAdditionalItems('category')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" id="status">
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Upcoming">Upcoming</option>
-                        </select>
+                    <!-- Brand Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="brandSection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Brands</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="brandSearch" placeholder="Search brands..." onkeyup="filterItems('brand')">
+                            </div>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="brandList">
+                                <!-- Initial 5 brands -->
+                                <% if (locals.brands && brands.length > 0) { %>
+                                    <% brands.forEach((brand, index) => { %>
+                                        <div class="form-check brand-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="<%= brand._id %>">
+                                            <label class="form-check-label" for="<%= brand._id %>"><%= brand.brandName %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                            <div id="noBrandsFound" class="text-center py-2 d-none text-muted">
+                                <small>No brands found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreBrands" onclick="toggleAdditionalItems('brand')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Product Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="productSection">
+                        <div class="mb-2">
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductSelector(false)">
+                                <label class="form-check-label" for="allProducts">All Products</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductSelector(true)">
+                                <label class="form-check-label" for="specificProducts">Select Specific Products</label>
+                            </div>
+                        </div>
+                        
+                        <div id="productSelector" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0 fw-bold">Select Products</label>
+                                <div class="input-group input-group-sm" style="width: 60%;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="productSearch" placeholder="Search products..." onkeyup="filterItems('product')">
+                                </div>
+                            </div>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                <div id="productList">
+                                       <!--products -->
+                                    <% if (locals.products && products.length > 0) { %>
+                                        <% products.forEach((product, index) => { %>
+                                            <div class="form-check product-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="<%= product._id %>">
+                                                <label class="form-check-label" for="<%= product._id %>"><%= product.productName %></label>
+                                            </div>
+                                        <% }) %>
+                                    <% } %>
+                                </div>
+                                <div id="noProductsFound" class="text-center py-2 d-none text-muted">
+                                    <small>No products found</small>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-link btn-sm" id="showMoreProducts" onclick="toggleAdditionalItems('product')">
+                                        <span class="show-more-text">Show more</span>
+                                        <span class="show-less-text d-none">Show less</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Offer</button>
+                    <button type="submit" form="addOfferForm" class="btn btn-primary">Add Offer</button>
                 </div>
             </form>
         </div>
     </div>
-</div> -->
+</div>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
 <script>
+
+async function fetchOffer( page=1 ){
+        const search = document.getElementById("searchInput").value;
+        const type = document.getElementById('typeFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const appliedOn = document.getElementById('appliedOnFilter').value;
+        const start = document.getElementById('startDate').querySelector('input').value;
+        const end = document.getElementById('endDate').querySelector('input').value;
+        
+        const queryParams = new URLSearchParams({
+            page,
+            search,
+            type,
+            appliedOn,
+            status,
+            start,
+            end 
+        }).toString();
+        
+        try {
+            
+            const response = await fetch(`/admin/offers?${queryParams}`,{
+                headers:{'X-Requested-With': 'XMLHttpRequest'},
+            });
+
+            if(response.status === 401 || response.status === 403) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unauthorized',
+                    text: 'Please log in to continue',
+                }).then(() => {
+                    window.location.href = '/admin/login';
+                });
+                return;
+            };
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch offers');
+            }
+
+            const tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML  = '';
+
+            if(data.offers?.length > 0 ){
+                data.offers.forEach((offer, index )=> {
+                    let productCount = Math.max(
+                        offer.products.length,
+                        offer.categories.length,
+                        offer.brands.length
+                    );
+                    const type = offer.type;
+                    const discount = type ==="Percentage" ? offer.discount+"%" : "₹"+offer.discount ;
+                    const bgColor = offer.status === "Active" ? 'bg-success' :  
+                          offer.status ===  "Expired" ? 'bg-danger'  : 
+                          offer.status === "Disabled" ? 'bg-secondary' :  'bg-primary' ; 
+                    const row = `
+                        <tr class="fade-in"  data-id="${offer._id}">
+                            <td>${(data.page - 1) * data.limit + index + 1}</td>
+                            <td class="fw-medium">${offer.name}</td>
+                            <td>${discount}</td>
+                             <td>${offer.appliedOn}</td>
+                             <td>
+                                ${new Date(offer.startDate ).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}
+                            </td>
+                            <td>
+                                ${new Date(offer.endDate ).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}
+                            </td>
+                            <td>${productCount} products</td>    
+                            <td>
+                                <button class="btn btn-sm status-btn ${bgColor} text-white font-bold"
+                                        ${offer.status === 'Expired' || offer.status === 'Upcoming' ? 'disabled' : ''}
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#statusModal" 
+                                        data-id="${offer._id}" 
+                                        data-code="${offer.code}" 
+                                        data-status="${offer.status}">
+                                    <span class="status-text">${offer.status}</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary edit-btn" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editofferModal" 
+                                            data-id="${offer._id}"
+                                            data-code="${offer.name}"
+                                            data-type="${offer.type}"
+                                            data-discount="${offer.discount}"
+                                            data-start-date="${new Date(offer.startDate).toISOString().split('T')[0]}"
+                                            data-end-date="${new Date(offer.endDate).toISOString().split('T')[0]}"
+                                            title="Edit offer">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            }else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-8">
+                            <div class="flex flex-col items-center justify-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                <path d="M12 11v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            <p class="text-lg font-medium text-gray-700">No items found</p>
+                            <p class="text-sm text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            const paginationSection = document.getElementById("paginationSection");
+            paginationSection.innerHTML = '';
+
+            if(data.offers?.length > 0 ){
+                const totalPages = Math.ceil(data.count/data.limit);
+                const maxPagesToShow = 5;
+                const startPage = Math.max(1, data.page - Math.floor(maxPagesToShow / 2));
+                const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                const paginationHTML = `
+                    <div class="text-muted">
+                        Showing <span class="fw-bold">${(data.page - 1) * data.limit + 1}</span>
+                        to <span class="fw-bold">${Math.min(data.page * data.limit, data.count)}</span> 
+                        of <span class="fw-bold">${data.count}</span> offers
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <li class="page-item ${data.page <= 1 ?  'disabled' : ''} ">
+                                    <a class="page-link" href="#" data-page="${data.page - 1}" aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            ${Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(i => `
+                                <li class="page-item ${data.page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `).join('')}
+                           <li class="page-item ${data.page >= totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${data.page + 1}" aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                `;
+
+                paginationSection.innerHTML = paginationHTML;
+
+                document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = parseInt(link.getAttribute('data-page'));
+                        if (page > 0 && page <= totalPages) fetchOffer(page);
+                    });
+                });
+            }
+
+        } catch (error) {
+            console.error('Error fetching offer:', error);
+            Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load offers' });   
+        }
+    };
+    
+
+
+    document.addEventListener("DOMContentLoaded",()=> {
+        const offerFilterForm = document.getElementById("offerFilterForm");
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        offerFilterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            fetchOffer();
+        });
+
+        // filters 
+        document.querySelectorAll('#statusFilter,#typeFilter, #searchInput , #appliedOnFilter',).forEach(input => {
+            console.log("status:",input.value);
+            input.addEventListener('change', () =>{
+                fetchOffer();
+                checkFilters();
+            });
+        });
+
+        ['startDate', 'endDate'].forEach(id => {
+            const dateInput = document.getElementById(id)?.querySelector('input');
+            if (dateInput) {
+                dateInput.addEventListener("change", () => {
+                    fetchOffer();
+                    checkFilters();
+                });
+            }
+        });
+
+        document.getElementById("searchInput").addEventListener("input",()=>{
+            fetchOffer();
+            checkFilters();
+        });
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('typeFilter').value = 'All';
+                document.getElementById('appliedOnFilter').value = 'All';
+                document.getElementById('statusFilter').value = 'All';
+                document.getElementById('startDate').querySelector('input').value  = ''; 
+                document.getElementById('endDate').querySelector('input').value  = '';
+
+                fetchOffer();
+                checkFilters();
+            });
+        }
+
+        function checkFilters() {
+            const filtersActive = 
+                document.getElementById('searchInput').value !== '' ||
+                document.getElementById('typeFilter').value !== 'All' ||
+                document.getElementById('statusFilter').value !== 'All' ||
+                document.getElementById('appliedOnFilter').value !== 'All' || 
+                document.getElementById('startDate').querySelector('input').value !== '' || 
+                document.getElementById('endDate').querySelector('input').value  !== '';
+
+            const clearFiltersBtn = document.getElementById('clearFilters');
+             console.log("status:",filtersActive);
+            if (filtersActive) {
+                clearFiltersBtn.classList.remove('d-none');
+            } else {
+                clearFiltersBtn.classList.add('d-none');
+            }
+        }
+
+        fetchOffer()
+        checkFilters();
+
+        // add offer
+        const addOfferForm = document.getElementById("addOfferForm");
+        addOfferForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors(addOfferForm);
+
+            const formData = new FormData(addOfferForm);
+            const jsonData = Object.fromEntries(formData);
+
+            // Trim all string fields
+            Object.keys(jsonData).forEach(key => {
+                if (typeof jsonData[key] === 'string') {
+                    jsonData[key] = jsonData[key].trim();
+                }
+            });
+
+            // Get applied checkboxes
+            const appliedOn = jsonData.appliedOn;
+
+            console.log("applaidon",appliedOn)
+            if (appliedOn === 'category') {
+                jsonData.categories = Array.from(document.querySelectorAll('#categoryList input:checked')).map(input => input.value);
+            } else if (appliedOn === 'brand') {
+                jsonData.brands = Array.from(document.querySelectorAll('#brandList input:checked')).map(input => input.value);
+            } else if (appliedOn === 'product') {
+                const allSelected = document.querySelector('input[name="productChoice"]:checked');
+                if (allSelected && allSelected.value === 'all') {
+                    jsonData.allProducts = true;
+                    jsonData.products = Array.from(document.querySelectorAll('#productList input[type="checkbox"]'))
+                    .map(input => input.value);
+        
+                } else {
+                    jsonData.products = Array.from(document.querySelectorAll('#productList input:checked')).map(input => input.value);
+                }
+            }
+
+            console.log("data",jsonData)
+            try {
+                const response = await fetch('/admin/offer/add', {
+                    method: 'POST',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    displayFormErrors(addOfferForm, data.errors);
+                    Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
+                } else {
+                    bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
+                    addOfferForm.reset(); 
+                    document.querySelectorAll('#categoryList input:checked, #brandList input:checked, #productList input:checked')
+                        .forEach(input => input.checked = false);
+                    document.getElementById('productSelector')?.classList.add('d-none');
+                    document.getElementById('appliedOn').selectedIndex = 0;
+                    document.querySelectorAll('.selection-section').forEach(section => section.classList.add('d-none'));
+                    Swal.fire('Success', 'Offer added successfully', 'success')
+                        .then(() => fetchOffer()); 
+                }
+
+            } catch (error) {
+                console.error('Add offer error:', error);
+                Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+            }
+        });
+
+    
+    })
+    
+
+   
+    // Function to handle the offer target change
     function handleOfferTargetChange() {
         const selected = document.getElementById("appliedOn").value;
-
-        // Hide all first
-        document.getElementById("categorySection").classList.add("d-none");
-        document.getElementById("brandSection").classList.add("d-none");
-        document.getElementById("productSection").classList.add("d-none");
-
+        
+        // Hide all sections first
+        document.querySelectorAll('.selection-section').forEach(section => {
+            section.classList.add('d-none');
+        });
+        
+        // Show the selected section
         if (selected === "category") {
             document.getElementById("categorySection").classList.remove("d-none");
         } else if (selected === "brand") {
@@ -598,96 +694,191 @@
         }
     }
 
-    function toggleProductCheckboxes(show) {
-        const productBox = document.getElementById("productCheckboxes");
-        productBox.classList.toggle("d-none", !show);
+    // Function to toggle product selector visibility
+    function toggleProductSelector(show) {
+        document.getElementById("productSelector").classList.toggle("d-none", !show);
     }
 
+    // Function to toggle showing additional items (Show more/Show less)
+    function toggleAdditionalItems(type) {
+        const additionalItems = document.querySelectorAll(`#${type}List .additional-item`);
+        const showMoreBtn = document.getElementById(`showMore${type.charAt(0).toUpperCase() + type.slice(1)}s`);
+        const showMoreText = showMoreBtn.querySelector('.show-more-text');
+        const showLessText = showMoreBtn.querySelector('.show-less-text');
+        
+        // Toggle visibility of additional items
+        additionalItems.forEach(item => {
+            item.classList.toggle('d-none');
+        });
+        
+        // Toggle button text
+        showMoreText.classList.toggle('d-none');
+        showLessText.classList.toggle('d-none');
+    }
 
-
-    // Basic script to handle modal data
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delete modal functionality
-        const deleteModal = document.getElementById('deleteModal');
-        if (deleteModal) {
-            deleteModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const offerName = button.getAttribute('data-name');
-                const offerId = button.getAttribute('data-id');
-                
-                const deleteMessage = document.getElementById('deleteMessage');
-                deleteMessage.textContent = `Are you sure you want to delete the offer "${offerName}"? This action cannot be undone.`;
-                
-                const confirmButton = document.getElementById('confirmDelete');
-                confirmButton.setAttribute('data-id', offerId);
-            });
+    // Function to filter items based on search input
+    function filterItems(type) {
+        const searchInput = document.getElementById(`${type}Search`).value.toLowerCase();
+        const items = document.querySelectorAll(`.${type}-item`);
+        const noItemsFoundMsg = document.getElementById(`no${type.charAt(0).toUpperCase() + type.slice(1)}sFound`);
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const label = item.querySelector('label').textContent.toLowerCase();
+            if (label.includes(searchInput)) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Toggle "no items found" message
+        if (visibleCount === 0) {
+            noItemsFoundMsg.classList.remove('d-none');
+        } else {
+            noItemsFoundMsg.classList.add('d-none');
         }
         
-        // Status modal functionality
-        const statusModal = document.getElementById('statusModal');
-        if (statusModal) {
-            statusModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const status = button.getAttribute('data-status');
-                const offerName = button.getAttribute('data-name');
-                const offerId = button.getAttribute('data-id');
-                
-                const statusMessage = document.getElementById('statusMessage');
-                statusMessage.textContent = `Are you sure you want to change the status of "${offerName}"?`;
-                
-                const confirmButton = document.getElementById('confirmStatus');
-                confirmButton.setAttribute('data-id', offerId);
+        const showMoreBtn = document.getElementById(`showMore${type.charAt(0).toUpperCase() + type.slice(1)}s`);
+        const showMore = showMoreBtn.querySelector('.show-more-text').classList.contains('d-none');
+        
+        if (searchInput) {
+            document.querySelectorAll(`.${type}-item.additional-item`).forEach(item => {
+                item.classList.remove('d-none');
+            });
+        } else if (!showMore) {
+            document.querySelectorAll(`.${type}-item.additional-item`).forEach(item => {
+                item.classList.add('d-none');
             });
         }
+    }
+
+    // // Initialize the date inputs with the current date and a default end date (7 days from today)
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     const today = new Date();
+    //     const nextWeek = new Date(today);
+    //     nextWeek.setDate(nextWeek.getDate() + 7);
         
-        // Edit modal functionality
-        const editModal = document.getElementById('editOfferModal');
-        if (editModal) {
-            editModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget;
-                const offerId = button.getAttribute('data-id');
-                const offerName = button.getAttribute('data-name');
+    //     // Format dates for input
+    //     const formatDate = (date) => {
+    //         const year = date.getFullYear();
+    //         const month = String(date.getMonth() + 1).padStart(2, '0');
+    //         const day = String(date.getDate()).padStart(2, '0');
+    //         return `${year}-${month}-${day}`;
+    //     };
+        
+    //     document.getElementById('startDate').value = formatDate(today);
+    //     document.getElementById('endDate').value = formatDate(nextWeek);
+    // });
+
+
+
+    // // Basic script to handle modal data
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     // Delete modal functionality
+    //     const deleteModal = document.getElementById('deleteModal');
+    //     if (deleteModal) {
+    //         deleteModal.addEventListener('show.bs.modal', function(event) {
+    //             const button = event.relatedTarget;
+    //             const offerName = button.getAttribute('data-name');
+    //             const offerId = button.getAttribute('data-id');
                 
-                const form = editModal.querySelector('form');
-                form.querySelector('input[name="id"]').value = offerId;
-                form.querySelector('input[name="name"]').value = offerName;
+    //             const deleteMessage = document.getElementById('deleteMessage');
+    //             deleteMessage.textContent = `Are you sure you want to delete the offer "${offerName}"? This action cannot be undone.`;
                 
-                // Populate with dummy data based on the offer id
-                switch(offerId) {
-                    case 'offer1':
-                        form.querySelector('input[name="discount"]').value = 30;
-                        form.querySelector('input[name="startDate"]').value = '2025-05-15';
-                        form.querySelector('input[name="endDate"]').value = '2025-06-15';
-                        form.querySelector('select[name="status"]').value = 'Active';
-                        break;
-                    case 'offer2':
-                        form.querySelector('input[name="discount"]').value = 50;
-                        form.querySelector('input[name="startDate"]').value = '2025-11-25';
-                        form.querySelector('input[name="endDate"]').value = '2025-11-30';
-                        form.querySelector('select[name="status"]').value = 'Upcoming';
-                        break;
-                    case 'offer3':
-                        form.querySelector('input[name="discount"]').value = 25;
-                        form.querySelector('input[name="startDate"]').value = '2025-01-01';
-                        form.querySelector('input[name="endDate"]').value = '2025-01-31';
-                        form.querySelector('select[name="status"]').value = 'Inactive';
-                        break;
-                    case 'offer4':
-                        form.querySelector('input[name="discount"]').value = 20;
-                        form.querySelector('input[name="startDate"]').value = '2025-12-20';
-                        form.querySelector('input[name="endDate"]').value = '2026-01-05';
-                        form.querySelector('select[name="status"]').value = 'Upcoming';
-                        break;
-                    case 'offer5':
-                        form.querySelector('input[name="discount"]').value = 15;
-                        form.querySelector('input[name="startDate"]').value = '2025-08-01';
-                        form.querySelector('input[name="endDate"]').value = '2025-08-31';
-                        form.querySelector('select[name="status"]').value = 'Inactive';
-                        break;
+    //             const confirmButton = document.getElementById('confirmDelete');
+    //             confirmButton.setAttribute('data-id', offerId);
+    //         });
+    //     }
+        
+    //     // Status modal functionality
+    //     const statusModal = document.getElementById('statusModal');
+    //     if (statusModal) {
+    //         statusModal.addEventListener('show.bs.modal', function(event) {
+    //             const button = event.relatedTarget;
+    //             const status = button.getAttribute('data-status');
+    //             const offerName = button.getAttribute('data-name');
+    //             const offerId = button.getAttribute('data-id');
+                
+    //             const statusMessage = document.getElementById('statusMessage');
+    //             statusMessage.textContent = `Are you sure you want to change the status of "${offerName}"?`;
+                
+    //             const confirmButton = document.getElementById('confirmStatus');
+    //             confirmButton.setAttribute('data-id', offerId);
+    //         });
+    //     }
+        
+    //     // Edit modal functionality
+    //     const editModal = document.getElementById('editOfferModal');
+    //     if (editModal) {
+    //         editModal.addEventListener('show.bs.modal', function(event) {
+    //             const button = event.relatedTarget;
+    //             const offerId = button.getAttribute('data-id');
+    //             const offerName = button.getAttribute('data-name');
+                
+    //             const form = editModal.querySelector('form');
+    //             form.querySelector('input[name="id"]').value = offerId;
+    //             form.querySelector('input[name="name"]').value = offerName;
+                
+    //             // Populate with dummy data based on the offer id
+    //             switch(offerId) {
+    //                 case 'offer1':
+    //                     form.querySelector('input[name="discount"]').value = 30;
+    //                     form.querySelector('input[name="startDate"]').value = '2025-05-15';
+    //                     form.querySelector('input[name="endDate"]').value = '2025-06-15';
+    //                     form.querySelector('select[name="status"]').value = 'Active';
+    //                     break;
+    //                 case 'offer2':
+    //                     form.querySelector('input[name="discount"]').value = 50;
+    //                     form.querySelector('input[name="startDate"]').value = '2025-11-25';
+    //                     form.querySelector('input[name="endDate"]').value = '2025-11-30';
+    //                     form.querySelector('select[name="status"]').value = 'Upcoming';
+    //                     break;
+    //                 case 'offer3':
+    //                     form.querySelector('input[name="discount"]').value = 25;
+    //                     form.querySelector('input[name="startDate"]').value = '2025-01-01';
+    //                     form.querySelector('input[name="endDate"]').value = '2025-01-31';
+    //                     form.querySelector('select[name="status"]').value = 'Inactive';
+    //                     break;
+    //                 case 'offer4':
+    //                     form.querySelector('input[name="discount"]').value = 20;
+    //                     form.querySelector('input[name="startDate"]').value = '2025-12-20';
+    //                     form.querySelector('input[name="endDate"]').value = '2026-01-05';
+    //                     form.querySelector('select[name="status"]').value = 'Upcoming';
+    //                     break;
+    //                 case 'offer5':
+    //                     form.querySelector('input[name="discount"]').value = 15;
+    //                     form.querySelector('input[name="startDate"]').value = '2025-08-01';
+    //                     form.querySelector('input[name="endDate"]').value = '2025-08-31';
+    //                     form.querySelector('select[name="status"]').value = 'Inactive';
+    //                     break;
+    //             }
+    //         });
+    //     }
+    // });
+
+    function displayFormErrors(form, errors) {
+        clearErrors(form);
+        if (errors && typeof errors === 'object') {
+            Object.entries(errors).forEach(([field, message]) => {
+                const input = form.querySelector(`[name="${field}"]`);
+                if (input) {
+                    input.classList.add('is-invalid');
+                    const feedback = input.nextElementSibling;
+                    if (feedback?.classList.contains('invalid-feedback')) {
+                        feedback.textContent = message;
+                    }
                 }
             });
         }
-    });
+    }
+
+    function clearErrors(form) {
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+    };
+
 </script>
 <%- include("../../views/partial/admin/footer.ejs") %>
 

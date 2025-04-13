@@ -23,7 +23,6 @@
                             <i class="fas fa-search"></i>
                         </span>
                         <input type="text" class="form-control border-start-0 ps-0" placeholder="Search coupons..." id="searchInput">
-                        <!-- <button class="btn btn-primary" type="submit">Search</button> -->
                         <button class="btn btn-secondary " type="button" id="clearFilters" >Clear</button>
                     </div>
                 </div>
@@ -36,10 +35,10 @@
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" id="statusFilter">
-                        <option value="All" <%= type ==="All" ? 'selected' : '' %>>All Status</option>
-                        <option value="Active" <%= type ==="Active" ? 'selected' : '' %> >Active</option>
-                        <option value="Expired" <%= type ==="Expired" ? 'selected' : '' %>>Expired</option>
-                        <option value="Disabled" <%= type ==="Disabled" ? 'selected' : '' %> >Disabled</option>
+                        <option value="All" <%= status ==="All" ? 'selected' : '' %>>All Status</option>
+                        <option value="Active" <%= status ==="Active" ? 'selected' : '' %> >Active</option>
+                        <option value="Expired" <%= status ==="Expired" ? 'selected' : '' %>>Expired</option>
+                        <option value="Disabled" <%= status ==="Disabled" ? 'selected' : '' %> >Disabled</option>
                     </select>
                 </div>
 
@@ -68,7 +67,7 @@
                             <th>Max Discount</th>
                             <th>Expiry</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th width="50" >Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -212,7 +211,6 @@
 </div>
 
 <script>
-
     document.addEventListener("DOMContentLoaded",()=>{
         const filterForm = document.getElementById("couponFilterForm");
         const clearFiltersBtn = document.getElementById('clearFilters');

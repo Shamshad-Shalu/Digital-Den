@@ -72,7 +72,7 @@ router.get("/banner",(req,res)=> {
 //  router.post('/offers',offerController.addOffer);
 
 router.get('/offers', offerController.getOffers);
-router.post('/offers', offerController.addOffer);
+router.post('/offer/add', offerController.addOffer);
 router.get('/offer-options', offerController.getOfferOptions);
 
 

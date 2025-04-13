@@ -15,9 +15,8 @@ const getCoupons = async (req,res)=>{
         if (search) {
             query.code = { $regex: search.trim(), $options: 'i' };
         }
-
         await updateCouponStatuses();
-
+        
         if (type !== 'All') query.type = type;
         if (status !== 'All') query.status = status;
         if (start || end) {

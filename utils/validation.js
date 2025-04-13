@@ -300,7 +300,50 @@ const validateReturnRequest = (data) => {
 
     return Object.keys(errors).length > 0 ? errors : null;
 };
- 
+
+// user-profile 
+async function validateUserProfile(user) {
+    let errors = {};
+
+    if (!user.username) {
+        errors.username = 'Username is required';
+    } else if (!validator.isAlphanumeric(user.username.replace(/\s/g, ''))) {
+        errors.username = 'Please enter a valid Username';
+    }
+    
+    if(user.phone){
+        if (!validator.isMobilePhone(user.phone, 'any')) {
+            errors.phone = 'Invalid phone number format';
+        } else if (user.phone) {
+            const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
+            if (existingUser) {
+                errors.phone = 'Phone number is already in use';
+            }
+        }
+    }
+   
+
+    // First name 
+    if (user.firstName) {
+        if (!validator.isAlpha(user.firstName.replace(/\s/g, ''))) {
+            errors.firstName = 'First name should only contain letters';
+        } else if (user.firstName.length < 3 || user.firstName.length > 20) {
+            errors.firstName = 'First name must be 3-20 characters';
+        }
+    }
+
+    // Last name 
+    if (user.lastName) {
+        if (!validator.isAlpha(user.lastName.replace(/\s/g, ''))) {
+            errors.lastName = 'Last name should only contain letters';
+        } else if (user.lastName.length < 3 || user.lastName.length > 20) {
+            errors.firstName = 'First name must be 3-20 characters';
+        }
+    }
+    return Object.keys(errors).length > 0 ? errors : null;
+}
+
+
 // coupon Function
 async function validateCoupon(coupon,couponId = null) {
     let errors = {};
@@ -355,48 +398,109 @@ async function validateCoupon(coupon,couponId = null) {
     return Object.keys(errors).length > 0 ? errors : null;
 }
 
-// user-profile 
-async function validateUserProfile(user) {
-    let errors = {};
-
-    if (!user.username) {
-        errors.username = 'Username is required';
-    } else if (!validator.isAlphanumeric(user.username.replace(/\s/g, ''))) {
-        errors.username = 'Please enter a valid Username';
+function validateOffer(data) {
+    const errors = {};
+  
+    // Name validation
+    const nameRegex = /^[\w\s@#$%^&*()+=[\]{}|;:,.<>?-]{3,100}$/;
+    if (!data.name) {
+      errors.name = 'Name is required';
+    }else if (data.name.length < 3 || data.name.length > 25) {
+        errors.name = 'Name must be 3-25 characters';
+    } else if (!nameRegex.test(data.name)) {
+      errors.name = 'Name contains invalid characters';
     }
-    
-    if(user.phone){
-        if (!validator.isMobilePhone(user.phone, 'any')) {
-            errors.phone = 'Invalid phone number format';
-        } else if (user.phone) {
-            const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
-            if (existingUser) {
-                errors.phone = 'Phone number is already in use';
-            }
+  
+    // Description validation
+    const descRegex = /^[\w\s@#$%^&*()+=[\]{}|;:,.<>?-]{10,4000}$/;
+    if (!data.description) {
+      errors.description = 'Description is required';
+    } else if (data.description.length < 10 || data.description.length > 4000) {
+        errors.description = 'Description must be 10-5000 characters';
+    } else if (!descRegex.test(data.description)) {
+      errors.description = 'Description contains invalid characters';
+    }
+  
+    // Discount type
+    if (!data.type) {
+      errors.type = 'Discount type is required';
+    } else if (!['Percentage', 'Fixed'].includes(data.type)) {
+      errors.type = 'Discount type must be Percentage or Fixed';
+    }
+  
+    // Discount value
+    if (data.discount === undefined || data.discount === '') {
+      errors.discount = 'Discount value is required';
+    } else if (!Number.isFinite(Number(data.discount))) {
+      errors.discount = 'Discount must be a valid number';
+    } else if (Number(data.discount) <= 0) {
+      errors.discount = 'Discount must be greater than 0';
+    } else if (data.type === 'Percentage' && Number(data.discount) > 100) {
+      errors.discount = 'Percentage discount cannot exceed 100';
+    } else if (Number(data.discount) % 1 !== 0) {
+      errors.discount = 'Discount must be a whole number';
+    }
+  
+    // Dates
+    if (!data.startDate) {
+      errors.startDate = 'Start date is required';
+    }
+    if (!data.endDate) {
+      errors.endDate = 'End date is required';
+    }
+    if (data.startDate && data.endDate) {
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+  
+      if (isNaN(start.getTime())) {
+        errors.startDate = 'Invalid start date format';
+      }
+      if (isNaN(end.getTime())) {
+        errors.endDate = 'Invalid end date format';
+      }
+      if (!errors.startDate && !errors.endDate) {
+        if (start >= end) {
+          errors.endDate = 'End date must be after start date';
         }
-    }
-   
-
-    // First name 
-    if (user.firstName) {
-        if (!validator.isAlpha(user.firstName.replace(/\s/g, ''))) {
-            errors.firstName = 'First name should only contain letters';
-        } else if (user.firstName.length < 3 || user.firstName.length > 20) {
-            errors.firstName = 'First name must be 3-20 characters';
+        if (start < now) {
+          errors.startDate = 'Start date cannot be in the past';
         }
-    }
-
-    // Last name 
-    if (user.lastName) {
-        if (!validator.isAlpha(user.lastName.replace(/\s/g, ''))) {
-            errors.lastName = 'Last name should only contain letters';
-        } else if (user.lastName.length < 3 || user.lastName.length > 20) {
-            errors.firstName = 'First name must be 3-20 characters';
+        // Ensure offer duration is reasonable (e.g., max 1 year)
+        const oneYearFromStart = new Date(start);
+        oneYearFromStart.setFullYear(start.getFullYear() + 1);
+        if (end > oneYearFromStart) {
+          errors.endDate = 'Offer duration cannot exceed one year';
         }
+      }
     }
+  
+    // Applied on
+    if (!data.appliedOn) {
+      errors.appliedOn = 'Please select where to apply the offer';
+    } else if (!['category', 'brand', 'product'].includes(data.appliedOn)) {
+      errors.appliedOn = 'Invalid offer target (must be Category, Brand, or Product)';
+    }
+  
+    // Specific appliedOn conditions
+    if (data.appliedOn === 'category') {
+      if (!Array.isArray(data.categories) || data.categories.length === 0) {
+        errors.appliedOn = 'At least one category must be selected';
+      }
+    }else if (data.appliedOn === 'brand') {
+      if (!Array.isArray(data.brands) || data.brands.length === 0) {
+        errors.appliedOn = 'At least one brand must be selected';
+      }
+    }else if (data.appliedOn === 'product') {
+        if (!Boolean(data.allProducts) && (!Array.isArray(data.products) || data.products.length === 0)) {
+            errors.appliedOn = 'Select specific products or choose All Products';
+        }
+          
+    }
+  
     return Object.keys(errors).length > 0 ? errors : null;
 }
-
 
 module.exports = { 
     validateProduct,
@@ -406,5 +510,6 @@ module.exports = {
     validatePassword,
     validateEmail,
     validateCoupon,
-    validateUserProfile
+    validateUserProfile,
+    validateOffer
 };
