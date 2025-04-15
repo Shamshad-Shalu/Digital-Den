@@ -1,4 +1,205 @@
 <%- include("../../views/partial/admin/header") %>
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .date-header {
+        border-left: 3px solid #dee2e6;
+    }
+
+    .order-id-link {
+        max-width: 150px;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .view-details:hover {
+        color: #0056b3;
+        transform: scale(1.2);
+        transition: all 0.2s;
+    }
+    .avatar-sm {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    .avatar-lg {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .timeline-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-top: 4px;
+    }
+
+    .stats-card {
+        transition: transform 0.3s;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stats-card .border-start {
+        border-left-width: 4px !important;
+    }
+
+    /* Custom date range styles */
+    .custom-date {
+        transition: all 0.3s ease;
+    }
+
+    /* Table date header styles */
+    .table-light .badge {
+        font-size: 0.8rem;
+    }
+
+    /* Order details modal styles */
+    #orderDetailsModal .border-start {
+        border-left: 1px solid #dee2e6;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+        .stats-card .card-body {
+            padding: 1rem;
+        }
+        
+        #orderDetailsModal .border-start {
+            border-left: none;
+            padding-left: 0;
+            margin-top: 1rem;
+        }
+    }
+
+
+
+/* Revised Filter Styles - More distinct separate section */
+.filter-section {
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--bs-border-color);
+  background: transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  position: relative;
+}
+
+/* Filter header styling */
+.filter-header {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.filter-header h6 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Filter labels - slightly bigger */
+.filter-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  opacity: 0.8;
+}
+
+/* Form controls - slightly taller */
+.filter-control {
+  font-size: 14px;
+  border-radius: 4px;
+  height: calc(1.8em + 0.75rem + 2px);
+}
+
+/* Active filter indication */
+.filter-control:not([value="all"]):not([value=""]):not([value="weekly"]) {
+  border-left: 3px solid var(--bs-primary);
+}
+
+/* Clear button - more visible */
+#resetFiltersBtn {
+  border-width: 1px;
+  font-size: 13px;
+  padding: 0.25rem 0.7rem;
+}
+
+/* Search container - smaller */
+.search-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+#searchInput {
+  height: 36px;
+  font-size: 14px;
+}
+
+#clearSearchBtn {
+  display: none;
+}
+
+#clearSearchBtn.active {
+  display: block;
+}
+
+/* Custom date display logic */
+.custom-date-field input.d-none {
+  display: none !important;
+}
+
+.custom-date-field input:not(.d-none) {
+  display: block;
+}
+
+/* For dark mode compatibility */
+@media (prefers-color-scheme: dark) {
+  .filter-section {
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .input-group-text {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .filter-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .filter-section {
+    padding: 12px;
+  }
+  
+  .filter-label {
+    font-size: 12px;
+  }
+  
+  .row.g-3 {
+    --bs-gutter-y: 0.75rem;
+  }
+}
+</style>
+
 <!-- Sales Report Section -->
 <div class="container-fluid py-4">
     <!-- Page Header -->
@@ -24,7 +225,7 @@
                     </div>
                     <div>
                         <p class="text-muted small mb-0">Total Orders</p>
-                        <h3 class="mb-0 fw-bold">1,847</h3>
+                        <h3 class="mb-0 fw-bold"><%= totalOrder || 0 %></h3>
                     </div>
                 </div>
             </div>
@@ -38,7 +239,7 @@
                     </div>
                     <div>
                         <p class="text-muted small mb-0">Total Revenue</p>
-                        <h3 class="mb-0 fw-bold">₹156,432.85</h3>
+                        <h3 class="mb-0 fw-bold">₹<%= (totalRevenue || 0).toFixed(2) %></h3>
                     </div>
                 </div>
             </div>
@@ -52,7 +253,7 @@
                     </div>
                     <div>
                         <p class="text-muted small mb-0">Total Discount</p>
-                        <h3 class="mb-0 fw-bold">₹18,976.40</h3>
+                        <h3 class="mb-0 fw-bold"><%= (totalDiscount || 0).toFixed(2) %></h3>
                     </div>
                 </div>
             </div>
@@ -66,255 +267,126 @@
                     </div>
                     <div>
                         <p class="text-muted small mb-0">Returns</p>
-                        <h3 class="mb-0 fw-bold">₹4,258.60</h3>
+                        <h3 class="mb-0 fw-bold">₹<%= (totalReturns || 0).toFixed(2) %></h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Filter Section - Enhanced -->
-    <!-- <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <form id="reportFilterForm" class="row g-3">
-
-                <div class="col-md-12 mb-2">
-                    <div class="input-group">
-                        <span class="input-group-text ">
-                            <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control" id="searchInput" placeholder="Search by order ID, customer name or email...">
-                        <button class="btn btn-outline-secondary d-none" type="button" id="clearSearchBtn">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="fas fa-filter me-2"></i>Apply Filters
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary ms-2 d-none" id="resetFiltersBtn">
-                            <i class="fas fa-times me-2"></i>Clear Filters
-                        </button>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0">
-                                <i class="fas fa-search"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0 ps-0" placeholder="Search order ID, customer..." name="search" value="">
-                            <button class="btn btn-primary" type="submit">Search</button>
-                            <button type="button" class="btn btn-secondary" id="clearFilterBtn">Clear</button>
-                        </div>
-                    </div>
-
-
-
-
-
-                    <div class="col-md-2">
-                        <label class="form-label">From</label>
-                        <input type="date" class="form-control" id="expireOnFilter" name="expireOn" value="">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">To</label>
-                        <input type="date" class="form-control" id="expireOnFilter" name="expireOn" value="">
-                    </div>
-                </div>
-                
-
-                <div class="col-md-2">
-                    <label class="form-label">Date Range</label>
-                    <select class="form-select" id="dateRangeSelect">
-                        <option value="all">All Time</option>
-                        <option value="today">Today</option>
-                        <option value="yesterday">Yesterday</option>
-                        <option value="weekly" selected>This Week</option>
-                        <option value="monthly">This Month</option>
-                        <option value="lastMonth">Last Month</option>
-                        <option value="quarterly">This Quarter</option>
-                        <option value="yearly">This Year</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2 custom-date d-none">
-                    <label class="form-label">From</label>
-                    <input type="date" class="form-control" id="startDate">
-                </div>
-                
-                <div class="col-md-2 custom-date d-none">
-                    <label class="form-label">To</label>
-                    <input type="date" class="form-control" id="endDate">
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">Payment Method</label>
-                    <select class="form-select" id="paymentFilter">
-                        <option value="all">All Methods</option>
-                        <option value="card">Credit/Debit Card</option>
-                        <option value="upi">UPI</option>
-                        <option value="netbanking">Net Banking</option>
-                        <option value="wallet">Wallet</option>
-                        <option value="cod">Cash on Delivery</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" id="statusFilter">
-                        <option value="all">All Status</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="cancelled">Cancelled</option>
-                        <option value="return">Return Request</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">Category</label>
-                    <select class="form-select" id="categoryFilter">
-                        <option value="all">All Categories</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="furniture">Furniture</option>
-                        <option value="beauty">Beauty & Personal Care</option>
-                        <option value="food">Food & Grocery</option>
-                    </select>
-                </div>
-                
-                <div class="col-md-2">
-                    <label class="form-label">Brand</label>
-                    <select class="form-select" id="brandFilter">
-                        <option value="all">All Brands</option>
-                        <option value="samsung">Samsung</option>
-                        <option value="apple">Apple</option>
-                        <option value="nike">Nike</option>
-                        <option value="adidas">Adidas</option>
-                        <option value="ikea">IKEA</option>
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div> -->
-
-
 <!-- Revised Filter Section -->
 <div class="filter-section mb-3">
-    <div class="filter-header d-flex justify-content-between align-items-center mb-3">
-      <h6 class="fw-bold mb-0">Filter Sales</h6>
-      <div class="filter-actions">
-        <button type="button" class="btn btn-sm btn-outline-primary" id="resetFiltersBtn">
-          <i class="fas fa-times me-1"></i>Clear Filters
-        </button>
-      </div>
-    </div>
-  
-    <div class="filter-content">
-      <!-- Search Bar - Reduced size -->
-      <div class="search-container mb-3">
-        <div class="input-group">
-          <span class="input-group-text">
-            <i class="fas fa-search"></i>
-          </span>
-          <input type="text" class="form-control" id="searchInput" 
-                 placeholder="Search by order ID, customer...">
-          <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Filter Controls -->
-      <div class="row g-3">
-        <!-- Status Filter -->
-        <div class="col-md-3 col-6">
-          <label class="filter-label">Status</label>
-          <select class="form-select filter-control" id="statusFilter">
-            <option value="all">All Status</option>
-            <option value="Pending">Pending</option>
-            <option value="Processing">Processing</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Out for Delivery">Out for Delivery</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
-            <option value="Return Request">Return Request</option>
-            <option value="Returned">Returned</option>
-          </select>
-        </div>
-  
-        <!-- Payment Method Filter -->
-        <div class="col-md-3 col-6">
-          <label class="filter-label">Payment Method</label>
-          <select class="form-select filter-control" id="paymentFilter">
-            <option value="all">All Payments</option>
-            <option value="cod">Cash on Delivery</option>
-            <option value="razorpay">Razorpay</option>
-            <option value="wallet">Wallet</option>
-          </select>
-        </div>
-  
-        <!-- Category Filter -->
-        <div class="col-md-3 col-6">
-          <label class="filter-label">Category</label>
-          <select class="form-select filter-control" id="categoryFilter">
-            <option value="all">All Categories</option>
-            <option value="lap">Laptop</option>
-            <option value="keyboard">Keyboard</option>
-            <option value="mouse">Mouse</option>
-            <option value="monitor">Monitor</option>
-          </select>
-        </div>
-  
-        <!-- Brand Filter -->
-        <div class="col-md-3 col-6">
-          <label class="filter-label">Brand</label>
-          <select class="form-select filter-control" id="brandFilter">
-            <option value="all">All Brands</option>
-            <option value="apple">Apple</option>
-            <option value="dell">Dell</option>
-            <option value="hp">HP</option>
-            <option value="asus">Asus</option>
-          </select>
-        </div>
-        
-        <!-- Price Range Filter -->
-        <div class="col-md-4 col-12">
-          <label class="filter-label">Price Range</label>
-          <div class="input-group">
-            <input type="number" class="form-control filter-control" placeholder="Min" id="minPrice">
-            <span class="input-group-text">to</span>
-            <input type="number" class="form-control filter-control" placeholder="Max" id="maxPrice">
-          </div>
-        </div>
-        
-        <!-- Date Range Filter -->
-        <div class="col-md-8 col-12">
-          <label class="filter-label">Date Range</label>
-          <div class="row g-2">
-            <div class="col-md-4">
-              <select class="form-select filter-control" id="dateRangeSelect">
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="weekly" selected>This Week</option>
-                <option value="monthly">This Month</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
-            <div class="col-md-4 custom-date-field">
-              <input type="date" class="form-control filter-control d-none" id="startDate" placeholder="From">
-            </div>
-            <div class="col-md-4 custom-date-field">
-              <input type="date" class="form-control filter-control d-none" id="endDate" placeholder="To">
+    <form action="" id="saleFilterForm">
+        <div class="filter-header d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0">Filter Sales</h6>
+            <div class="filter-actions">
+              <button type="button" class="btn btn-sm btn-outline-primary" id="clearFilters">
+                <i class="fas fa-times me-1"></i>Clear Filters
+              </button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        
+          <div class="filter-content">
+            <div class="search-container mb-3">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" id="searchInput" 
+                       placeholder="Search by order ID, customer...">
+                <button class="btn btn-outline-secondary" type="button" id="searchInput">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="row g-3">
+              <!-- Status Filter -->
+              <div class="col-md-3 col-6">
+                <label class="filter-label">Status</label>
+                <select class="form-select filter-control" id="statusFilter">
+                  <option value="All">All Status</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Processing">Processing</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Out for Delivery">Out for Delivery</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Return Request">Return Request</option>
+                  <option value="Returned">Returned</option>
+                </select>
+              </div>
+        
+              <!-- Payment Method Filter -->
+              <div class="col-md-3 col-6">
+                <label class="filter-label">Payment Method</label>
+                <select class="form-select filter-control" id="paymentFilter">
+                  <option value="All">All Payments</option>
+                  <option value="COD">Cash on Delivery</option>
+                  <option value="Online">Razorpay</option>
+                  <option value="Wallet">Wallet</option>
+                </select>
+              </div>
+        
+              <!-- Category Filter -->
+              <div class="col-md-3 col-6">
+                <label class="filter-label">Category</label>
+                <select class="form-select filter-control" id="categoryFilter">
+                  <option value="All">All Categories</option>
+                  <option value="lap">Laptop</option>
+                  <option value="keyboard">Keyboard</option>
+                  <option value="mouse">Mouse</option>
+                  <option value="monitor">Monitor</option>
+                </select>
+              </div>
+        
+              <!-- Brand Filter -->
+              <div class="col-md-3 col-6">
+                <label class="filter-label">Brand</label>
+                <select class="form-select filter-control" id="brandFilter">
+                  <option value="all">All Brands</option>
+                  <option value="apple">Apple</option>
+                  <option value="dell">Dell</option>
+                  <option value="hp">HP</option>
+                  <option value="asus">Asus</option>
+                </select>
+              </div>
+              
+              <!-- Price Range Filter -->
+              <div class="col-md-4 col-12">
+                <label class="filter-label">Price Range</label>
+                <div class="input-group">
+                  <input type="number" class="form-control filter-control" placeholder="Min" id="minPrice">
+                  <span class="input-group-text">to</span>
+                  <input type="number" class="form-control filter-control" placeholder="Max" id="maxPrice">
+                </div>
+              </div>
+              
+              <!-- Date Range Filter -->
+              <div class="col-md-8 col-12">
+                <label class="filter-label">Date Range</label>
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <select class="form-select filter-control" id="dateRangeSelect">
+                      <option value="all">All Time</option>
+                      <option value="today">Today</option>
+                      <option value="yesterday">Yesterday</option>
+                      <option value="weekly">This Week</option>
+                      <option value="monthly">This Month</option>
+                      <option value="custom">Custom Range</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4 custom-date-field">
+                    <input type="date" class="form-control filter-control d-none" id="startDate" placeholder="From">
+                  </div>
+                  <div class="col-md-4 custom-date-field">
+                    <input type="date" class="form-control filter-control d-none" id="endDate" placeholder="To">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </form>
   </div>
 
   <div class="card shadow-sm">
@@ -347,36 +419,8 @@
                         <th></th> <!-- Actions column without header text -->
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td><span class="text-muted">Apr 5, 2025</span></td>
-                        <td>
-                            <a href="#" class="text-decoration-none order-id-link" data-bs-toggle="tooltip" title="#ec9d702e-f3b5-4a05-849f-857971725545">
-                                #ec9d702e...
-                            </a>
-                        </td>
-                        <td>
-                            <div>
-                                <div class="fw-medium">Shamshad Shalu</div>
-                                <small class="text-muted">shamshadshalu036@gmail.com</small>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="text-muted">1 item</span>
-                        </td>
-                        <td><span class="badge bg-info text-white">Card</span></td>
-                        <td>₹98.50</td>
-                        <td class="text-danger">-₹11.78</td>
-                        <td class="fw-bold">₹86.72</td>
-                        <td><span class="badge bg-danger">Cancelled</span></td>
-                        <td>
-                            <i class="fas fa-eye"  data-order-id="ec9d702e"></i>        
-                            <!-- <i class="fas fa-info-circle  text-primary cursor-pointer view-details" data-order-id="ec9d702e"></i> -->
-                        </td>
-                    </tr>
-                    
-                    <tr>
+                <tbody id="tableBody" >
+                    <!-- <tr>
                         <td>2</td>
                         <td><span class="text-muted">Apr 4, 2025</span></td>
                         <td>
@@ -481,35 +525,14 @@
                         <td>
                             <i class="fas fa-info-circle text-primary cursor-pointer view-details" data-order-id="2c04326a"></i>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
             </table>
         </div>
         
         <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center p-3">
-            <div class="text-muted small">
-                Showing 1 to 5 of 27 entries
-            </div>
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <i class="fas fa-chevron-left"></i>
-                        </a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">4</a></li>
-                    <li class="page-item"><a class="page-link" href="#">5</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <i class="fas fa-chevron-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+        <div class="d-flex justify-content-between align-items-center p-3 " id="paginationSection">
+            <!-- Dynamically populated  -->
         </div>
     </div>
 </div>
@@ -713,1025 +736,8 @@
     </div>
 </div>
 
-<!-- 
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="bg-light p-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="avatar-lg bg-primary bg-opacity-10 rounded-circle text-primary me-3 d-flex align-items-center justify-content-center">
-                                    <span class="fs-4 fw-bold">SS</span>
-                                </div>
-                                <div>
-                                    <h5 class="mb-1">Shamshad Shalu</h5>
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-envelope me-1"></i> shamshadshalu036@gmail.com
-                                    </p>
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-phone me-1"></i> +91 9876543210
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border-start ps-3 h-100">
-                                <p class="mb-1"><strong>Order ID:</strong> <span class="text-primary">#ec9d702e-f3b5</span></p>
-                                <p class="mb-1"><strong>Date:</strong> April 5, 2025, 10:24 AM</p>
-                                <p class="mb-1"><strong>Payment:</strong> <span class="badge bg-info">Credit Card</span></p>
-                                <p class="mb-0"><strong>Status:</strong> <span class="badge bg-danger">Cancelled</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="p-4">
-                    <h6 class="mb-3">Order Items</h6>
-                    <div class="table-responsive">
-                        <table class="table table-sm border">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-light rounded p-2 me-3">
-                                                <i class="fas fa-box text-primary"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-medium">Wireless Headphones</div>
-                                                <small class="text-muted">SKU: WH-BT100</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>₹98.50</td>
-                                    <td>1</td>
-                                    <td>₹98.50</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="border-top p-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="mb-3">Shipping Address</h6>
-                            <div class="card border p-3">
-                                <p class="mb-1 fw-medium">Shamshad Shalu</p>
-                                <p class="mb-1">123 Main Street, Apartment 4B</p>
-                                <p class="mb-1">Bangalore, Karnataka - 560001</p>
-                                <p class="mb-0">Phone: +91 9876543210</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="mb-3">Order Summary</h6>
-                            <div class="card border p-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Subtotal:</span>
-                                    <span>₹98.50</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Shipping:</span>
-                                    <span>₹0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Tax:</span>
-                                    <span>₹0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Discount:</span>
-                                    <span class="text-danger">-₹11.78</span>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between fw-bold">
-                                    <span>Total:</span>
-                                    <span>₹86.72</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="border-top p-4">
-                    <h6 class="mb-3">Order Timeline</h6>
-                    <div class="position-relative ps-3">
-                        <div class="position-absolute h-100" style="width: 1px; background-color: #ddd; left: 7px; top: 10px;"></div>
-                        
-                        <div class="d-flex mb-3">
-                            <div class="timeline-dot bg-danger me-3"></div>
-                            <div>
-                                <p class="mb-0 fw-medium">Order Cancelled</p>
-                                <p class="text-muted small mb-0">April 5, 2025, 11:30 AM</p>
-                                <p class="text-muted small mb-0">Customer cancelled the order</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex mb-3">
-                            <div class="timeline-dot bg-primary me-3"></div>
-                            <div>
-                                <p class="mb-0 fw-medium">Payment Processed</p>
-                                <p class="text-muted small mb-0">April 5, 2025, 10:35 AM</p>
-                                <p class="text-muted small mb-0">Payment of ₹86.72 received via Credit Card</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex">
-                            <div class="timeline-dot bg-success me-3"></div>
-                            <div>
-                                <p class="mb-0 fw-medium">Order Placed</p>
-                                <p class="text-muted small mb-0">April 5, 2025, 10:24 AM</p>
-                                <p class="text-muted small mb-0">Customer placed the order online</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Print Details</button>
-            </div>
-        </div>
-    </div>
-</div>
-
--->
-
-
-<style>
-    .cursor-pointer {
-        cursor: pointer;
-    }
-
-    .date-header {
-        border-left: 3px solid #dee2e6;
-    }
-
-    .order-id-link {
-        max-width: 150px;
-        display: inline-block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .view-details:hover {
-        color: #0056b3;
-        transform: scale(1.2);
-        transition: all 0.2s;
-    }
-    .avatar-sm {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.875rem;
-    }
-
-    .avatar-lg {
-        width: 56px;
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-
-    .timeline-dot {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        margin-top: 4px;
-    }
-
-    .stats-card {
-        transition: transform 0.3s;
-    }
-
-    .stats-card:hover {
-        transform: translateY(-5px);
-    }
-
-    .stats-card .border-start {
-        border-left-width: 4px !important;
-    }
-
-    /* Custom date range styles */
-    .custom-date {
-        transition: all 0.3s ease;
-    }
-
-    /* Table date header styles */
-    .table-light .badge {
-        font-size: 0.8rem;
-    }
-
-    /* Order details modal styles */
-    #orderDetailsModal .border-start {
-        border-left: 1px solid #dee2e6;
-    }
-
-    /* Responsive styles */
-    @media (max-width: 768px) {
-        .stats-card .card-body {
-            padding: 1rem;
-        }
-        
-        #orderDetailsModal .border-start {
-            border-left: none;
-            padding-left: 0;
-            margin-top: 1rem;
-        }
-    }
-
-
-
-/* Revised Filter Styles - More distinct separate section */
-.filter-section {
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid var(--bs-border-color);
-  background: transparent;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  margin-bottom: 20px;
-  position: relative;
-}
-
-/* Filter header styling */
-.filter-header {
-  border-bottom: 1px solid var(--bs-border-color);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.filter-header h6 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* Filter labels - slightly bigger */
-.filter-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  margin-bottom: 5px;
-  opacity: 0.8;
-}
-
-/* Form controls - slightly taller */
-.filter-control {
-  font-size: 14px;
-  border-radius: 4px;
-  height: calc(1.8em + 0.75rem + 2px);
-}
-
-/* Active filter indication */
-.filter-control:not([value="all"]):not([value=""]):not([value="weekly"]) {
-  border-left: 3px solid var(--bs-primary);
-}
-
-/* Clear button - more visible */
-#resetFiltersBtn {
-  border-width: 1px;
-  font-size: 13px;
-  padding: 0.25rem 0.7rem;
-}
-
-/* Search container - smaller */
-.search-container {
-  position: relative;
-  margin-bottom: 16px;
-}
-
-#searchInput {
-  height: 36px;
-  font-size: 14px;
-}
-
-#clearSearchBtn {
-  display: none;
-}
-
-#clearSearchBtn.active {
-  display: block;
-}
-
-/* Custom date display logic */
-.custom-date-field input.d-none {
-  display: none !important;
-}
-
-.custom-date-field input:not(.d-none) {
-  display: block;
-}
-
-/* For dark mode compatibility */
-@media (prefers-color-scheme: dark) {
-  .filter-section {
-    background-color: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  .input-group-text {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
-  
-  .filter-header {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 767px) {
-  .filter-section {
-    padding: 12px;
-  }
-  
-  .filter-label {
-    font-size: 12px;
-  }
-  
-  .row.g-3 {
-    --bs-gutter-y: 0.75rem;
-  }
-}
-</style>
-<!-- 
-<script>
-   // Wait for the DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Date range selection handling
-    const dateRangeSelect = document.getElementById('dateRangeSelect');
-    const customDateFields = document.querySelector('.custom-date');
-    const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-    
-    // Show loading indicator function
-    function showLoading() {
-        // Add a loading state to the form
-        document.getElementById('reportFilterForm').classList.add('loading');
-        // You could also add a spinner element here
-    }
-    
-    // Hide loading indicator function
-    function hideLoading() {
-        // Remove loading state
-        document.getElementById('reportFilterForm').classList.remove('loading');
-    }
-    
-    // Function to check if any filters are applied
-    function checkFiltersApplied() {
-        const filterInputs = document.querySelectorAll('.filter-control');
-        let hasValue = false;
-        
-        // Check if any filter has a non-default value
-        filterInputs.forEach(el => {
-            if ((el.tagName === 'SELECT' && el.value !== 'all') || 
-                (el.tagName === 'INPUT' && el.value.trim() !== '')) {
-                if (el.id === 'dateRangeSelect' && el.value === 'weekly') {
-                    // Skip the default "This Week" option
-                    return;
-                }
-                hasValue = true;
-            }
-        });
-        
-        // Show/hide reset button accordingly
-        if (hasValue) {
-            resetFiltersBtn.classList.remove('d-none');
-        } else {
-            resetFiltersBtn.classList.add('d-none');
-        }
-        
-        return hasValue;
-    }
-    
-    // Function to apply filters in real-time
-    function applyFilters() {
-        // Show loading state
-        showLoading();
-        
-        // Get all filter values
-        const dateRange = dateRangeSelect.value;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const paymentMethod = document.getElementById('paymentFilter').value;
-        const status = document.getElementById('statusFilter').value;
-        const category = document.getElementById('categoryFilter').value;
-        const brand = document.getElementById('brandFilter').value;
-        const minPrice = document.getElementById('minPrice').value;
-        const maxPrice = document.getElementById('maxPrice').value;
-        const searchQuery = document.getElementById('searchInput').value;
-        
-        // Create filters object
-        const filters = {
-            dateRange,
-            startDate: dateRange === 'custom' ? startDate : null,
-            endDate: dateRange === 'custom' ? endDate : null,
-            paymentMethod,
-            status,
-            category,
-            brand,
-            minPrice: minPrice || null,
-            maxPrice: maxPrice || null,
-            searchQuery: searchQuery || null
-        };
-        
-        // Make API request with filters
-        fetchFilteredData(filters);
-    }
-    
-    // Function to fetch filtered data (simulated API call)
-    function fetchFilteredData(filters) {
-        console.log('Fetching data with filters:', filters);
-        
-        // Simulate API response delay
-        setTimeout(() => {
-            // Update table with filtered data
-            // In a real implementation, this would update the DOM with API response data
-            
-            // Update summary stats
-            // Also would be based on API response
-            
-            // Hide loading state
-            hideLoading();
-        }, 500);
-    }
-    
-    // Handle date range selection
-    if (dateRangeSelect) {
-        dateRangeSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customDateFields.classList.remove('d-none');
-                customDateFields.classList.add('show');
-            } else {
-                customDateFields.classList.add('d-none');
-                customDateFields.classList.remove('show');
-                
-                // Apply filter immediately when date range changes
-                applyFilters();
-            }
-            
-            // Check if any filters are applied
-            checkFiltersApplied();
-        });
-    }
-    
-    // Handle custom date input changes
-    const dateInputs = document.querySelectorAll('#startDate, #endDate');
-    dateInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            // Only apply filter if both dates are selected
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            if (startDate && endDate) {
-                applyFilters();
-            }
-            
-            checkFiltersApplied();
-        });
-    });
-    
-    // Add event listeners to all filter controls for real-time filtering
-    const filterControls = document.querySelectorAll('.filter-control:not(#startDate):not(#endDate)');
-    filterControls.forEach(control => {
-        control.addEventListener('change', function() {
-            // Apply filter immediately when any filter changes
-            applyFilters();
-            
-            // Check if any filters are applied
-            checkFiltersApplied();
-        });
-    });
-    
-    // Handle price inputs with debounce
-    const priceInputs = document.querySelectorAll('#minPrice, #maxPrice');
-    priceInputs.forEach(input => {
-        let timeout;
-        input.addEventListener('input', function() {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                applyFilters();
-                checkFiltersApplied();
-            }, 500); // Debounce time: 500ms
-        });
-    });
-    
-    // Handle search input with debounce
-    const searchInput = document.getElementById('searchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', function() {
-            if (this.value.trim().length > 0) {
-                clearSearchBtn.classList.remove('d-none');
-            } else {
-                clearSearchBtn.classList.add('d-none');
-            }
-            
-            // Debounced search
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                applyFilters();
-                checkFiltersApplied();
-            }, 300);
-        });
-    }
-    
-    // Clear search button
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            this.classList.add('d-none');
-            applyFilters();
-            checkFiltersApplied();
-        });
-    }
-    
-    // Reset filters button
-    if (resetFiltersBtn) {
-        resetFiltersBtn.addEventListener('click', function() {
-            // Reset all form fields to default values
-            document.getElementById('reportFilterForm').reset();
-            
-            // Set date range back to default "This Week"
-            dateRangeSelect.value = 'weekly';
-            
-            // Hide the custom date fields
-            customDateFields.classList.add('d-none');
-            customDateFields.classList.remove('show');
-            
-            // Hide the reset button itself
-            this.classList.add('d-none');
-            
-            // Apply filters to reset the view
-            applyFilters();
-        });
-    }
-    
-    // Save filter button
-    const saveFilterBtn = document.getElementById('saveFilterBtn');
-    if (saveFilterBtn) {
-        saveFilterBtn.addEventListener('click', function() {
-            // Collect all current filter settings
-            const currentFilters = {
-                dateRange: dateRangeSelect.value,
-                startDate: document.getElementById('startDate').value,
-                endDate: document.getElementById('endDate').value,
-                paymentMethod: document.getElementById('paymentFilter').value,
-                status: document.getElementById('statusFilter').value,
-                category: document.getElementById('categoryFilter').value,
-                brand: document.getElementById('brandFilter').value,
-                minPrice: document.getElementById('minPrice').value,
-                maxPrice: document.getElementById('maxPrice').value
-            };
-            
-            // In a real app, this would open a modal to name and save the filter
-            // For now, just log the saved filter
-            console.log('Filter saved:', currentFilters);
-            
-            // Show success notification
-            showNotification('Filter saved successfully');
-        });
-    }
-    
-    // Helper function to show notifications
-    function showNotification(message) {
-        // This would be replaced with a proper toast notification in production
-        console.log('Notification:', message);
-    }
-    
-    // Initial check for any pre-selected filters
-    checkFiltersApplied();
-    
-    // Initial filter application
-    applyFilters();
-});
-</script> -->
 
 <!-- 
-<script>
-    // Revised filter functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('searchInput');
-  const clearSearchBtn = document.getElementById('clearSearchBtn');
-  const resetFiltersBtn = document.getElementById('resetFiltersBtn');
-  const dateRangeSelect = document.getElementById('dateRangeSelect');
-  const startDate = document.getElementById('startDate');
-  const endDate = document.getElementById('endDate');
-  const filterControls = document.querySelectorAll('.filter-control');
-  
-  // Function to check if any filters are applied
-  function checkFiltersApplied() {
-    let hasValue = false;
-    
-    // Check search input
-    if (searchInput.value.trim() !== '') {
-      clearSearchBtn.classList.add('active');
-      hasValue = true;
-    } else {
-      clearSearchBtn.classList.remove('active');
-    }
-    
-    // Check filter controls
-    filterControls.forEach(el => {
-      if ((el.tagName === 'SELECT' && el.value !== 'all' && el.value !== 'weekly') || 
-          (el.tagName === 'INPUT' && el.value.trim() !== '')) {
-        hasValue = true;
-      }
-    });
-    
-    return hasValue;
-  }
-  
-  // Function to apply filters
-  function applyFilters() {
-    // Get all filter values
-    const filters = {
-      searchQuery: searchInput.value.trim(),
-      paymentMethod: document.getElementById('paymentFilter').value,
-      status: document.getElementById('statusFilter').value,
-      category: document.getElementById('categoryFilter').value,
-      brand: document.getElementById('brandFilter').value,
-      minPrice: document.getElementById('minPrice').value || null,
-      maxPrice: document.getElementById('maxPrice').value || null,
-      dateRange: dateRangeSelect.value,
-      startDate: startDate.value || null,
-      endDate: endDate.value || null
-    };
-    
-    console.log('Applying filters:', filters);
-    
-    // Here you would make your API call with these filters
-    // fetchFilteredData(filters);
-  }
-  
-  // Add event listeners to filter controls
-  filterControls.forEach(control => {
-    if (control.id !== 'startDate' && control.id !== 'endDate') {
-      control.addEventListener('change', function() {
-        applyFilters();
-        checkFiltersApplied();
-      });
-    }
-  });
-  
-  // Handle search input with debounce
-  let searchTimeout;
-  searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    
-    // Show/hide clear button based on input
-    if (this.value.trim().length > 0) {
-      clearSearchBtn.classList.add('active');
-    } else {
-      clearSearchBtn.classList.remove('active');
-    }
-    
-    // Debounced search
-    searchTimeout = setTimeout(() => {
-      applyFilters();
-      checkFiltersApplied();
-    }, 300);
-  });
-  
-  // Handle date range selection
-  if (dateRangeSelect) {
-    dateRangeSelect.addEventListener('change', function() {
-      if (this.value === 'custom') {
-        // Show custom date fields
-        startDate.classList.remove('d-none');
-        endDate.classList.remove('d-none');
-      } else {
-        // Hide custom date fields
-        startDate.classList.add('d-none');
-        endDate.classList.add('d-none');
-        
-        // Apply filter immediately when date range changes
-        applyFilters();
-      }
-      
-      checkFiltersApplied();
-    });
-  }
-  
-  // Handle custom date input changes
-  startDate.addEventListener('change', function() {
-    if (endDate.value) {
-      applyFilters();
-    }
-    checkFiltersApplied();
-  });
-  
-  endDate.addEventListener('change', function() {
-    if (startDate.value) {
-      applyFilters();
-    }
-    checkFiltersApplied();
-  });
-  
-  // Handle price inputs with debounce
-  const priceInputs = document.querySelectorAll('#minPrice, #maxPrice');
-  priceInputs.forEach(input => {
-    let timeout;
-    input.addEventListener('input', function() {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        applyFilters();
-        checkFiltersApplied();
-      }, 500); // Debounce time: 500ms
-    });
-  });
-  
-  // Clear search button
-  clearSearchBtn.addEventListener('click', function() {
-    searchInput.value = '';
-    this.classList.remove('active');
-    applyFilters();
-    checkFiltersApplied();
-  });
-  
-  // Reset filters button
-  resetFiltersBtn.addEventListener('click', function() {
-    // Reset all form fields to default values
-    searchInput.value = '';
-    clearSearchBtn.classList.remove('active');
-    
-    filterControls.forEach(control => {
-      if (control.tagName === 'SELECT') {
-        if (control.id === 'dateRangeSelect') {
-          control.value = 'weekly';
-        } else {
-          control.value = 'all';
-        }
-      } else if (control.tagName === 'INPUT') {
-        control.value = '';
-      }
-    });
-    
-    // Hide the custom date fields
-    startDate.classList.add('d-none');
-    endDate.classList.add('d-none');
-    
-    // Apply filters to reset the view
-    applyFilters();
-  });
-  
-  // Initial check and application
-  checkFiltersApplied();
-  applyFilters();
-  
-  // Initialize date fields visibility
-  if (dateRangeSelect.value === 'custom') {
-    startDate.classList.remove('d-none');
-    endDate.classList.remove('d-none');
-  }
-
-
-
-  ///////////////////////////////////////////
-
-    // Initialize tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Setup order detail view handlers
-    const viewDetailIcons = document.querySelectorAll('.view-details');
-    const orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-    
-    // Order data - would typically come from your backend
-    const orderData = {
-        'ec9d702e': {
-            id: '#ec9d702e-f3b5-4a05-849f-857971725545',
-            customer: 'Shamshad Shalu',
-            email: 'shamshadshalu036@gmail.com',
-            date: 'April 5, 2025, 10:24 AM',
-            payment: 'Credit Card',
-            paymentClass: 'bg-info',
-            status: 'Cancelled',
-            statusClass: 'bg-danger'
-        },
-        '6b050859': {
-            id: '#6b050859-0794-4c7b-9584-a7de85267112',
-            customer: 'Shamshad Shalu',
-            email: 'shamshadshalu036@gmail.com',
-            date: 'April 4, 2025, 9:15 AM',
-            payment: 'UPI',
-            paymentClass: 'bg-warning text-dark',
-            status: 'Return Request',
-            statusClass: 'bg-secondary'
-        },
-        // Add more orders as needed
-    };
-    
-    viewDetailIcons.forEach(icon => {
-        icon.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
-            
-            // Populate modal with order details
-            if (orderData[orderId]) {
-                document.getElementById('modalOrderId').textContent = orderData[orderId].id;
-                document.getElementById('customerEmail').textContent = orderData[orderId].email;
-                document.getElementById('modalOrderDate').textContent = orderData[orderId].date;
-                
-                const paymentBadge = document.getElementById('modalPaymentMethod');
-                paymentBadge.textContent = orderData[orderId].payment;
-                paymentBadge.className = 'badge ' + orderData[orderId].paymentClass;
-                
-                const statusBadge = document.getElementById('modalOrderStatus');
-                statusBadge.textContent = orderData[orderId].status;
-                statusBadge.className = 'badge ' + orderData[orderId].statusClass;
-            }
-            
-            // Show the modal
-            orderDetailsModal.show();
-        });
-    });
-    
-    // Handle export buttons
-    document.getElementById('downloadPdf').addEventListener('click', function() {
-        // Normally would trigger PDF export functionality
-        alert('PDF export initiated');
-    });
-    
-    document.getElementById('downloadExcel').addEventListener('click', function() {
-        // Normally would trigger Excel export functionality
-        alert('Excel export initiated');
-    });
-
-    exportReportBtn.addEventListener('click', function() {
-    const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
-    exportModal.show();
-});
-
-});
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Existing code for filters and other functionality...
-
-    // Initialize jsPDF
-    const { jsPDF } = window.jspdf;
-
-    // Export button event listener
-    const exportReportBtn = document.getElementById('exportReportBtn');
-    if (exportReportBtn) {
-        exportReportBtn.addEventListener('click', function() {
-            const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
-            exportModal.show();
-        });
-    }
-
-    // Confirm export button event listener
-    const confirmExport = document.getElementById('confirmExport');
-    if (confirmExport) {
-        confirmExport.addEventListener('click', function() {
-            const format = document.getElementById('exportFormat').value;
-            const includeSummary = document.getElementById('includeSummary').checked;
-            const includeDetails = document.getElementById('includeDetails').checked;
-
-            if (format === 'pdf') {
-                generatePDF(includeSummary, includeDetails);
-            } else if (format === 'excel') {
-                // Add Excel export logic here (requires a different library like SheetJS)
-                alert('Excel export not implemented yet');
-            }
-
-            // Hide modal
-            const exportModal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-            exportModal.hide();
-        });
-    }
-
-    // Function to generate PDF
-    function generatePDF(includeSummary, includeDetails) {
-        const doc = new jsPDF();
-        let yPosition = 20; // Starting Y position for content
-        const pageHeight = 280; // Approximate height of an A4 page in jsPDF units
-        const margin = 10;
-        const fontSize = 12;
-        const lineHeight = 10;
-
-        // Get current date range (simplified based on your filter)
-        const dateRangeSelect = document.getElementById('dateRangeSelect');
-        const dateRange = dateRangeSelect.value === 'custom' 
-            ? `${document.getElementById('startDate').value} to ${document.getElementById('endDate').value}`
-            : dateRangeSelect.options[dateRangeSelect.selectedIndex].text;
-
-        // Title
-        doc.setFontSize(18);
-        doc.text('Sales Report', margin, yPosition);
-        doc.setFontSize(fontSize);
-        doc.text(`Period: ${dateRange}`, margin, yPosition + 10);
-        yPosition += 20;
-
-        // Sales Summary Section
-        if (includeSummary) {
-            doc.setFontSize(14);
-            doc.text('Sales Summary', margin, yPosition);
-            yPosition += 10;
-
-            const summaryData = {
-                'Total Orders': '1,847',
-                'Total Revenue': '₹156,432.85',
-                'Total Discount': '₹18,976.40',
-                'Returns': '₹4,258.60'
-            };
-
-            Object.entries(summaryData).forEach(([key, value], index) => {
-                if (yPosition > pageHeight) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                doc.text(`${key}: ${value}`, margin, yPosition);
-                yPosition += lineHeight;
-            });
-            yPosition += 10; // Extra space after summary
-        }
-
-        // Order Details Section
-        if (includeDetails) {
-            doc.setFontSize(14);
-            doc.text('Order Details', margin, yPosition);
-            yPosition += 10;
-
-            // Sample order data (replace with dynamic data from your table)
-            const orderData = [
-                { id: '#ec9d702e...', date: 'Apr 5, 2025', customer: 'Shamshad Shalu', items: '1', payment: 'Card', subtotal: '₹98.50', discount: '-₹11.78', total: '₹86.72', status: 'Cancelled' },
-                { id: '#6b050859...', date: 'Apr 4, 2025', customer: 'Shamshad Shalu', items: '1', payment: 'UPI', subtotal: '₹698.72', discount: '-₹59.90', total: '₹638.82', status: 'Return Request' },
-                // Add more orders from your table as needed
-            ];
-
-            // Table headers
-            const headers = ['#', 'Date', 'Order ID', 'Customer', 'Items', 'Payment', 'Subtotal', 'Discount', 'Total', 'Status'];
-            const data = orderData.map((order, index) => [
-                index + 1,
-                order.date,
-                order.id,
-                order.customer,
-                order.items,
-                order.payment,
-                order.subtotal,
-                order.discount,
-                order.total,
-                order.status
-            ]);
-
-            doc.autoTable({
-                startY: yPosition,
-                head: [headers],
-                body: data,
-                theme: 'grid',
-                styles: { fontSize: 10, cellPadding: 2 },
-                columnStyles: {
-                    0: { cellWidth: 10 },
-                    1: { cellWidth: 20 },
-                    2: { cellWidth: 25 },
-                    3: { cellWidth: 30 },
-                    4: { cellWidth: 15 },
-                    5: { cellWidth: 20 },
-                    6: { cellWidth: 20 },
-                    7: { cellWidth: 20 },
-                    8: { cellWidth: 20 },
-                    9: { cellWidth: 25 }
-                }
-            });
-
-            // Update yPosition after table (autoTable handles pagination)
-            yPosition = doc.lastAutoTable.finalY + 10;
-        }
-
-        // Footer
-        doc.setFontSize(10);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, pageHeight - 10);
-        doc.text(`Page ${doc.internal.getNumberOfPages()}`, 200, pageHeight - 10);
-
-        // Download the PDF
-        doc.save(`Sales_Report_${dateRange.replace(/ /g, '_')}.pdf`);
-    }
-
-    // Existing code for filters, tooltips, and order details modal...
-});
-</script> -->
-
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
     // Initialize jsPDF
@@ -2114,6 +1120,312 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+ -->
+
+
+ <script>
+    async function fetchSales(page=1) {
+    const search = document.getElementById("searchInput").value;
+    const paymentType = document.getElementById('paymentFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const category = document.getElementById('categoryFilter').value;
+    const brand = document.getElementById('brandFilter').value;
+    const minPrice = document.getElementById("minPrice").value;
+    const maxPrice = document.getElementById("maxPrice").value;
+    const dateRange = document.getElementById('dateRangeSelect').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    console.log("Fetching sales with filters:", {
+        page, search, paymentType, status, category, brand, 
+        minPrice, maxPrice, dateRange, startDate, endDate
+    });
+    
+    const queryParams = new URLSearchParams({
+        page,
+        search,
+        paymentType,
+        status,
+        category,
+        brand,
+        minPrice,
+        maxPrice,
+        dateRange,
+        startDate,
+        endDate 
+    }).toString();
+    
+    try {
+        const response = await fetch(`/admin/sales?${queryParams}`,{
+            headers:{'X-Requested-With': 'XMLHttpRequest'},
+        });
+
+        if(response.status === 401 || response.status === 403) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Unauthorized',
+                text: 'Please log in to continue',
+            }).then(() => {
+                window.location.href = '/admin/login';
+            });
+            return;
+        };
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to fetch sales');
+        }
+
+        console.log("API Response:", data);
+
+        const tableBody = document.getElementById("tableBody");
+        tableBody.innerHTML = '';
+
+        if(data.sales?.length > 0) {
+            data.sales.forEach((sale, index) => {
+                const row = `
+                <tr class="fade-in">
+                    <td>${(data.page - 1) * data.limit + index + 1}</td>
+                    <td>${sale.orderDate ? new Date(sale.orderDate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) : 'N/A'}</td>
+                    <td>
+                    <a href="#" class="text-decoration-none order-id-link" data-bs-toggle="tooltip" title="${sale.orderId || 'Unknown'}">
+                        ${sale.orderId || 'Unknown'}
+                    </a>
+                    </td>
+                    <td>
+                    <div>
+                        <div class="fw-medium">${sale.customerName || 'Unknown'}</div>
+                        <small class="text-muted">${sale.email || ''}</small>
+                    </div>
+                    </td>
+                    <td><span class="text-muted">${sale.items?.length || 0} item${sale.items?.length !== 1 ? 's' : ''}</span></td>
+                    <td><span class="badge bg-warning text-dark">${sale.paymentMethod || sale.paymentType || 'Unknown'}</span></td>
+                    <td>₹${(sale.subtotal || 0).toFixed(2)}</td>
+                    <td class="text-danger">₹${(sale.discount || 0).toFixed(2)}</td>
+                    <td class="fw-bold">₹${(sale.total || 0).toFixed(2)}</td>
+                    <td><span class="badge bg-${getStatusClass(sale.status)}">${sale.status || 'Unknown'}</span></td>
+                    <td>
+                    <button class="btn btn-sm btn-outline-info view-details" title="View details" data-id="${sale._id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    </td>            
+                </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+            function getStatusClass(status) {
+            if (!status) return 'secondary';
+            switch(status) {
+                case 'Delivered': return 'success';
+                case 'Cancelled': return 'danger';
+                case 'Returned': return 'info';
+                default: return 'warning';
+            }
+            }
+            
+            // Setup tooltips for order IDs
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => {
+                new bootstrap.Tooltip(tooltip);
+            });
+            
+            // Add event listeners to view detail buttons
+            document.querySelectorAll('.view-details').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.getAttribute('data-id');
+                    // Implement your view details logic here
+                    console.log("View details for order:", orderId);
+                });
+            });
+        } else {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="text-center py-4">
+                        <div class="d-flex flex-column align-items-center justify-content-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+                                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                <path d="M12 11v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            <p class="fs-5 fw-medium text-muted">No items found</p>
+                            <p class="text-muted">Try adjusting your search or filter to find what you're looking for.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        const paginationSection = document.getElementById("paginationSection");
+        paginationSection.innerHTML = '';
+
+        if(data.count > 0) {
+            const totalPages = Math.ceil(data.count / data.limit);
+            const maxPagesToShow = 5;
+            const startPage = Math.max(1, data.page - Math.floor(maxPagesToShow / 2));
+            const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+            const paginationHTML = `
+                <div class="text-muted">
+                    Showing <span class="fw-bold">${(data.page - 1) * data.limit + 1}</span>
+                    to <span class="fw-bold">${Math.min(data.page * data.limit, data.count)}</span> 
+                    of <span class="fw-bold">${data.count}</span> Orders
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item ${data.page <= 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${data.page - 1}" aria-label="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        ${Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(i => `
+                            <li class="page-item ${data.page === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                        `).join('')}
+                        <li class="page-item ${data.page >= totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${data.page + 1}" aria-label="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            `;
+
+            paginationSection.innerHTML = paginationHTML;
+
+            document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = parseInt(link.getAttribute('data-page'));
+                    if (page > 0 && page <= totalPages) fetchSales(page);
+                });
+            });
+        }
+
+    } catch (error) {
+        console.error('Error fetching sales:', error);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load sales' });   
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const filterForm = document.getElementById("saleFilterForm");
+    const clearFiltersBtn = document.getElementById('clearFilters');
+
+    filterForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        fetchSales();
+    });
+
+    // All filter change listeners
+    document.querySelectorAll('#statusFilter, #paymentFilter, #categoryFilter, #brandFilter, #dateRangeSelect').forEach(input => {
+        input.addEventListener('change', () => {
+            fetchSales(1);
+            checkFilters();
+        });
+    });
+
+    // Handle date range selection
+    document.getElementById('dateRangeSelect').addEventListener('change', function() {
+        const customDateSelected = this.value === 'custom';
+        
+        // Show/hide date inputs based on selection
+        const startDateField = document.getElementById('startDate');
+        const endDateField = document.getElementById('endDate');
+        
+        startDateField.classList.toggle('d-none', !customDateSelected);
+        endDateField.classList.toggle('d-none', !customDateSelected);
+        
+        // Clear dates if not using custom date range
+        if (!customDateSelected) {
+            startDateField.value = '';
+            endDateField.value = '';
+        }
+        
+        fetchSales();
+        checkFilters();
+    });
+
+    // Date inputs
+    ['startDate', 'endDate'].forEach(id => {
+        const dateInput = document.getElementById(id);
+        if (dateInput) {
+            dateInput.addEventListener("change", () => {
+                fetchSales();
+                checkFilters();
+            });
+        }
+    });
+
+    // Price inputs
+    ['minPrice', 'maxPrice'].forEach(id => {
+        const priceInput = document.getElementById(id);
+        if (priceInput) {
+            priceInput.addEventListener("input", () => {
+                fetchSales();
+                checkFilters();
+            });
+        }
+    });
+
+    // Search input
+    document.getElementById("searchInput").addEventListener("input", () => {
+        fetchSales();
+        checkFilters();
+    });
+
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('paymentFilter').value = 'All';
+            document.getElementById('statusFilter').value = 'All';
+            document.getElementById('categoryFilter').value = 'All';
+            document.getElementById('brandFilter').value = 'all';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('dateRangeSelect').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            // Hide date fields
+            document.getElementById('startDate').classList.add('d-none');
+            document.getElementById('endDate').classList.add('d-none');
+
+            fetchSales();
+            checkFilters();
+        });
+    }
+
+    function checkFilters() {
+        const filtersActive = 
+            document.getElementById('searchInput').value !== '' ||
+            document.getElementById('paymentFilter').value !== 'All' ||
+            document.getElementById('statusFilter').value !== 'All' ||
+            document.getElementById('categoryFilter').value !== 'All' ||
+            document.getElementById('brandFilter').value !== 'all' ||
+            document.getElementById('minPrice').value !== '' ||
+            document.getElementById('maxPrice').value !== '' ||
+            document.getElementById('dateRangeSelect').value !== 'all' ||
+            document.getElementById('startDate').value !== '' || 
+            document.getElementById('endDate').value !== '';
+
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        if (clearFiltersBtn) {
+            if (filtersActive) {
+                clearFiltersBtn.classList.remove('d-none');
+            } else {
+                clearFiltersBtn.classList.add('d-none');
+            }
+        }
+    }
+
+    // Initialize
+    fetchSales();
+    checkFilters();
+});
+ </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>

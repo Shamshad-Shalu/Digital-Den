@@ -93,6 +93,192 @@
     </div>
 </div>
 
+
+
+<!-- add offer modal  -->
+<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addOfferForm">
+                <div class="modal-body">
+                    <!-- Basic Offer Details -->
+                    <div class="mb-3">
+                        <label class="form-label">Offer Name</label>
+                        <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
+                        <div class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Type</label>
+                            <select class="form-select" name="type" id="discountType">
+                                <option value="Percentage">Percentage (%)</option>
+                                <option value="Fixed">Fixed (₹)</option>
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Discount Value</label>
+                            <input type="number" class="form-control" name="discount" id="discount" placeholder="Enter Discount ">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="startDate" id="startDate">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="endDate" id="endDate">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <!-- Offer Target Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Apply Offer On</label>
+                        <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="category">Category</option>
+                            <option value="brand">Brand</option>
+                            <option value="product">Product</option>
+                        </select>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <!-- Category Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="categorySection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Categories</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." onkeyup="filterItems('category')">
+                            </div>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="categoryList">
+                                <!-- categories -->
+                                <% if (locals.categories && categories.length > 0) { %>
+                                    <% categories.forEach((category, index) => { %>
+                                        <div class="form-check category-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="<%= category._id %>">
+                                            <label class="form-check-label" for="<%= category._id %>"><%= category.name %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                            <div id="noCategoriesFound" class="text-center py-2 d-none text-muted">
+                                <small>No categories found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreCategories" onclick="toggleAdditionalItems('category')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Brand Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="brandSection">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0 fw-bold">Select Brands</label>
+                            <div class="input-group input-group-sm" style="width: 60%;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="brandSearch" placeholder="Search brands..." onkeyup="filterItems('brand')">
+                            </div>
+                        </div>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div id="brandList">
+                                <!-- Initial 5 brands -->
+                                <% if (locals.brands && brands.length > 0) { %>
+                                    <% brands.forEach((brand, index) => { %>
+                                        <div class="form-check brand-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="<%= brand._id %>">
+                                            <label class="form-check-label" for="<%= brand._id %>"><%= brand.brandName %></label>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                            <div id="noBrandsFound" class="text-center py-2 d-none text-muted">
+                                <small>No brands found</small>
+                            </div>
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link btn-sm" id="showMoreBrands" onclick="toggleAdditionalItems('brand')">
+                                    <span class="show-more-text">Show more</span>
+                                    <span class="show-less-text d-none">Show less</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Selection with Search -->
+                    <div class="mb-4 d-none selection-section" id="productSection">
+                        <div class="mb-2">
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductSelector(false)">
+                                <label class="form-check-label" for="allProducts">All Products</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductSelector(true)">
+                                <label class="form-check-label" for="specificProducts">Select Specific Products</label>
+                            </div>
+                        </div>
+                        
+                        <div id="productSelector" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0 fw-bold">Select Products</label>
+                                <div class="input-group input-group-sm" style="width: 60%;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="productSearch" placeholder="Search products..." onkeyup="filterItems('product')">
+                                </div>
+                            </div>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                <div id="productList">
+                                       <!--products -->
+                                    <% if (locals.products && products.length > 0) { %>
+                                        <% products.forEach((product, index) => { %>
+                                            <div class="form-check product-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
+                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="<%= product._id %>">
+                                                <label class="form-check-label" for="<%= product._id %>"><%= product.productName %></label>
+                                            </div>
+                                        <% }) %>
+                                    <% } %>
+                                </div>
+                                <div id="noProductsFound" class="text-center py-2 d-none text-muted">
+                                    <small>No products found</small>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-link btn-sm" id="showMoreProducts" onclick="toggleAdditionalItems('product')">
+                                        <span class="show-more-text">Show more</span>
+                                        <span class="show-less-text d-none">Show less</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" form="addOfferForm" class="btn btn-primary">Add Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <!-- Edit Offer Modal -->
 <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -276,188 +462,7 @@
     </div>
 </div>
 
-<!-- add offer modal  -->
-<div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addOfferModalLabel">Add New Offer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addOfferForm">
-                <div class="modal-body">
-                    <!-- Basic Offer Details -->
-                    <div class="mb-3">
-                        <label class="form-label">Offer Name</label>
-                        <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
-                        <div class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
-                        <div class="invalid-feedback"></div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Discount Type</label>
-                            <select class="form-select" name="type" id="discountType">
-                                <option value="Percentage">Percentage (%)</option>
-                                <option value="Fixed">Fixed (₹)</option>
-                            </select>
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Discount Value</label>
-                            <input type="number" class="form-control" name="discount" id="discount" placeholder="10">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="startDate" id="startDate">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="endDate" id="endDate">
-                            <div class="invalid-feedback"></div>
-                        </div>
-                    </div>
-                    <!-- Offer Target Selection -->
-                    <div class="mb-3">
-                        <label class="form-label">Apply Offer On</label>
-                        <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
-                            <option value="" disabled selected>Select Type</option>
-                            <option value="category">Category</option>
-                            <option value="brand">Brand</option>
-                            <option value="product">Product</option>
-                        </select>
-                        <div class="invalid-feedback"></div>
-                    </div>
-
-                    <!-- Category Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="categorySection">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label mb-0 fw-bold">Select Categories</label>
-                            <div class="input-group input-group-sm" style="width: 60%;">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." onkeyup="filterItems('category')">
-                            </div>
-                        </div>
-                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                            <div id="categoryList">
-                                <!-- categories -->
-                                <% if (locals.categories && categories.length > 0) { %>
-                                    <% categories.forEach((category, index) => { %>
-                                        <div class="form-check category-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="<%= category._id %>">
-                                            <label class="form-check-label" for="<%= category._id %>"><%= category.name %></label>
-                                        </div>
-                                    <% }) %>
-                                <% } %>
-                            </div>
-                            <div id="noCategoriesFound" class="text-center py-2 d-none text-muted">
-                                <small>No categories found</small>
-                            </div>
-                            <div class="text-center mt-2">
-                                <button type="button" class="btn btn-link btn-sm" id="showMoreCategories" onclick="toggleAdditionalItems('category')">
-                                    <span class="show-more-text">Show more</span>
-                                    <span class="show-less-text d-none">Show less</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Brand Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="brandSection">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label mb-0 fw-bold">Select Brands</label>
-                            <div class="input-group input-group-sm" style="width: 60%;">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="brandSearch" placeholder="Search brands..." onkeyup="filterItems('brand')">
-                            </div>
-                        </div>
-                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                            <div id="brandList">
-                                <!-- Initial 5 brands -->
-                                <% if (locals.brands && brands.length > 0) { %>
-                                    <% brands.forEach((brand, index) => { %>
-                                        <div class="form-check brand-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="<%= brand._id %>">
-                                            <label class="form-check-label" for="<%= brand._id %>"><%= brand.brandName %></label>
-                                        </div>
-                                    <% }) %>
-                                <% } %>
-                            </div>
-                            <div id="noBrandsFound" class="text-center py-2 d-none text-muted">
-                                <small>No brands found</small>
-                            </div>
-                            <div class="text-center mt-2">
-                                <button type="button" class="btn btn-link btn-sm" id="showMoreBrands" onclick="toggleAdditionalItems('brand')">
-                                    <span class="show-more-text">Show more</span>
-                                    <span class="show-less-text d-none">Show less</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="productSection">
-                        <div class="mb-2">
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductSelector(false)">
-                                <label class="form-check-label" for="allProducts">All Products</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductSelector(true)">
-                                <label class="form-check-label" for="specificProducts">Select Specific Products</label>
-                            </div>
-                        </div>
-                        
-                        <div id="productSelector" class="d-none">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0 fw-bold">Select Products</label>
-                                <div class="input-group input-group-sm" style="width: 60%;">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="productSearch" placeholder="Search products..." onkeyup="filterItems('product')">
-                                </div>
-                            </div>
-                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                                <div id="productList">
-                                       <!--products -->
-                                    <% if (locals.products && products.length > 0) { %>
-                                        <% products.forEach((product, index) => { %>
-                                            <div class="form-check product-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="<%= product._id %>">
-                                                <label class="form-check-label" for="<%= product._id %>"><%= product.productName %></label>
-                                            </div>
-                                        <% }) %>
-                                    <% } %>
-                                </div>
-                                <div id="noProductsFound" class="text-center py-2 d-none text-muted">
-                                    <small>No products found</small>
-                                </div>
-                                <div class="text-center mt-2">
-                                    <button type="button" class="btn btn-link btn-sm" id="showMoreProducts" onclick="toggleAdditionalItems('product')">
-                                        <span class="show-more-text">Show more</span>
-                                        <span class="show-less-text d-none">Show less</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="addOfferForm" class="btn btn-primary">Add Offer</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- Status Change Modal -->
 <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
@@ -479,7 +484,7 @@
 </div>
 
 <script>
-
+    
 async function fetchOffer( page=1 ){
         const search = document.getElementById("searchInput").value;
         const type = document.getElementById('typeFilter').value;
@@ -726,6 +731,7 @@ async function fetchOffer( page=1 ){
         fetchOffer()
         checkFilters();
         statusChange();
+        editOffer();
 
 
         // add offer
@@ -793,9 +799,10 @@ async function fetchOffer( page=1 ){
                 console.error('Add offer error:', error);
                 Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
             }
-        });
+        }); 
+    });
 
-
+    function editOffer() {
         // Edit Offer
         const editOfferModal = document.getElementById('editOfferModal');
         let offerId ;
@@ -925,7 +932,7 @@ async function fetchOffer( page=1 ){
             }
 
         });
-    });
+    }
 
     function statusChange(){
         // Status Change
@@ -997,7 +1004,7 @@ async function fetchOffer( page=1 ){
     function handleOfferTargetChange() {
         const selected = document.getElementById("appliedOn").value;
         
-        // Hide all sections first
+        // Hide all
         document.querySelectorAll('.selection-section').forEach(section => {
             section.classList.add('d-none');
         });
@@ -1012,12 +1019,12 @@ async function fetchOffer( page=1 ){
         }
     }
 
-    // Function to toggle product selector visibility
+    // togglevisibility
     function toggleProductSelector(show) {
         document.getElementById("productSelector").classList.toggle("d-none", !show);
     }
 
-    // Function to toggle showing additional items (Show more/Show less)
+    // (Show more/Show less)
     function toggleAdditionalItems(type) {
 
         const additionalItems = document.querySelectorAll(`#${type}List .additional-item`);
@@ -1035,7 +1042,7 @@ async function fetchOffer( page=1 ){
         showLessText.classList.toggle('d-none');
     }
 
-    // Function to filter items based on search input
+    // Function to filter items 
     function filterItems(type) {
         const searchInput = document.getElementById(`${type}Search`).value.toLowerCase();
         const items = document.querySelectorAll(`.${type}-item`);

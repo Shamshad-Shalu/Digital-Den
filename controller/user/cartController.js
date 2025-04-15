@@ -7,28 +7,129 @@ const Order  = require("../../model/orderSchema");
 const Wishlist = require("../../model/wishlistSchema"); 
 const Wallet = require("../../model/walletSchema");
 const Coupon = require("../../model/couponSchema");
+const Offer = require("../../model/offerSchema");
 const {State} = require("country-state-city");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const Razorpay = require('razorpay');
 const crypto = require("crypto");
-// const { default: payments } = require("razorpay/dist/types/payments");
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
+// const getWishlistPage = async (req , res) => {
 
+//     try {
+//         const { isLoggedIn, userData ,page } = res.locals;
+        
+//         page = parseInt(page) || 1;
+//         let limit = 5;
+
+//         let query = {};
+
+//         if (!isLoggedIn ) {
+//             return res.status(401).redirect("/user/home");
+//         }
+
+
+
+//         //  const coupons = await Coupon.find(query)
+//         //             .sort({ createdAt: -1 })
+//         //             .limit(limit)
+//         //             .skip((page - 1) * limit)
+//         //             .exec();
+
+//         const wishlist = await Wishlist.findOne({ userId: userData._id })
+//             .populate({
+//                 path: 'products.productId',
+//                 populate: [
+//                     { path: "brand" },
+//                     { path: "category" }
+//                 ]
+//             })
+//             .sort({ createdAt: -1 })
+//             .limit(limit)
+//             .skip((page - 1) * limit)
+//             .exec();
+
+//         if (!wishlist) {
+//             return res.render("user/wishlist", {
+//                 wishlist: { products: [] }
+//             });
+//         } 
+
+//         const validProducts = [];
+//         for(let i = 0;i < wishlist.products.length ;i++){
+//             const item = wishlist.products[i];
+//             const product = item.productId;
+
+//             if(!product || !product._id) continue;
+
+//             const status = await determineStatus(product._id );
+//             product.status = status;
+//             await product.save();
+
+//             validProducts.push(item);
+
+//         }
+
+//         // if (validProducts.length !== wishlist.products.length) {
+//             wishlist.products = validProducts;
+//             await wishlist.save();
+//             // console.log("Updated wishlist in DB with valid products:", wishlist);
+//         // }
+
+//        // Prepare wishlist data for rendering
+//        const wishlistData = {
+//         products: wishlist.products
+//             .map(item => {
+//                 const productData = item.productId;
+//                 if (!productData || !productData._id) return null;
+
+//                 return {
+//                     product: {
+//                         id: productData._id,
+//                         name: productData.productName,
+//                         brand: productData.brand?.brandName,
+//                         category: productData.category?.name,
+//                         salePrice: productData.salePrice,
+//                         regularPrice: productData.regularPrice,
+//                         status: productData.status,
+//                         quantity: productData.quantity,
+//                         cardImage: productData.cardImage,
+//                         rating: productData.rating
+//                     }
+//                 };
+//             })
+//             .filter(item => item !== null) 
+//         };
+
+//     res.render("user/wishlist", { wishlist: wishlistData });
+
+//     } catch (error) {
+//         console.error("Error in Wishlist:", error);
+//         res.status(500).json({ 
+//             success: false, 
+//             message: "Failed to load cart page", 
+//             error: error.message 
+//         });
+//     }  
+// }
 
 const getWishlistPage = async (req , res) => {
- 
+
     try {
-        const { isLoggedIn, userData } = res.locals;
+        const { isLoggedIn, userData  } = res.locals;
+        // let  page= req.body. parseInt(page) || 1;
+        // let limit = 5;
+
+        // let query = {};
 
         if (!isLoggedIn ) {
-            return res.status(401).redirect("/user/home");
+            return res.status(401).json({ success: false, message: "Please login to manage wishlist",redirectUrl:"/user/signin" });
         }
 
         const wishlist = await Wishlist.findOne({ userId: userData._id })
@@ -38,7 +139,8 @@ const getWishlistPage = async (req , res) => {
                     { path: "brand" },
                     { path: "category" }
                 ]
-            });
+            })
+         
 
         if (!wishlist) {
             return res.render("user/wishlist", {
@@ -60,12 +162,8 @@ const getWishlistPage = async (req , res) => {
             validProducts.push(item);
 
         }
-
-        // if (validProducts.length !== wishlist.products.length) {
             wishlist.products = validProducts;
             await wishlist.save();
-            // console.log("Updated wishlist in DB with valid products:", wishlist);
-        // }
 
        // Prepare wishlist data for rendering
        const wishlistData = {
@@ -102,13 +200,11 @@ const getWishlistPage = async (req , res) => {
             error: error.message 
         });
     }  
-}
-
+};
 
 const addToWishlist = async (req , res )=>{
     const { isLoggedIn, userData, isUserBlocked } = res.locals;
     const { productId } = req.body;
-
     if (!isLoggedIn) {
         return res.status(401).json({ success: false, message: "Please login to add to wishlist",redirectUrl:"/user/signin" });
     }
@@ -177,7 +273,6 @@ const addToWishlist = async (req , res )=>{
     }
 }
 
-
 const removeFromWishlist = async (req, res) => {
     const { isLoggedIn, userData, isUserBlocked } = res.locals;
     const { productId } = req.body;
@@ -226,8 +321,6 @@ const removeFromWishlist = async (req, res) => {
     }
 };
  
- 
-
 // const cron = require('node-cron');
 // const { checkout } = require("../../router/user");
 
@@ -384,14 +477,314 @@ const removeFromWishlist = async (req, res) => {
 //     return { subtotal, discount, tax, shipping, totalAmount };
 // }
 
+// async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
+//     let subtotal = 0;
+//     let totalDiscount = 0;
+//     let couponDiscount = 0;
+//     let discountDetails = []; 
 
+//     if (!cart?.items || cart.items.length === 0) {
+//         if (product && quantity) {
+//             const status = await determineStatus(product._id);
+//             if (status === 'Discontinued' || status === 'Out of stock') {
+//                 return { subtotal: 0, discount: 0, tax: 0, shipping: 0, totalAmount: 0, couponDiscount: 0, discountDetails: [] };
+//             }
+
+//             subtotal = product.regularPrice * quantity;
+
+//             const productDiscount = (product.regularPrice - product.salePrice) * quantity;
+//             const categoryDiscount = product.category?.categoryOffer 
+//                 ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+//                 : 0;
+//             const brandDiscount = product.brand?.brandOffer 
+//                 ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+//                 : 0;
+
+//             const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//             totalDiscount = maxDiscount;
+
+//             let discountType = 'product';
+//             if (maxDiscount === categoryDiscount) discountType = 'category';
+//             else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//             discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+//         }
+//     } else {
+//         const productIds = cart.items.map(item => item.productId);
+        
+//         const products = await Product.find({ 
+//             _id: { $in: productIds },
+//             isListed: true
+//         }).populate('brand').populate('category');
+        
+//         for (const item of cart.items) {
+//             if (item.discontinuedAt) continue;
+            
+//             const itemProduct = products.find(p => 
+//                 p._id.toString() === (typeof item.productId === 'object' 
+//                     ? item.productId._id.toString() 
+//                     : item.productId.toString())
+//             );
+
+//             if (!itemProduct) {
+//                 item.discontinuedAt = new Date();
+//                 continue;
+//             }
+            
+//             const status = await determineStatus(itemProduct._id);
+//             if (status === 'Discontinued' || status === 'Out of stock') {
+//                 item.discontinuedAt = new Date();
+//                 continue;
+//             }
+
+//             const itemSubtotal = itemProduct.regularPrice * item.quantity;
+//             subtotal += itemSubtotal;
+
+//             const productDiscount = (itemProduct.regularPrice - itemProduct.salePrice) * item.quantity;
+//             const categoryDiscount = itemProduct.category?.categoryOffer 
+//                 ? (itemProduct.regularPrice * itemProduct.category.categoryOffer * item.quantity) / 100 
+//                 : 0;
+//             const brandDiscount = itemProduct.brand?.brandOffer 
+//                 ? (itemProduct.regularPrice * itemProduct.brand.brandOffer * item.quantity) / 100 
+//                 : 0;
+
+//             const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//             totalDiscount += maxDiscount;
+
+//             let discountType = 'product';
+//             if (maxDiscount === categoryDiscount) discountType = 'category';
+//             else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//             discountDetails.push({ productId: itemProduct._id, type: discountType, amount: maxDiscount / item.quantity });
+//         }
+
+//         if (product && quantity) {
+//             const isNewProduct = !cart.items.some(item => 
+//                 (typeof item.productId === 'object' 
+//                     ? item.productId._id.toString() 
+//                     : item.productId.toString()) === product._id.toString()
+//             );
+            
+//             if (isNewProduct) {
+//                 const status = await determineStatus(product._id);
+//                 if (status !== 'Discontinued' && status !== 'Out of stock') {
+//                     const newSubtotal = product.regularPrice * quantity;
+//                     subtotal += newSubtotal;
+
+//                     const productDiscount = (product.regularPrice - product.salePrice) * quantity;
+//                     const categoryDiscount = product.category?.categoryOffer 
+//                         ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+//                         : 0;
+//                     const brandDiscount = product.brand?.brandOffer 
+//                         ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+//                         : 0;
+
+//                     const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//                     totalDiscount += maxDiscount;
+
+//                     let discountType = 'product';
+//                     if (maxDiscount === categoryDiscount) discountType = 'category';
+//                     else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//                     discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+//                 }
+//             }
+//         }
+//     }
+
+//     if (appliedCoupon && subtotal >= appliedCoupon.minPurchase) {
+//         if (appliedCoupon.status === 'Active' && (!appliedCoupon.expireOn || new Date() <= appliedCoupon.expireOn)) {
+//             if (appliedCoupon.type === 'Percentage') {
+//                 couponDiscount = (subtotal * appliedCoupon.discount) / 100;
+//                 if (appliedCoupon.maxDiscount && couponDiscount > appliedCoupon.maxDiscount) {
+//                     couponDiscount = appliedCoupon.maxDiscount;
+//                 }
+//             } else if (appliedCoupon.type === 'Fixed') {
+//                 couponDiscount = appliedCoupon.discount;
+//             }
+//             totalDiscount += couponDiscount;
+//         }
+//     }
+
+//     const tax = subtotal * 0.18;
+//     const shipping = !subtotal ? 0 : (subtotal - totalDiscount > 500 ? 0 : 50);
+//     const totalAmount = subtotal - totalDiscount + tax + shipping;
+
+//     return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
+// }
+
+
+// async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
+//     let subtotal = 0;
+//     let totalDiscount = 0;
+//     let couponDiscount = 0;
+//     let discountDetails = []; 
+
+//     if (!cart?.items || cart.items.length === 0) {
+//         if (product && quantity) {
+//             const status = await determineStatus(product._id);
+//             if (status === 'Discontinued' || status === 'Out of stock') {
+//                 return { subtotal: 0, discount: 0, tax: 0, shipping: 0, totalAmount: 0, couponDiscount: 0, discountDetails: [] };
+//             }
+
+//             subtotal = product.regularPrice * quantity;
+
+//             const productDiscount = (product.regularPrice - product.salePrice) * quantity;
+//             const categoryDiscount = product.category?.categoryOffer 
+//                 ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+//                 : 0;
+//             const brandDiscount = product.brand?.brandOffer 
+//                 ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+//                 : 0;
+
+//             const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//             totalDiscount = maxDiscount;
+
+//             let discountType = 'product';
+//             if (maxDiscount === categoryDiscount) discountType = 'category';
+//             else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//             discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+//         }
+//     } else {
+//         const productIds = cart.items.map(item => item.productId);
+        
+//         const products = await Product.find({ 
+//             _id: { $in: productIds },
+//             isListed: true
+//         }).populate('brand').populate('category');
+        
+//         for (const item of cart.items) {
+//             if (item.discontinuedAt) continue;
+            
+//             const itemProduct = products.find(p => 
+//                 p._id.toString() === (typeof item.productId === 'object' 
+//                     ? item.productId._id.toString() 
+//                     : item.productId.toString())
+//             );
+
+//             if (!itemProduct) {
+//                 item.discontinuedAt = new Date();
+//                 continue;
+//             }
+            
+//             const status = await determineStatus(itemProduct._id);
+//             if (status === 'Discontinued' || status === 'Out of stock') {
+//                 item.discontinuedAt = new Date();
+//                 continue;
+//             }
+
+//             const itemSubtotal = itemProduct.regularPrice * item.quantity;
+//             subtotal += itemSubtotal;
+
+//             const productDiscount = (itemProduct.regularPrice - itemProduct.salePrice) * item.quantity;
+//             const categoryDiscount = itemProduct.category?.categoryOffer 
+//                 ? (itemProduct.regularPrice * itemProduct.category.categoryOffer * item.quantity) / 100 
+//                 : 0;
+//             const brandDiscount = itemProduct.brand?.brandOffer 
+//                 ? (itemProduct.regularPrice * itemProduct.brand.brandOffer * item.quantity) / 100 
+//                 : 0;
+
+//             const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//             totalDiscount += maxDiscount;
+
+//             let discountType = 'product';
+//             if (maxDiscount === categoryDiscount) discountType = 'category';
+//             else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//             discountDetails.push({ productId: itemProduct._id, type: discountType, amount: maxDiscount / item.quantity });
+//         }
+
+//         if (product && quantity) {
+//             const isNewProduct = !cart.items.some(item => 
+//                 (typeof item.productId === 'object' 
+//                     ? item.productId._id.toString() 
+//                     : item.productId.toString()) === product._id.toString()
+//             );
+            
+//             if (isNewProduct) {
+//                 const status = await determineStatus(product._id);
+//                 if (status !== 'Discontinued' && status !== 'Out of stock') {
+//                     const newSubtotal = product.regularPrice * quantity;
+//                     subtotal += newSubtotal;
+
+//                     const productDiscount = (product.regularPrice - product.salePrice) * quantity;
+//                     const categoryDiscount = product.category?.categoryOffer 
+//                         ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+//                         : 0;
+//                     const brandDiscount = product.brand?.brandOffer 
+//                         ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+//                         : 0;
+
+//                     const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
+//                     totalDiscount += maxDiscount;
+
+//                     let discountType = 'product';
+//                     if (maxDiscount === categoryDiscount) discountType = 'category';
+//                     else if (maxDiscount === brandDiscount) discountType = 'brand';
+
+//                     discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+//                 }
+//             }
+//         }
+//     }
+
+//     if (appliedCoupon && subtotal >= appliedCoupon.minPurchase) {
+//         if (appliedCoupon.status === 'Active' && (!appliedCoupon.expireOn || new Date() <= appliedCoupon.expireOn)) {
+//             if (appliedCoupon.type === 'Percentage') {
+//                 couponDiscount = (subtotal * appliedCoupon.discount) / 100;
+//                 if (appliedCoupon.maxDiscount && couponDiscount > appliedCoupon.maxDiscount) {
+//                     couponDiscount = appliedCoupon.maxDiscount;
+//                 }
+//             } else if (appliedCoupon.type === 'Fixed') {
+//                 couponDiscount = appliedCoupon.discount;
+//             }
+//             totalDiscount += couponDiscount;
+//         }
+//     }
+
+//     const tax = subtotal * 0.18;
+//     const shipping = !subtotal ? 0 : (subtotal - totalDiscount > 500 ? 0 : 50);
+//     const totalAmount = subtotal - totalDiscount + tax + shipping;
+
+//     return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
+// }
+
+
+async function calculateBestOffer (product , quantity) {
+
+    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0)* quantity;
+    const categoryDiscount = product.category?.categoryOffer 
+        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+        : 0;
+    const brandDiscount = product.brand?.brandOffer 
+        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+        : 0;
+
+    const specialOffer = await getSpecialOffer(product);
+    const specialDiscount = specialOffer.discount * quantity;
+
+    const maxDiscount = Math.max(productDiscount, categoryDiscount , brandDiscount ,specialDiscount);
+
+    let discountType = 'product';
+    if (maxDiscount === categoryDiscount){
+        discountType = 'category';
+    }else if (maxDiscount === brandDiscount) {
+        discountType = 'brand';
+    }else if (maxDiscount === specialDiscount) {
+        discountType = specialOffer.type;
+    }
+
+    return {amount : maxDiscount , type : discountType }
+}
 
 async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
     let subtotal = 0;
     let totalDiscount = 0;
     let couponDiscount = 0;
-    let discountDetails = []; // New array to store discount type per item
+    let discountDetails = []; 
 
+     //  When Cart is Empty
     if (!cart?.items || cart.items.length === 0) {
         if (product && quantity) {
             const status = await determineStatus(product._id);
@@ -401,23 +794,13 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
 
             subtotal = product.regularPrice * quantity;
 
-            const productDiscount = (product.regularPrice - product.salePrice) * quantity;
-            const categoryDiscount = product.category?.categoryOffer 
-                ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
-                : 0;
-            const brandDiscount = product.brand?.brandOffer 
-                ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
-                : 0;
+            const {amount , type } = await calculateBestOffer(product , quantity );
 
-            const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
-            totalDiscount = maxDiscount;
+            totalDiscount = amount ;
 
-            let discountType = 'product';
-            if (maxDiscount === categoryDiscount) discountType = 'category';
-            else if (maxDiscount === brandDiscount) discountType = 'brand';
-
-            discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+            discountDetails.push({ productId: product._id, type , amount: amount / quantity });
         }
+    // When Cart has Items
     } else {
         const productIds = cart.items.map(item => item.productId);
         
@@ -429,8 +812,8 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
         for (const item of cart.items) {
             if (item.discontinuedAt) continue;
             
-            const itemProduct = products.find(p => 
-                p._id.toString() === (typeof item.productId === 'object' 
+            const itemProduct = products.find(pr => 
+                pr._id.toString() === (typeof item.productId === 'object' 
                     ? item.productId._id.toString() 
                     : item.productId.toString())
             );
@@ -449,24 +832,14 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
             const itemSubtotal = itemProduct.regularPrice * item.quantity;
             subtotal += itemSubtotal;
 
-            const productDiscount = (itemProduct.regularPrice - itemProduct.salePrice) * item.quantity;
-            const categoryDiscount = itemProduct.category?.categoryOffer 
-                ? (itemProduct.regularPrice * itemProduct.category.categoryOffer * item.quantity) / 100 
-                : 0;
-            const brandDiscount = itemProduct.brand?.brandOffer 
-                ? (itemProduct.regularPrice * itemProduct.brand.brandOffer * item.quantity) / 100 
-                : 0;
+            const {amount , type } = await calculateBestOffer(itemProduct , item.quantity );
 
-            const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
-            totalDiscount += maxDiscount;
+            totalDiscount += amount ;
 
-            let discountType = 'product';
-            if (maxDiscount === categoryDiscount) discountType = 'category';
-            else if (maxDiscount === brandDiscount) discountType = 'brand';
-
-            discountDetails.push({ productId: itemProduct._id, type: discountType, amount: maxDiscount / item.quantity });
+            discountDetails.push({ productId: itemProduct._id, type, amount: amount / item.quantity });
         }
 
+        // Add New Product if not in cart
         if (product && quantity) {
             const isNewProduct = !cart.items.some(item => 
                 (typeof item.productId === 'object' 
@@ -480,27 +853,15 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
                     const newSubtotal = product.regularPrice * quantity;
                     subtotal += newSubtotal;
 
-                    const productDiscount = (product.regularPrice - product.salePrice) * quantity;
-                    const categoryDiscount = product.category?.categoryOffer 
-                        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
-                        : 0;
-                    const brandDiscount = product.brand?.brandOffer 
-                        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
-                        : 0;
+                    const { amount, type } = await calculateBestOffer(product, quantity);
+                    totalDiscount += amount ;
 
-                    const maxDiscount = Math.max(productDiscount || 0, categoryDiscount || 0, brandDiscount || 0);
-                    totalDiscount += maxDiscount;
-
-                    let discountType = 'product';
-                    if (maxDiscount === categoryDiscount) discountType = 'category';
-                    else if (maxDiscount === brandDiscount) discountType = 'brand';
-
-                    discountDetails.push({ productId: product._id, type: discountType, amount: maxDiscount / quantity });
+                    discountDetails.push({ productId: product._id, type, amount: amount/ quantity });
                 }
             }
         }
     }
-
+    // coupon handle 
     if (appliedCoupon && subtotal >= appliedCoupon.minPurchase) {
         if (appliedCoupon.status === 'Active' && (!appliedCoupon.expireOn || new Date() <= appliedCoupon.expireOn)) {
             if (appliedCoupon.type === 'Percentage') {
@@ -511,149 +872,61 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
             } else if (appliedCoupon.type === 'Fixed') {
                 couponDiscount = appliedCoupon.discount;
             }
-            totalDiscount += couponDiscount;
         }
     }
 
     const tax = subtotal * 0.18;
-    const shipping = !subtotal ? 0 : (subtotal - totalDiscount > 500 ? 0 : 50);
-    const totalAmount = subtotal - totalDiscount + tax + shipping;
+    const shipping =  !subtotal ? 0 : (subtotal - totalDiscount > 500 ? 0 : 50);
+    const totalAmount = subtotal - totalDiscount - couponDiscount + tax + shipping;
 
     return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
 }
 
+async function getSpecialOffer (product){
+    const now = new Date();
+    const regularPrice = product.regularPrice;
+    const MAX_DISCOUNT = regularPrice * 0.5 ;
 
+    const offers = await Offer.find({
+        status: 'Active',
+        startDate: { $lte: now },
+        endDate: { $gte: now },
+        $or: [
+            { appliedOn: 'product', products: product._id },
+            { appliedOn: 'brand', brands: product.brand?._id || product.brand },
+            { appliedOn: 'category', categories: product.category?._id || product.category }
+        ]
+    });
 
-// const addToCart = async (req ,res) => {
+    let maxDiscount = 0;
+    let bestType = null;
+    let offerName = null;
 
-//     const { isLoggedIn, userData, isUserBlocked } = res.locals;
-//     let { productId, quantity } = req.body;
+    for(let offer of offers) {
+        let discount = 0 ;
 
-//     quantity = parseInt(quantity);
-
-//     if (!isLoggedIn) {
-//         return res.status(401).json({ success: false, message: "Please login..!" });
-//     }
-//     if (isUserBlocked) {
-//         return res.status(401).json({ success: false, message: "User is blocked and can't take actions..!" });
-//     }
-
-//     try {
-//         const product = await Product.findById(productId)
-//                     .populate('brand')
-//                     .populate('category');
-
-//                     if (!product) {
-//                         return res.status(404).json({ success: false, message: "Product not found" });
-//                     }
-
-//         // Check product status using determineStatus
-//         const status = await determineStatus(product._id);
-//         if (status === 'Discontinued') {
-//             return res.status(404).json({ success: false, message: "Product is discontinued or unavailable" });
-//         }
-//         if (status === 'Out of stock') {
-//             return res.status(400).json({ success: false, message: "Product is out of stock" });
-//         }
-
-//         const maxQuantity = 10;
-
-//         let cart = await Cart.findOne({ userId: userData._id });
-
-//         let existingQuantity = 0;
-//         let existingItemIndex = -1;
-
-//         if (cart) {
-//             existingItemIndex = cart.items.findIndex(item => 
-//                 item.productId.toString() === productId.toString()
-//             );
-            
-//             if (existingItemIndex !== -1) {
-//                 existingQuantity = cart.items[existingItemIndex].quantity;
-//             }
-//         }
+        if(offer.type === "Percentage" ){
+            discount = (regularPrice * offer.discount) / 100;
+        }else if(offer.type ==="Fixed"){
+            discount = offer.discount;
+        }
+        discount = Math.min(discount , MAX_DISCOUNT);
         
-//         // Calculate total quantity after adding
-//         const totalQuantity = existingQuantity + quantity;
-        
-//         // Validate against available stock and max quantity
-//         if (totalQuantity > product.quantity) {
-//             return res.status(400).json({ success: false, message: `Sorry, only ${product.quantity} items available in stock` 
-//             });
-//         }
-        
-//         if (totalQuantity > maxQuantity) {
-//             return res.status(400).json({ 
-//                 success: false, 
-//                 message: `Maximum quantity per product is ${maxQuantity}` 
-//             });
-//         }
+        if (discount > maxDiscount) {
+            maxDiscount = discount;
+            bestType = `${offer.appliedOn}`;
+            offerName = offer.name;
+        }
+    };
 
-//         if(!cart) {
-
-//             const totals = await calculateCartTotals(null, product, quantity);
-
-//             cart = new Cart({
-//                 userId:userData._id,
-//                 items:[{
-//                     productId:product._id,
-//                     quantity:quantity,
-//                     price:product.salePrice,
-//                     totalPrice:product.salePrice * quantity
-//                 }],
-//                 subtotal: totals.subtotal,
-//                 discount: totals.discount,
-//                 tax: totals.tax.toFixed(2),
-//                 shipping: totals.shipping,
-//                 totalAmount: totals.totalAmount
-//             });
-//         }else {
-
-//              // Update existing or add new one 
-//              if (existingItemIndex !== -1) {
-//                 cart.items[existingItemIndex].quantity = totalQuantity;
-//                 cart.items[existingItemIndex].totalPrice = totalQuantity * product.salePrice;
-//                 cart.items[existingItemIndex].discontinuedAt = null;
-//             } else {
-//                 cart.items.push({
-//                     productId: product._id,
-//                     quantity: quantity,
-//                     price: product.salePrice,
-//                     totalPrice: product.salePrice * quantity
-//                 });
-//             }
-
-//             const totals =await calculateCartTotals(cart, product, quantity);
-//             cart.subtotal = totals.subtotal;
-//             cart.discount = totals.discount;
-//             cart.tax = totals.tax.toFixed(2);
-//             cart.shipping = totals.shipping;
-//             cart.totalAmount = totals.totalAmount;
-
-//         } 
-
-//         await cart.save();
-
-//         // Remove the product from the wishlist
-//         let wishlist = await Wishlist.findOne({ userId: userData._id });
-//         if (wishlist) {
-//             const wishlistItemIndex = wishlist.products.findIndex(item => 
-//                 item.productId.toString() === productId.toString()
-//             );
-//             if (wishlistItemIndex !== -1) {
-//                 console.log("Product found :",productId)
-//                 await Wishlist.updateOne({ userId: userData._id }, { $pull: { products: { productId: product._id } } });
-//                 await wishlist.save();
-//             }
-//         }
-
-//         res.status(200).json({ success: true, message: "Product added to cart successfully" });
-        
-//     } catch (error) {
-//         console.error("Error adding to cart:", error);
-//         res.status(500).json({ success: false, message: "Failed to add product to cart", error: error.message }); 
-//     }
-// } 
+    console.log({
+        status: "Checking status of special discount",
+        specialDiscount: maxDiscount,
+        applyOn: bestType,
+        name: offerName
+    });
+    return {discount: maxDiscount, type: bestType , offerName}
+};
 
 
 const addToCart = async (req ,res) => {
@@ -663,14 +936,10 @@ const addToCart = async (req ,res) => {
 
     quantity = parseInt(quantity);
 
-    if (isUserBlocked) {
-        return res.status(401).json({ success: false, message: "User is blocked and can't take actions..!" });
-    }
-
     try {
         const product = await Product.findById(productId)
-                    .populate('brand')
-                    .populate('category');
+            .populate('brand')
+            .populate('category');
 
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
@@ -726,6 +995,7 @@ const addToCart = async (req ,res) => {
                 discount: totals.discount,
                 tax: totals.tax.toFixed(2),
                 shipping: totals.shipping,
+                couponDiscount : totals.couponDiscount,
                 totalAmount: totals.totalAmount
             });
         }else {
@@ -890,58 +1160,148 @@ const addToCart = async (req ,res) => {
 //     }
 // };
 
+// const getCartPage = async (req, res) => {
+//     const { isLoggedIn, userData } = res.locals;
+
+//     if (!isLoggedIn ) {
+//         return res.status(401).json({ success: false, message: "Please login to manage cart",redirectUrl:"/user/signin" });
+//     }
+
+//     try {
+//         const defaultCart = { 
+//             items: [], 
+//             subtotal: 0, 
+//             discount: 0, 
+//             tax: 0, 
+//             shipping: 0, 
+//             totalAmount: 0, 
+//             couponDiscount: 0 // Ensure default value
+//         };
+//         if (!userData) return res.render('user/cart', { cart: defaultCart, coupons: [] });
+
+//         let cart = await Cart.findOne({ userId: userData._id })
+//             .populate({
+//                 path: 'items.productId',
+//                 populate: [{ path: "brand" }, { path: "category" }]
+//             });
+
+//         // Fetch available coupons
+//         const coupons = await Coupon.find({
+//             status: 'Active',
+//             expireOn: { $gte: new Date() },
+//             $or: [{ users: { $size: 0 } }, { users: userData._id }]
+//         });
+
+//         if (!cart) return res.render('user/cart', { cart: defaultCart, coupons });
+
+//         for (let i = cart.items.length - 1; i >= 0; i--) {
+//             const item = cart.items[i];
+//             const product = item.productId;
+
+//             if (!product || !product._id) {
+//                 cart.items.splice(i, 1);
+//                 continue;
+//             }
+
+//             const status = await determineStatus(product._id);
+//             product.status = status;
+//             await product.save();
+
+//             if (status === 'Discontinued' || status === 'Out of stock') {
+//                 item.discontinuedAt = item.discontinuedAt || new Date();
+//             } else if (item.discontinuedAt) {
+//                 item.discontinuedAt = null;
+//             }
+//         }
+
+//         const appliedCoupon = cart.appliedCoupon ? await Coupon.findById(cart.appliedCoupon) : null;
+//         const totals = await calculateCartTotals(cart, null, null, appliedCoupon);
+
+//         cart.subtotal = totals.subtotal;
+//         cart.discount = totals.discount;
+//         cart.tax = totals.tax.toFixed(2);
+//         cart.shipping = totals.shipping;
+//         cart.totalAmount = totals.totalAmount;
+//         cart.couponDiscount = totals.couponDiscount || 0; // Ensure it’s always defined
+
+//         await cart.save();
+
+//         const cartData = {
+//             items: cart.items.map(item => {
+//                 const productData = item.productId;
+//                 if (!productData || !productData._id) return null;
+        
+//                 const discountDetail = totals.discountDetails.find(d => d.productId.toString() === productData._id.toString()) || {};
+//                 const discountPercentage = discountDetail.amount 
+//                     ? Math.round((discountDetail.amount / productData.regularPrice) * 100) 
+//                     : 0;
+//                 const effectivePrice = productData.regularPrice - (discountDetail.amount || 0); 
+        
+//                 return {
+//                     product: {
+//                         id: productData._id,
+//                         name: productData.productName,
+//                         brand: productData.brand?.brandName,
+//                         category: productData.category?.name,
+//                         salePrice: effectivePrice, 
+//                         regularPrice: productData.regularPrice,
+//                         status: productData.status,
+//                         quantity: productData.quantity,
+//                         cardImage: productData.cardImage,
+//                         rating: productData.rating
+//                     },
+//                     isDiscontinued: !!item.discontinuedAt,
+//                     quantity: item.quantity,
+//                     totalPrice: effectivePrice * item.quantity, 
+//                     discountType: discountDetail.type || 'product',
+//                     discountPercentage: discountPercentage
+//                 };
+//             }).filter(Boolean),
+//             subtotal: cart.subtotal,
+//             discount: cart.discount,
+//             tax: cart.tax,
+//             shipping: cart.shipping,
+//             totalAmount: cart.totalAmount,
+//             couponDiscount: cart.couponDiscount || 0,
+//             appliedCoupon: appliedCoupon ? { code: appliedCoupon.code, discount: cart.couponDiscount } : null
+//         };
+
+//         res.render("user/cart", { cart: cartData, coupons });
+//     } catch (error) {
+//         console.error("Error in getCartPage:", error);
+//         res.status(500).json({ success: false, message: "Failed to load cart page", error: error.message });
+//     }
+// };
+
 
 const getCartPage = async (req, res) => {
-    const { isLoggedIn, userData } = res.locals;
-
-    if (!isLoggedIn) return res.status(401).redirect("/user/home");
+    const { userData } = res.locals;
 
     try {
         const defaultCart = { 
-            items: [], 
-            subtotal: 0, 
-            discount: 0, 
-            tax: 0, 
-            shipping: 0, 
-            totalAmount: 0, 
-            couponDiscount: 0 // Ensure default value
+            items: [], subtotal: 0,  discount: 0,tax: 0,shipping: 0,totalAmount: 0,couponDiscount: 0 
         };
-        if (!userData) return res.render('user/cart', { cart: defaultCart, coupons: [] });
 
         let cart = await Cart.findOne({ userId: userData._id })
-            .populate({
-                path: 'items.productId',
-                populate: [{ path: "brand" }, { path: "category" }]
-            });
+            .populate({ path: 'items.productId', populate: ["brand", "category"] })
+            .populate('appliedCoupon');
+            // .populate({
+            //     path: 'items.productId',
+            //     populate: [{ path: "brand" }, { path: "category" }]
+            // });
+
 
         // Fetch available coupons
         const coupons = await Coupon.find({
             status: 'Active',
             expireOn: { $gte: new Date() },
-            $or: [{ users: { $size: 0 } }, { users: userData._id }]
+            $or: [{ usersUsed: { $ne: userData._id } }, { usersUsed: { $exists: false } }],
         });
 
         if (!cart) return res.render('user/cart', { cart: defaultCart, coupons });
 
-        for (let i = cart.items.length - 1; i >= 0; i--) {
-            const item = cart.items[i];
-            const product = item.productId;
-
-            if (!product || !product._id) {
-                cart.items.splice(i, 1);
-                continue;
-            }
-
-            const status = await determineStatus(product._id);
-            product.status = status;
-            await product.save();
-
-            if (status === 'Discontinued' || status === 'Out of stock') {
-                item.discontinuedAt = item.discontinuedAt || new Date();
-            } else if (item.discontinuedAt) {
-                item.discontinuedAt = null;
-            }
-        }
+        await checkCartItemStatus(cart);
+        await validateCartCoupon(cart);
 
         const appliedCoupon = cart.appliedCoupon ? await Coupon.findById(cart.appliedCoupon) : null;
         const totals = await calculateCartTotals(cart, null, null, appliedCoupon);
@@ -950,81 +1310,186 @@ const getCartPage = async (req, res) => {
         cart.discount = totals.discount;
         cart.tax = totals.tax.toFixed(2);
         cart.shipping = totals.shipping;
+        cart.couponDiscount = totals.couponDiscount
         cart.totalAmount = totals.totalAmount;
-        cart.couponDiscount = totals.couponDiscount || 0; // Ensure it’s always defined
+        cart.discountDetails = totals.discountDetails;
 
         await cart.save();
+        
 
         const cartData = {
             items: cart.items.map(item => {
-                const productData = item.productId;
-                if (!productData || !productData._id) return null;
-        
-                const discountDetail = totals.discountDetails.find(d => d.productId.toString() === productData._id.toString()) || {};
-                const discountPercentage = discountDetail.amount 
-                    ? Math.round((discountDetail.amount / productData.regularPrice) * 100) 
-                    : 0;
-                const effectivePrice = productData.regularPrice - (discountDetail.amount || 0); 
-        
+                const product = item.productId;
+                const discount = totals.discountDetails.find(d => d.productId.toString() === product._id.toString()) || {};
+                const effectivePrice = product.regularPrice - (discount.amount || 0 );
+                
                 return {
                     product: {
-                        id: productData._id,
-                        name: productData.productName,
-                        brand: productData.brand?.brandName,
-                        category: productData.category?.name,
-                        salePrice: effectivePrice, 
-                        regularPrice: productData.regularPrice,
-                        status: productData.status,
-                        quantity: productData.quantity,
-                        cardImage: productData.cardImage,
-                        rating: productData.rating
+                        id: product._id,
+                        name: product.productName,
+                        brand: product.brand?.brandName,
+                        category: product.category?.name,
+                        salePrice: effectivePrice,
+                        regularPrice: product.regularPrice,
+                        status: product.status,
+                        quantity: product.quantity,
+                        cardImage: product.cardImage,
+                        rating: product.rating,
                     },
-                    isDiscontinued: !!item.discontinuedAt,
+                    isDiscontinued : !!item.discontinuedAt,
                     quantity: item.quantity,
-                    totalPrice: effectivePrice * item.quantity, 
-                    discountType: discountDetail.type || 'product',
-                    discountPercentage: discountPercentage
+                    totalPrice: effectivePrice * item.quantity,
+                    discountType: discount.type || 'product',
+                    discountPercentage: discount.amount ? Math.round((discount.amount / product.regularPrice) * 100) : 0
                 };
-            }).filter(Boolean),
+            }),
             subtotal: cart.subtotal,
             discount: cart.discount,
             tax: cart.tax,
             shipping: cart.shipping,
+            shipping: cart.shipping,
+            couponDiscount : cart.couponDiscount,
             totalAmount: cart.totalAmount,
-            couponDiscount: cart.couponDiscount || 0,
-            appliedCoupon: appliedCoupon ? { code: appliedCoupon.code, discount: cart.couponDiscount } : null
-        };
+            couponCode: appliedCoupon?.code || null
+        }
 
         res.render("user/cart", { cart: cartData, coupons });
+
     } catch (error) {
         console.error("Error in getCartPage:", error);
         res.status(500).json({ success: false, message: "Failed to load cart page", error: error.message });
     }
 };
 
+async function checkCartItemStatus(cart) {
+
+    for (let i = cart.items.length - 1; i >= 0; i--) {
+        const item = cart.items[i];
+        const product = await Product.findById(item.productId);
+
+        if (!product) {
+            cart.items.splice(i, 1);
+            continue;
+        }
+
+        const status = await determineStatus(product._id);
+
+        if (product.status !== status) {
+            product.status = status;
+            await product.save();
+        }
+
+        if (status === 'Discontinued' || status === 'Out of stock') {
+            item.discontinuedAt = item.discontinuedAt || new Date();
+        } else if (item.discontinuedAt) {
+            item.discontinuedAt = null;
+        }
+    }
+
+    await cart.save();
+    return cart;
+}
+
+// const applyCoupon = async (req, res) => {
+
+//     const { userData, isUserBlocked } = res.locals;
+//     const { couponCode } = req.body;
+
+//     if (isUserBlocked) return res.status(401).json({ success: false, message: "User is blocked and can't take actions..!" });
+
+//     try {
+//         const cart = await Cart.findOne({ userId: userData._id })
+//              .populate('items.productId').populate('appliedCoupon');
+//         if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
+
+//         if(cart.appliedCoupon ?.code === couponCode ){
+//             cart.appliedCoupon = null;
+//             cart.couponDiscount = 0 ;
+//         }
+
+//         const coupon = await Coupon.findOne({ 
+//             code: couponCode.toUpperCase(), 
+//             status: 'Active', 
+//             expireOn: { $gte: new Date() },
+//             $or: [{ users: { $size: 0 } }, { users: userData._id }]
+//         });
+
+//         if (!coupon) return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
+//         if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return res.status(400).json({ success: false, message: "Coupon usage limit reached" });
+
+//         const totals = await calculateCartTotals(cart, null, null, coupon);
+//         if (totals.subtotal < coupon.minPurchase) return res.status(400).json({ success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required for this coupon` });
+
+//         cart.appliedCoupon = coupon._id;
+//         cart.subtotal = totals.subtotal;
+//         cart.discount = totals.discount;
+//         cart.tax = totals.tax.toFixed(2);
+//         cart.shipping = totals.shipping;
+//         cart.totalAmount = totals.totalAmount;
+//         cart.couponDiscount = totals.couponDiscount;
+
+//         await cart.save();
+//         await Coupon.updateOne({ _id: coupon._id }, { $inc: { usedCount: 1 }, $addToSet: { users: userData._id } });
+
+//         res.status(200).json({ 
+//             success: true, 
+//             message: "Coupon applied successfully", 
+//             cart: prepareCartData(cart),
+//             appliedCoupon: { code: coupon.code, discount: totals.couponDiscount }
+//         });
+//     } catch (error) {
+//         console.error("Error applying coupon:", error);
+//         res.status(500).json({ success: false, message: "Failed to apply coupon", error: error.message });
+//     }
+// };
+
+
+
 const applyCoupon = async (req, res) => {
+
     const { userData, isUserBlocked } = res.locals;
     const { couponCode } = req.body;
 
     if (isUserBlocked) return res.status(401).json({ success: false, message: "User is blocked and can't take actions..!" });
 
     try {
-        const cart = await Cart.findOne({ userId: userData._id });
+        const cart = await Cart.findOne({ userId: userData._id })
+             .populate('items.productId').populate('appliedCoupon');
+
         if (!cart) return res.status(404).json({ success: false, message: "Cart not found" });
 
-        const coupon = await Coupon.findOne({ 
-            code: couponCode.toUpperCase(), 
-            status: 'Active', 
-            expireOn: { $gte: new Date() },
-            $or: [{ users: { $size: 0 } }, { users: userData._id }]
-        });
+        if (cart.appliedCoupon?.code === couponCode) {
+            return res.status(400).json({ success: false, message: "This coupon is already applied to your cart" });
+        }
 
-        if (!coupon) return res.status(400).json({ success: false, message: "Invalid or expired coupon" });
-        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return res.status(400).json({ success: false, message: "Coupon usage limit reached" });
+        const coupon = await Coupon.findOne({ code: couponCode, status: 'Active', expireOn: { $gte: new Date() } });
+        if (!coupon) {
+            return res.status(400).json({ success: false, message: "Coupon not found or expired" });
+        }
+
+        if (coupon.usersUsed.includes(userData._id)) {
+            return res.status(400).json({ success: false, message: "You have already used this coupon" });
+        }
+
+        // Calculate subtotal of valid products  
+        const subtotal = cart.items
+            .filter(item => !item.discontinuedAt && item.productId.status !== 'Out of stock')
+            .reduce((acc, item) => acc + item.totalPrice, 0);
+
+        if (subtotal < coupon.minPurchase) {
+            return res.json({ success: false, message: `Minimum purchase ₹${coupon.minPurchase} required` });
+        }
+
+        if (cart.appliedCoupon) {
+            await Coupon.updateOne(
+                { _id: cart.appliedCoupon._id },
+                { $pull: { usersUsed: userData._id } }
+            );
+            cart.appliedCoupon = null;
+            cart.couponDiscount = 0;
+        }
 
         const totals = await calculateCartTotals(cart, null, null, coupon);
-        if (totals.subtotal < coupon.minPurchase) return res.status(400).json({ success: false, message: `Minimum purchase of ₹${coupon.minPurchase} required for this coupon` });
-
         cart.appliedCoupon = coupon._id;
         cart.subtotal = totals.subtotal;
         cart.discount = totals.discount;
@@ -1034,19 +1499,25 @@ const applyCoupon = async (req, res) => {
         cart.couponDiscount = totals.couponDiscount;
 
         await cart.save();
-        await Coupon.updateOne({ _id: coupon._id }, { $inc: { usedCount: 1 }, $addToSet: { users: userData._id } });
+            
+        await Coupon.updateOne({ _id: coupon._id }, { $addToSet: { usersUsed: userData._id } });
 
         res.status(200).json({ 
             success: true, 
             message: "Coupon applied successfully", 
             cart: prepareCartData(cart),
-            appliedCoupon: { code: coupon.code, discount: totals.couponDiscount }
+            appliedCoupon: { code: coupon.code, couponDiscount : totals.couponDiscount }
         });
+
     } catch (error) {
         console.error("Error applying coupon:", error);
         res.status(500).json({ success: false, message: "Failed to apply coupon", error: error.message });
     }
 };
+
+// await Coupon.updateOne({ _id: coupon._id }, { $inc: { usedCount: 1 }, $addToSet: { userId: userData._id } });
+// if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) return res.status(400).json({ success: false, message: "Coupon usage limit reached" });
+
 
 const updateCart = async (req , res) => {
     const maxQuantity = 10;
@@ -1061,7 +1532,8 @@ const updateCart = async (req , res) => {
 
         const product = await Product.findById(productId)
             .populate('brand')
-            .populate('category');
+            .populate('category')
+            .populate('appliedCoupon');
 
         if (!product) {
             return res.status(404).json({ success: false, message: "Product not found" });
@@ -1113,16 +1585,19 @@ const updateCart = async (req , res) => {
             cart.items[cartItemIndex].discontinuedAt = null;
         }
 
+        await validateCartCoupon(cart);
+
          // Recalculate cart totals
          const totals = await calculateCartTotals(cart);
         cart.subtotal = totals.subtotal;
         cart.discount = totals.discount;
         cart.tax = totals.tax.toFixed(2);
-        cart.shipping = totals.shipping;
+        cart.shipping = totals.shipping; 
+        cart.couponDiscount = totals.couponDiscount,
         cart.totalAmount = totals.totalAmount;
 
         await cart.save();
-
+    
         const cartData = prepareCartData(cart);
 
         res.status(200).json({ 
@@ -1139,7 +1614,120 @@ const updateCart = async (req , res) => {
             error: error.message 
         }); 
     }
-}
+};
+
+// const validateCartCoupon = async (cart) => {
+//     let message = null;
+
+//     if (!cart.appliedCoupon) {
+//       return { cart, message };
+//     }
+  
+//     try {
+
+//       const coupon = await Coupon.findById(cart.appliedCoupon);
+      
+//       if (!coupon) {
+//         cart.appliedCoupon = null;
+//         cart.couponDiscount = 0;
+//         await cart.save();
+//         return cart;
+//       }
+  
+
+//       const validSubtotal = cart.items
+//         .filter(item => {
+//           // Skip discontinued items
+//           if (item.discontinuedAt) return false;
+  
+//           if (typeof item.productId === 'object' && item.productId !== null) {
+//             return item.productId.status !== 'Out of stock';
+//           } else {
+//             return item.totalPrice > 0;
+//           }
+//         })
+//         .reduce((acc, item) => acc + item.totalPrice, 0);
+      
+//       if (validSubtotal < coupon.minPurchase || validSubtotal === 0) {
+//         await Coupon.updateOne(
+//           { _id: coupon._id },
+//           { $pull: { usersUsed: cart.userId } }
+//         );
+        
+//         cart.appliedCoupon = null;
+//         cart.couponDiscount = 0;
+        
+//         // Recalculate cart totals without coupon
+//         const totals = await calculateCartTotals(cart);
+//         cart.subtotal = totals.subtotal;
+//         cart.discount = totals.discount;
+//         cart.tax = totals.tax.toFixed(2);
+//         cart.shipping = totals.shipping;
+//         cart.couponDiscount = totals.couponDiscount,
+//         cart.totalAmount = totals.totalAmount;
+        
+//         await cart.save();
+        
+//         message = `Coupon "${coupon.code}" has been removed as your cart no longer meets the minimum purchase requirement of ₹${coupon.minPurchase}`;
+//       } else if (coupon.status !== 'Active' || new Date() > coupon.expireOn) {
+//         // Coupon is expired or disabled
+//         cart.appliedCoupon = null;
+//         cart.couponDiscount = 0;
+        
+//         // Recalculate cart totals without coupon
+//         const totals = await calculateCartTotals(cart);
+//         cart.subtotal = totals.subtotal;
+//         cart.discount = totals.discount;
+//         cart.tax = totals.tax.toFixed(2);
+//         cart.shipping = totals.shipping;
+//         cart.couponDiscount = totals.couponDiscount,
+//         cart.totalAmount = totals.totalAmount;
+        
+//         await cart.save();
+        
+//         message = "Applied coupon has expired and has been removed";
+//       }
+      
+//       return { cart, message };
+//     } catch (error) {
+//       console.error("Error validating cart coupon:", error);
+//       return { cart, message: "Error validating coupon" };
+//     }
+//   };
+
+const validateCartCoupon = async (cart) => {
+    try {
+        if (!cart.appliedCoupon) return cart;
+        
+        const coupon = await Coupon.findById(cart.appliedCoupon);
+        if (!coupon) {
+            cart.appliedCoupon = null;
+            cart.couponDiscount = 0;
+            return cart;
+        }
+        const subtotal = cart.items
+            .filter(item => !item.discontinuedAt && 
+                   (typeof item.productId === 'object' ? 
+                     item.productId.status !== 'Out of stock' : true))
+            .reduce((acc, item) => acc + item.totalPrice, 0);
+
+        if (subtotal < coupon.minPurchase) {
+
+            await Coupon.updateOne(
+                { _id: coupon._id },
+                { $pull: { usersUsed: cart.userId } }
+            );
+        
+            cart.appliedCoupon = null;
+            cart.couponDiscount = 0;
+        }
+        
+        return cart;
+    } catch (error) {
+        console.error("Error validating cart coupon:", error);
+        return cart;
+    }
+};
 
 function prepareCartData(cart) {
     return {
@@ -1161,10 +1749,10 @@ function prepareCartData(cart) {
         discount: cart.discount,
         tax: cart.tax,
         shipping: cart.shipping,
+        couponDiscount: cart.couponDiscount,
         totalAmount: cart.totalAmount
     };
 }
-
 
 const removeFromCart = async (req , res ) => {
     console.log("Remove cart function")
@@ -1194,16 +1782,17 @@ const removeFromCart = async (req , res ) => {
         cart.items.splice(itemIndex, 1);
  
         // Recalculate cart totals
+        await validateCartCoupon(cart);
         const totals = await calculateCartTotals(cart);
         
         cart.subtotal = totals.subtotal;
         cart.discount = totals.discount;
         cart.tax = totals.tax.toFixed(2);
         cart.shipping = totals.shipping;
+        cart.couponDiscount = totals.couponDiscount,
         cart.totalAmount = totals.totalAmount;
 
         await cart.save();
-
         // Prepare cart data for response
         const cartData = prepareCartData(cart);
 
@@ -1281,7 +1870,6 @@ const  proceedToCheckout = async (req , res) => {
 
 }
  
-
 // const getCheckoutpage = async (req, res) => {
 //     const {userData, isLoggedIn,isUserBlocked} = res.locals;
 //     if (!isLoggedIn || isUserBlocked) {
@@ -1425,6 +2013,8 @@ const getCheckoutpage = async (req, res) => {
                     totalItems,
                     subtotal:cart.subtotal,
                     discount: cart.discount,
+                    discount: cart.discount,
+                    couponDiscount : cart.couponDiscount,
                     tax: cart.tax,
                     shipping: cart.shipping,
                     totalAmount: cart.totalAmount
@@ -1645,13 +2235,16 @@ const placeOrder = async (req, res) => {
                 { path: "brand" },
                 { path: "category" },
             ],
-        });
+        }).populate('appliedCoupon'); 
 
             cart.items = cart.items.filter(item => !item.discontinuedAt);
 
             if(!cart || cart.items.length === 0 ){
                 return res.status(400).json({success:false , message:"Cart is empty"});
             }
+
+            const appliedCouponId = cart.appliedCoupon;
+            const couponDiscount = cart.couponDiscount;
 
             for(let item  of cart.items){
                 const product = await Product.findById(item.productId._id);
@@ -1732,7 +2325,7 @@ const placeOrder = async (req, res) => {
             const orderedItems = cart.items.map(item => ({
                 product:item.productId._id,
                 quantity:item.quantity,
-                price:item.productId.salePrice
+                price:item.productId.regularPrice
             }));
 
             let address = {
@@ -1756,13 +2349,15 @@ const placeOrder = async (req, res) => {
                 discount:cart.discount,
                 tax:cart.tax,
                 shipping:cart.shipping,
+                couponDiscount : couponDiscount,
                 finalAmount:cart.totalAmount,
                 address,
                 paymentMethod,
                 invoiceDate:Date.now(),
                 status:paymentStatus === "Paid" ? "Processing" : "Pending",
                 paymentStatus,
-                couponApplied: cart.discount > 0,
+                appliedCoupon : appliedCouponId,
+                couponApplied: appliedCouponId ? true : false,
                 razorpay_payment_id: paymentMethod === 'Online' ? razorpay_payment_id : undefined,
                 razorpay_order_id: paymentMethod === 'Online' ? razorpay_order_id : undefined,
             })
@@ -1772,7 +2367,7 @@ const placeOrder = async (req, res) => {
             // Clear the cart
             await Cart.findOneAndUpdate(
                 { userId: userData._id },
-                { $set: { items: [], subtotal: 0, discount: 0, tax: 0, shipping: 0, totalAmount: 0 } }
+                { $set: { items: [], subtotal: 0, discount: 0, tax: 0, shipping: 0,couponDiscount : 0, totalAmount: 0 ,appliedCoupon: null } }
             );
 
             req.session.orderId = newOrder.orderId
@@ -1791,12 +2386,12 @@ const placeOrder = async (req, res) => {
 
 const createRazorpayOrder = async (req, res) => {
     try {
-        console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID); // Add this line
-        console.log('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET); // Add this line
+        console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID); 
+        console.log('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET); 
         const { amount } = req.body;
         console.log('Received Amount:', amount);
         const options = {
-            amount: amount * 100, // Convert to paise (e.g., ₹500 = 50000 paise)
+            amount: amount * 100, 
             currency: 'INR',
             receipt: `order_rcptid_${Date.now()}`
         };
@@ -1807,6 +2402,7 @@ const createRazorpayOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error creating order' });
     }
 };
+
 
 module.exports = {
     addToCart,

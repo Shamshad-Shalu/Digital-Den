@@ -558,7 +558,7 @@
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Discount</span>
-                                <span>-₹<%= checkoutData.summery.discount %></span>
+                                <span class="text-danger" >-₹<%= checkoutData.summery.discount.toFixed(2) %></span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Shipping</span>
@@ -568,10 +568,16 @@
                                 <span>Tax</span>
                                 <span>₹<%= checkoutData.summery.tax %></span>
                             </div>
+                            <% if (checkoutData.summery.couponDiscount ) { %>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Coupon Discount</span>
+                                    <span class="text-danger">-₹<%= checkoutData.summery.couponDiscount.toFixed(2) %></span>
+                                </div>
+                            <% } %>
                             <hr>
                             <div class="d-flex justify-content-between mb-4">
                                 <strong>Total</strong>
-                                <strong>₹<%= checkoutData.summery.totalAmount %></strong>
+                                <strong>₹<%= checkoutData.summery.totalAmount.toFixed(2) %></strong>
                             </div>
                             <button class="btn btn-primary w-100 py-2 mb-2" id="placeOrder">Place Order</button>
                             <a href="/user/cart" class="btn btn-outline-secondary w-100 py-2">Return to Cart</a>
@@ -666,8 +672,6 @@
             </div>
         </div>
     </div>
-
-
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

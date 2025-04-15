@@ -1,6 +1,7 @@
 const User = require("../../model/userSchema");
 const Order  = require("../../model/orderSchema"); 
 const ReturnRequest = require("../../model/returnRequestModel"); 
+const Wallet = require("../../model/walletSchema");
 const {validateCancelOrder ,validateReturnRequest} = require("../../utils/validation");
 
 
@@ -310,7 +311,10 @@ const cancelOrder = async (req , res) => {
         }
 
         // Find order
-        const order = await Order.findOne({ orderId }).populate('orderedItems.product');
+        const order = await Order.findOne({ orderId })
+            .populate('orderedItems.product')
+            .populate('appliedCoupon')
+
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
@@ -325,8 +329,46 @@ const cancelOrder = async (req , res) => {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
+        if (order.paymentStatus === 'Paid') {
+            const refundAmount = order.finalAmount;
+            
+            if (order.paymentMethod === 'Wallet' || order.paymentMethod === 'Online') {
+
+                let wallet = await Wallet.findOne({ userId: order.userId });
+                if (!wallet) {
+                    wallet = new Wallet({
+                        userId: order.userId,
+                        balance: 0,
+                        transactions: []
+                    });
+                }
+                
+                // Add refund to wallet
+                wallet.balance += refundAmount;
+                wallet.transactions.push({
+                    amount: refundAmount,
+                    type: 'Credit',
+                    method: 'Refund',
+                    status: 'Completed',
+                    description: `Refund for cancelled order ${order.orderId}`,
+                    date: Date.now()
+                });
+                wallet.lastUpdated = Date.now();
+                await wallet.save();
+                
+                order.paymentStatus = 'Refunded';
+            }
+            
+            // If a coupon was applied, remove user 
+            if (order.appliedCoupon) {
+                await Coupon.updateOne(
+                    { _id: order.appliedCoupon._id },
+                    { $pull: { usersUsed: order.userId } }
+                );
+            }
+        }
     
-        // Set cancellation details
+        // Set cancellation 
         order.cancellation = {
             reason,
             comments: comments || '',
@@ -391,7 +433,7 @@ const returnOrder = async (req, res) => {
 
         const returnRequest = new ReturnRequest({
             orderId: order._id,
-            itemIds: order.orderedItems.map(item => item._id.toString()), // Include all item IDs for whole order
+            itemIds: order.orderedItems.map(item => item._id.toString()), 
             reason,
             requestedBy: user._id,
             status: user.isAdmin ? 'Approved' : 'Pending',
@@ -405,14 +447,14 @@ const returnOrder = async (req, res) => {
                 product.quantity += item.quantity;
                 await product.save();
                 item.returnStatus = 'Returned';
-                item.returnReason = reason; // Store reason for each item
+                item.returnReason = reason; 
             }
             order.status = 'Returned';
             await order.save();
         } else {
             for (const item of order.orderedItems) {
                 item.returnStatus = 'Return Requested';
-                item.returnReason = reason; // Store reason for each item
+                item.returnReason = reason; 
             }
             order.status = 'Return Request';
             await order.save();
@@ -427,6 +469,9 @@ const returnOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
+
+// const returnItem = async (req, res) => {
 
 // const returnOrder = async (req,res ) => {
 //     try {
@@ -513,101 +558,87 @@ const returnOrder = async (req, res) => {
 // }
  
 // //specific item 
-// const returnItem = async (req,res ) => {
-//     try {
-//         const {userData ,isUserBlocked } = res.locals;
-//         const { orderId ,itemId } = req.params;
+// const returnItem = async (req,res ) => {//     try {
+//         const { userData, isUserBlocked } = res.locals;
+//         const { orderId, itemId } = req.params;
 //         const { reason } = req.body;
 
 //         if (isUserBlocked) {
 //             return res.status(403).json({ success: false, message: 'Account is blocked' });
 //         }
 
-//         // Validate request data
 //         const errors = validateReturnRequest({ reason });
 //         if (errors) {
 //             return res.status(400).json({ success: false, errors });
 //         }
 
-//         const user = await User.findById(userData)
+//         const user = await User.findById(userData);
 //         if (!user) {
 //             return res.status(404).json({ success: false, message: 'User not found' });
 //         }
 
-//         // Find the order
 //         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
 //         if (!order) {
 //             return res.status(404).json({ success: false, message: 'Order not found' });
 //         }
 
-//         //  user is authorized ?
-//         if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
+//         if (order.userId.toString() !== user._id.toString() && !user.isAdmin) {
 //             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
 //         }
 
-//         //checking
 //         if (order.status !== 'Delivered') {
 //             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
 //         }
 
-//         // Find the item in the orderedItems array
-//         const item = order.orderedItems.find(ite => ite._id.toString() === itemId);
+//         const item = order.orderedItems.find(i => i._id.toString() === itemId);
 //         if (!item) {
 //             return res.status(404).json({ success: false, message: 'Item not found in order' });
 //         }
 
-//         // already returned or has a return request?
 //         if (['Return Requested', 'Returned'].includes(item.returnStatus)) {
 //             return res.status(400).json({ success: false, message: 'Item is already in the return process' });
 //         }
 
 //         const returnRequest = new ReturnRequest({
 //             orderId: order._id,
-//             itemId: item._id, 
+//             itemIds: [itemId], 
 //             reason,
 //             requestedBy: user._id,
 //             status: user.isAdmin ? 'Approved' : 'Pending',
 //         });
 //         await returnRequest.save();
 
-//        //  update the item and increment stock
-//        if (returnRequest.status === 'Approved') {
+//         if (returnRequest.status === 'Approved') {
 //             const product = item.product;
 //             product.quantity += item.quantity;
 //             await product.save();
 
-//             // Update the return status of the item
 //             item.returnStatus = 'Returned';
+//             item.returnReason = reason; // Store reason in the order item
 
-//             // Check if all items are returned
 //             const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
 //             if (allItemsReturned) {
 //                 order.status = 'Returned';
 //             }
-
-//             await order.save();
 //         } else {
-//             // If pending case  "Return Requested"
 //             item.returnStatus = 'Return Requested';
-
-//             // Update the order status to "Return Request" if not already set
+//             item.returnReason = reason; 
 //             if (order.status !== 'Return Request') {
 //                 order.status = 'Return Request';
 //             }
-
-//             await order.save();
 //         }
 
+//         await order.save();
+
 //         res.json({
-//             success: true,message: returnRequest.status === 'Approved'? 'Item returned successfully'
-//                 : 'Return request submitted for review',
+//             success: true,
+//             message: returnRequest.status === 'Approved' ? 'Item returned successfully' : 'Return request submitted for review',
 //         });
-        
 //     } catch (error) {
 //         console.error('Return order error:', error);
 //         res.status(500).json({ success: false, message: 'Server error' });
 //     }
-// }
+// };
 
 const returnItem = async (req, res) => {
     try {
@@ -629,7 +660,10 @@ const returnItem = async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        const order = await Order.findOne({ orderId }).populate('orderedItems.product');
+        const order = await Order.findOne({ orderId })
+            .populate('orderedItems.product')
+            .populate('appliedCoupon');
+            
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
@@ -653,7 +687,7 @@ const returnItem = async (req, res) => {
 
         const returnRequest = new ReturnRequest({
             orderId: order._id,
-            itemIds: [itemId], // Store itemId as a string in the array
+            itemIds: [itemId], 
             reason,
             requestedBy: user._id,
             status: user.isAdmin ? 'Approved' : 'Pending',
@@ -691,6 +725,7 @@ const returnItem = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 
 module.exports = {
     getorderSuccessPage,

@@ -38,16 +38,19 @@ const couponSchema = new Schema({
         enum: ['Active', 'Expired', 'Disabled'],
         default: 'Active'
     },
-    usageLimit: {
-        type: Number,
-        default: null,
-        min: 1
-    },
-    usedCount: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
+    // usageLimit: {
+    //     type: Number,
+    //     default: 1, 
+    //     min: 1
+    // },
+    // usersUsed: [{
+    //     userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    //     //usedCount: { type: Number, default: 1 }
+    // }],
+    usersUsed: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     createdAt: {
         type: Date,
         default: Date.now
@@ -55,7 +58,8 @@ const couponSchema = new Schema({
     updatedAt: {
         type: Date,
         default: Date.now
-    }
+    },
+
 });
 
 module.exports = mongoose.model("Coupon",couponSchema);

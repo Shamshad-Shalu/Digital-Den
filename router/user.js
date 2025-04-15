@@ -68,7 +68,7 @@ router.post('/cart/apply-coupon', cartController.applyCoupon);
 
 // error-page 
 router.get("/error-404",userController.pageNotFound);
- 
+  
 // checkout-section
 router.get("/checkout",cartController.getCheckoutpage);
 router.post("/checkout",cartController. proceedToCheckout);
@@ -107,6 +107,6 @@ router.post('/wallet/add', walletController.addAmountWallet);
 router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
-
+ 
 module.exports = router;
 

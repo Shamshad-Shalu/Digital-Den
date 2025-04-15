@@ -355,38 +355,53 @@ async function validateCoupon(coupon,couponId = null) {
     } else if (!validator.matches(coupon.code, /^[A-Z0-9]+$/)) {
         errors.code = 'Coupon code must be alphanumeric and uppercase';
     }else{
-        let query = { code: { $regex: coupon.code, $options: 'i' } };
-        
+        const query = { code: coupon.code };
         if (couponId) {
             query._id = { $ne: couponId };
-        }
-        
+        } 
         const existingCoupon = await Coupon.findOne(query);
         if (existingCoupon) {
             errors.code = 'Coupon code already exists';
         }
     }
 
-    if (!coupon.discount) {
-        errors.discount = 'Discount value is required';
-    } else if (!validator.isInt(coupon.discount.toString(), { min: 1 })) {
-        errors.discount = 'Discount must be a positive integer';
-    } else if (coupon.type === 'Percentage' && coupon.discount > 20) {
-        errors.discount = 'Percentage discount cannot exceed 20';
-    }
-
     if (!coupon.type || !['Percentage', 'Fixed'].includes(coupon.type)) {
         errors.type = 'Discount type must be Percentage or Fixed';
     }
 
-    if (!coupon.minPurchase && coupon.minPurchase !== 0) {
+    if (!coupon.minPurchase ) {
         errors.minPurchase = 'Minimum purchase amount is required';
-    } else if (!validator.isInt(coupon.minPurchase.toString(), { min: 0 })) {
+    } else if (!validator.isNumeric(coupon.minPurchase.toString()) || parseFloat(coupon.minPurchase) < 0) {
         errors.minPurchase = 'Minimum purchase must be a non-negative integer';
     }
 
-    if (coupon.maxDiscount && !validator.isInt(coupon.maxDiscount.toString(), { min: 0 })) {
-        errors.maxDiscount = 'Maximum discount must be a non-negative integer';
+
+    if (!coupon.discount) {
+        errors.discount = 'Discount value is required';
+    } else if (!validator.isInt(coupon.discount.toString(), { min: 1 })) {
+        errors.discount = 'Discount must be a positive integer';
+    } else if (coupon.type === 'Percentage' && coupon.discount > 30) {
+        errors.discount = 'Percentage discount cannot exceed 30%';
+    }else if (coupon.type === 'Fixed' && coupon.minPurchase ) {
+        if (!errors.minPurchase) {
+            const maxAllowedDiscount = parseFloat(coupon.minPurchase) * 0.3;
+            if (parseFloat(coupon.discount) > maxAllowedDiscount) {
+                errors.discount = `Fixed discount cannot exceed 30% of minimum purchase amount (${maxAllowedDiscount.toFixed(2)})`;
+            }
+        }
+    };
+
+    if (coupon.maxDiscount) {
+        if (!validator.isInt(coupon.maxDiscount.toString(), { min: 0 })) {
+            errors.maxDiscount = 'Maximum discount must be a non-negative integer';
+        } else if ( coupon.discount > coupon.maxDiscount) {
+                errors.maxDiscount = 'Maximum discount cannot be low that discount amount';
+        }else if(coupon.minPurchase){
+            const maxAllowed = coupon.minPurchase * 0.3;
+            if (coupon.maxDiscount > maxAllowed) {
+                errors.maxDiscount = 'Maximum discount cannot exceed 30% of minimum purchase amount';
+            }
+        }   
     }
 
     if (!coupon.expireOn) {
@@ -396,7 +411,8 @@ async function validateCoupon(coupon,couponId = null) {
     }
 
     return Object.keys(errors).length > 0 ? errors : null;
-}
+};
+
 
 function validateOffer(data) {
     const errors = {};

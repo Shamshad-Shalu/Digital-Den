@@ -8,6 +8,7 @@ const productController = require("../controller/admin/productController.js");
 const orderController = require("../controller/admin/orderController.js");
 const couponController = require("../controller/admin/couponController.js");
 const offerController = require("../controller/admin/offerController.js");
+const saleController = require("../controller/admin/salesController.js");
 
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
@@ -67,14 +68,13 @@ router.get("/banner",(req,res)=> {
     res.render("admin/banner")
 })
 
-
+// offer management 
 router.get('/offers', offerController.getOffers);
 router.post('/offer/add', offerController.addOffer);
 router.post('/offer/add', offerController.addOffer);
 router.post('/offer/add', offerController.addOffer);
 router.patch('/offer/update-status/:id',offerController.toggleOfferStatus);
 router.patch('/offer/edit/:id',offerController.editOffer);
-
 
 // coupon management 
 router.get("/coupons",couponController.getCoupons);
@@ -83,11 +83,7 @@ router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
 router.patch('/coupon/edit/:id',couponController.editCoupon);
 
 
-router.get("/sales",(req,res)=> {
-    res.render("admin/sales")
-})
-
-
+router.get("/sales",saleController.getSalePage);
 
 
 router.get("pageError",(req,res)=>{

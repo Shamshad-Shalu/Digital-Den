@@ -465,14 +465,12 @@
             </div>
             
             <!-- Cart Summary -->
-
             <div class="col-lg-4">
                 <div class="cart-summary p-4">
                     <h4 class="mb-4">Order Summary</h4>
-                    
                     <!-- Coupon Section -->
-                    <!-- <div class="coupon-section">
-                        <button class="coupon-toggle">View Available Offers (<%= coupons.length %>)</button>
+                    <div class="coupon-section">
+                        <button class="coupon-toggle">View Available Coupons (<%= coupons.length %>)</button>
                         <div class="coupon-dropdown">
                             <% coupons.forEach(coupon => { %>
                                 <div class="coupon-item">
@@ -485,7 +483,7 @@
                                 </div>
                             <% }) %>
                         </div>
-                    </div> -->
+                    </div>
             
                     <% if (cart) { %>
                         <% 
@@ -497,9 +495,9 @@
                             <span>₹<%= cart.subtotal.toFixed(2) %></span>
                         </div>
                         <div class="discount-breakdown" id="appliedDiscounts">
-                            <% if (cart.appliedCoupon && typeof cart.couponDiscount === 'number') { %>
+                            <% if (cart.couponCode ) { %>
                                 <div class="discount-item">
-                                    <span>Coupon (<%= cart.appliedCoupon.code %>): -₹<%= cart.couponDiscount.toFixed(2) %></span>
+                                    <span>Coupon (<%= cart.couponCode %>)applied - You saved ₹<%= cart.couponDiscount.toFixed(2) %></span>
                                 </div>
                             <% } %>
                         </div>
@@ -545,7 +543,7 @@
                     <% } %>
                     <div class="mb-3">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Promo code" id="promoCode">
+                            <input type="text" class="form-control" placeholder="Promo code" id="promoCode" value="<%= cart.couponCode ||  '' %>">
                             <button class="btn btn-outline-secondary" type="button" id="applyPromo">Apply</button>
                         </div>
                     </div>
@@ -566,9 +564,8 @@
                     const input =  this.parentNode.querySelector(".quantity-input");
                     const currentValue = parseInt(input.value);
                         await updateCartQuantity(productId, currentValue + 1,cartItem);
-
-                })   
-            })
+                });   
+            });
 
             // Quantity degreese
             document.querySelectorAll('.btn-quantity.decrease').forEach(button => {
@@ -723,6 +720,34 @@
                 await applyCoupon(couponCode);
             });
 
+            // async function applyCoupon(code) {
+            //     try {
+            //         const res = await fetch('/user/cart/apply-coupon', {
+            //             method: 'POST',
+            //             headers: { 'Content-Type': 'application/json' },
+            //             body: JSON.stringify({ couponCode: code })
+            //         });
+            //         const data = await res.json();
+            //         if (data.success) {
+            //             Swal.fire("Success", data.message, "success").then(() => location.reload());
+            //         }else if (data.redirect && data.redirectUrl) {
+            //             Swal.fire({
+            //                 icon: 'warning',
+            //                 title: 'Authentication Required',
+            //                 text: data.message,
+            //                 timer: 1800,
+            //                 showConfirmButton: false
+            //             }).then(() => {
+            //                 window.location.href = data.redirectUrl;
+            //             });
+            //         } else {
+            //             Swal.fire("Oops!", data.message, "error");
+            //         }
+            //     } catch (err) {
+            //         console.error(err);
+            //         Swal.fire("Error", "Something went wrong", "error");
+            //     }
+            // }
             async function applyCoupon(couponCode) {
                 try {
                     const response = await fetch('/user/cart/apply-coupon', {
@@ -741,8 +766,8 @@
                     Swal.fire('Error', 'Failed to apply coupon', 'error');
                 }
             }
-        
         });
+
         </script>
 
 

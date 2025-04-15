@@ -50,6 +50,15 @@ const orderSchema = new Schema({
         type: Number,
         default: 0
     },
+    appliedCoupon: { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Coupon',
+        default: null
+    },
+    couponDiscount: { 
+        type: Number,
+        default: 0
+    },
     finalAmount:{
         type:Number,
         required:true
