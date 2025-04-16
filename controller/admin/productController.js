@@ -386,8 +386,6 @@ const editProduct = async (req, res) => {
     await Promise.all(filePaths.map((filePath) => fs.unlink(filePath).catch(() => {})));
   }
   
-
-  
 const getAddProductPage = async (req, res) => {
     try {
 
@@ -405,12 +403,12 @@ const getAddProductPage = async (req, res) => {
     }
 };
   
-
 const getEditProductPage = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id)
                 .populate('category')
-                .populate('brand');
+                .populate('brand')
+                .lean();
 
         if (!product) {
             return res.status(404).send('Product not found');

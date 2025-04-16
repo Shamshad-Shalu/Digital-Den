@@ -113,8 +113,6 @@ const addAmountWallet = async (req, res) => {
                 success: false, message: "Please login to add funds to your wallet", redirectUrl: "/user/signin" 
             });
         }
-
-
         let error = '';
         if (!amount) {
             error = "Please enter an amount";

@@ -459,9 +459,6 @@
                         </div>
                     <% } %>
                 </div>
-
-
-
             </div>
             
             <!-- Cart Summary -->
@@ -563,7 +560,7 @@
                     const productId = cartItem.dataset.productId;
                     const input =  this.parentNode.querySelector(".quantity-input");
                     const currentValue = parseInt(input.value);
-                        await updateCartQuantity(productId, currentValue + 1,cartItem);
+                        await updateCartQuantity(productId,1,cartItem);
                 });   
             });
 
@@ -575,7 +572,7 @@
                     const input =  this.parentNode.querySelector(".quantity-input");
                     const currentValue = parseInt(input.value);
                     if (currentValue > 1) {
-                        await updateCartQuantity(productId, currentValue -1,cartItem);
+                        await updateCartQuantity(productId, -1,cartItem);
                     }
 
                 })
@@ -584,6 +581,7 @@
 
             async function updateCartQuantity(productId ,quantity ,cartItem){
                 try {
+                    console.log("Quantity:",quantity)
                         cartItem.classList.add('updating');
                         const response  = await fetch("/user/cart/update",{
                             method:"POST",
@@ -607,7 +605,6 @@
                     console.error('Error:', error);
                 }
             }
-        
             // Remove item
             document.querySelectorAll('.btn-delete').forEach(button => {
                 button.addEventListener('click', async function() {
@@ -623,17 +620,44 @@
                     await saveForLater(productId);
                 });
             });
-        
-            document.getElementById('checkoutBtn').addEventListener('click', function(e) {
+
+            document.getElementById('checkoutBtn').addEventListener('click', async function(e) {
+                e.preventDefault();
+
+                // Client-side check
                 const hasInvalidItems = Array.from(document.querySelectorAll('.cart-item')).some(item => {
                     const status = item.querySelector('.status-badge').textContent.trim();
                     return status === 'Out of stock' || status === 'Discontinued';
                 });
+
                 if (hasInvalidItems) {
-                    e.preventDefault();
-                    Swal.fire('Error','Please remove out-of-stock or discontinued items before proceeding to checkout.', 'error');
-                } else {
-                    window.location.href = '/user/checkout';
+                    Swal.fire('Error', 'Please remove out-of-stock or discontinued items before proceeding to checkout.', 'error');
+                    return;
+                }
+
+                // Server-side validation
+                try {
+                    const response = await fetch('/user/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                    });
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        Swal.fire('Error', result.message || 'Please remove out-of-stock or discontinued items before proceeding to checkout.', 'error');
+                        return;
+                    }else {
+                        window.location.replace(result.redirectUrl);
+                    }
+
+                    
+                } catch (error) {
+                    console.error('Error validating cart:', error);
+                    Swal.fire('Error', 'Failed to validate cart. Please try again.', 'error');
                 }
             });
         
@@ -768,7 +792,7 @@
             }
         });
 
-        </script>
+    </script>
 
 
 <%- include('../partial/user/footer') %>

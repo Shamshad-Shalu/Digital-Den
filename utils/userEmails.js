@@ -32,7 +32,6 @@ async function sendUserStatusEmail(user) {
     });
 }
 
-
 async function sendForgotOtp (user, otp) { 
     const emailContent = {
         subject :"Password Reset OTP",
@@ -99,8 +98,6 @@ async function sendProfileUpdateOtp(username, email, otp) {
         html: emailContent.html,
     });
 }
-
-
 
 module.exports = { 
     sendUserStatusEmail, 

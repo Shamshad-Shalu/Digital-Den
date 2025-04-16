@@ -72,9 +72,11 @@ router.get("/error-404",userController.pageNotFound);
 // checkout-section
 router.get("/checkout",cartController.getCheckoutpage);
 router.post("/checkout",cartController. proceedToCheckout);
-router.post('/create-razorpay-order', cartController.createRazorpayOrder);
+
 // order- section 
 router.post("/order/place",cartController.placeOrder);
+router.post('/order/create-razorpay-order', cartController.createRazorpayOrder);
+router.post("/order/payment-failure", cartController.handleOrderPaymentFailure);
 router.get("/order-success",orderController.getorderSuccessPage);
 router.get("/orders",orderController.getOrders);
 router.get('/order/track/:orderId', orderController.trackOrder);

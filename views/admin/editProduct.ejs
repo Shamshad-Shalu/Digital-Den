@@ -46,7 +46,7 @@
                                             <option value="" disabled>Select Category</option>
                                             <% if(locals.categories && categories.length > 0) { %>
                                                 <% categories.forEach(category => { %>
-                                                    <option value="<%= category._id %>" <%= product.category.toString() === category._id.toString() ? 'selected' : '' %>><%= category.name %></option>
+                                                    <option value="<%= category._id %>" <%= product.category._id.toString() === category._id.toString() ? 'selected' : '' %>> <%= category.name %></option>
                                                 <% }); %>
                                             <% } %>
                                         </select>
@@ -58,7 +58,7 @@
                                             <option value="" disabled>Select Brand</option>
                                             <% if(locals.brands && brands.length > 0) { %>
                                                 <% brands.forEach(brand => { %>
-                                                    <option value="<%= brand._id %>" <%= product.brand.toString() === brand._id.toString() ? 'selected' : '' %>><%= brand.brandName %></option>
+                                                    <option value="<%= brand._id %>" <%= product.brand._id.toString() === brand._id.toString() ? 'selected' : '' %>><%= brand.brandName %></option>
                                                 <% }); %>
                                             <% } %>
                                         </select>
