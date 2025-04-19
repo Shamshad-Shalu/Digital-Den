@@ -2,6 +2,7 @@
     --bg-color: #ffffff;
     --text-color: #333333;
     --header-bg: #ffffff;
+    --text-muted: #6c757d;
     --card-bg: #ffffff;
     --footer-bg: #0A1627;
     --footer-text: #ffffff;
@@ -19,6 +20,7 @@
     --text-color: #e0e0e0;
     --header-bg: #1e1e1e;
     --card-bg: #2a2a2a;
+    --text-muted: #adb5bd;
     --footer-bg: #1a1a1a;
     --footer-text: #e0e0e0;
     --brand-bg: #2a2a2a;

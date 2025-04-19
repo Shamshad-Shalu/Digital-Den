@@ -235,6 +235,129 @@
                         <a href="/user/edit-profile" class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>">Edit Profile</a>
                     </div>
 
+
+        <!-- Referral Rewards Section -->
+<div class="divider"></div>
+
+<h4 class="section-title">REFERRAL REWARDS</h4>
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-7">
+                        <h5 class="mb-3">Invite friends and earn rewards!</h5>
+                        <p class="mb-3">Share your unique referral link with friends. When they sign up using your link, you'll both receive <strong>₹200</strong> in rewards.</p>
+                        
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="referralLink" value="?ref=<%= user.referralCode  || '1234'%>" readonly>
+                            <button class="btn btn-primary" type="button" id="copyReferralLink">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+                        
+                        <div class="d-flex mt-3">
+                            <button class="btn btn-outline-primary me-2" id="shareWhatsApp">
+                                <i class="bi bi-whatsapp me-1"></i> Share
+                            </button>
+                            <button class="btn btn-outline-primary" id="shareEmail">
+                                <i class="bi bi-envelope me-1"></i> Email
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-5 text-center mt-4 mt-md-0">
+                        <div class="referral-stats p-3 rounded" style="background-color: var(--primary-light);">
+                            <div class="mb-3">
+                                <h6 class="mb-1">Total Referrals</h6>
+                                <h3 class="mb-0"><%= user.referrals?.length || 0 %></h3>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Rewards Earned</h6>
+                                <h3 class="mb-0">₹<%= user.wallet?.transactions?.filter(t => t.description.includes('Referral')).reduce((sum, t) => sum + t.amount, 0) || 0 %></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy referral link functionality
+        const copyButton = document.getElementById('copyReferralLink');
+        const referralLink = document.getElementById('referralLink');
+        
+        copyButton?.addEventListener('click', function() {
+
+            navigator.clipboard.writeText(referralLink.value)
+            .then(() =>{
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
+                setTimeout(() =>  copyButton.innerHTML = originalText , 2000);
+            })
+            .catch(err => console.error('Failed to copy: ', err));
+        });
+        
+        
+        // Share on WhatsApp
+        const shareWhatsApp = document.getElementById('shareWhatsApp');
+        if (shareWhatsApp) {
+            shareWhatsApp.addEventListener('click', function() {
+                const text = `Hey! Sign up using my referral link and get ₹200 rewards: ${referralLink.value}`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+        }
+        
+        // Share via Email
+        const shareEmail = document.getElementById('shareEmail');
+        if (shareEmail) {
+            shareEmail.addEventListener('click', function() {
+                const subject = 'Join me and get ₹200 rewards!';
+                const body = `Hey!\n\nI thought you might be interested in this. Sign up using my referral link and get ₹200 in rewards!\n\n${referralLink.value}`;
+                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.location.href = mailtoUrl;
+            });
+        }
+    });
+</script>
+
+<style>
+    /* Additional styles for better dark/light mode compatibility */
+    .card {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+    
+    .referral-stats {
+        border: 1px solid var(--border-color);
+        background-color: var(--primary-light) !important;
+        color: var(--text-color);
+    }
+    
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+    
+    [data-theme="dark"] .referral-stats {
+        background-color: rgba(99, 102, 241, 0.15) !important;
+    }
+</style>
+
+
+
+
+
+
+
                     <div class="divider"></div>
 
                     <!-- Login Details Section -->
@@ -612,212 +735,13 @@
             }
         });
     }
-    // const updateEmailform = document.getElementById('updateEmailform'); 
-    // if (updateEmailForm) {
-    //     let isOtpSent = false;
-
-    //     updateEmailform.addEventListener('submit', async (e) => {
-    //         e.preventDefault();
-    //         clearErrors(updateEmailform);
-
-    //         const formData = new FormData(updateEmailform);
-    //         const jsonData = Object.fromEntries(formData);
-    //         // Trim all string values
-    //         Object.keys(jsonData).forEach(key => {
-    //             if (typeof jsonData[key] === 'string') {
-    //                 jsonData[key] = jsonData[key].trim();
-    //             }
-    //         });
-
-    //         try {
-    //             const url = isOtpSent ? 'user/verify-email-otp' : "/user/change-email";
-    //             const response = await fetch(url, {
-    //                 method: 'POST',
-    //                 body: JSON.stringify(jsonData),
-    //                 headers: { 'Content-Type': 'application/json' }
-    //             });
-
-    //             const data = await response.json();
-    //             if (!response.ok || !data.success) {
-    //                 displayFormErrors(form, data.errors);
-    //                 Swal.fire('Error', data.message || 'Invalid form validations!', 'error');
-    //                 return;
-    //             }
-    //             if (!isOtpSent) {
-    //                 // Show OTP field after successful OTP send
-    //                 document.getElementById('otpFieldEmail').style.display = 'block';
-    //                 document.getElementById('updateEmailBtn').textContent = 'Verify OTP';
-    //                 isOtpSent = true;
-                    
-    //                 Swal.fire({
-    //                     icon: 'success',title: 'OTP Sent',
-    //                     text: 'Please check your new email for the OTP',
-    //                 });
-    //             } else {
-    //                 // Success after OTP verification
-    //                 Swal.fire({
-    //                     icon: 'success',
-    //                     title: 'Success',
-    //                     text: 'Email updated successfully',
-    //                 }).then(() => {
-    //                     $('#updateEmailModal').modal('hide');
-    //                     updateEmailForm.reset();
-    //                     document.getElementById('otpFieldEmail').style.display = 'none';
-    //                     document.getElementById('updateEmailBtn').textContent = 'Update';
-    //                     isOtpSent = false;
-    //                     window.location.reload();
-    //                 });
-    //             } 
-    //         }catch (error) {
-    //             console.error('Password operation error:', error);
-    //             Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
-    //         }
-    //     });
-    // }
-
-    
-
-
 
     // Profile Image Zoom
     document.getElementById('largeProfileImg').addEventListener('click', function() {
         this.classList.toggle('zoomed');
     });
 
-    // // Update Email
-    // document.getElementById('updateEmailBtn').addEventListener('click', async function() {
-    //     const button = this;
-    //     button.disabled = true;
-    //     button.innerHTML = 'Updating...';
-
-    //     const form = document.getElementById('updateEmailForm');
-    //     const inputs = form.querySelectorAll('input');
-    //     const data = new FormData(form);
-
-    //     // Clear previous errors
-    //     inputs.forEach(input => {
-    //         input.classList.remove('is-invalid');
-    //         const errorDiv = document.getElementById(`${input.id}Error`);
-    //         if (errorDiv) errorDiv.textContent = '';
-    //     });
-
-    //     try {
-    //         const response = await fetch('/user/update-email', {
-    //             method: 'POST',
-    //             body: data
-    //         });
-    //         const result = await response.json();
-
-    //         if (!result.success) {
-    //             for (const [key, value] of Object.entries(result.errors)) {
-    //                 const input = document.getElementById(key === 'otp' ? 'otpEmail' : key);
-    //                 const errorDiv = document.getElementById(`${key}Error`);
-    //                 if (input && errorDiv) {
-    //                     input.classList.add('is-invalid');
-    //                     errorDiv.textContent = value;
-    //                 }
-    //             }
-    //         } else if (result.otpSent) {
-    //             document.getElementById('otpFieldEmail').style.display = 'block';
-    //         } else if (result.redirect) {
-    //             window.location.href = result.redirect;
-    //         }
-    //     } catch (error) {
-    //         alert('An error occurred. Please try again.');
-    //     } finally {
-    //         button.disabled = false;
-    //         button.innerHTML = 'Update';
-    //     }
-    // });
-
-    // // Change Password
-    // document.getElementById('changePasswordBtn').addEventListener('click', async function() {
-    //     const button = this;
-    //     button.disabled = true;
-    //     button.innerHTML = 'Updating...';
-
-    //     const form = document.getElementById('changePasswordForm');
-    //     const inputs = form.querySelectorAll('input');
-    //     const data = new FormData(form);
-
-    //     // Clear previous errors
-    //     inputs.forEach(input => {
-    //         input.classList.remove('is-invalid');
-    //         const errorDiv = document.getElementById(`${input.id}Error`);
-    //         if (errorDiv) errorDiv.textContent = '';
-    //     });
-
-    //     try {
-    //         const response = await fetch('/user/change-password', {
-    //             method: 'POST',
-    //             body: data
-    //         });
-    //         const result = await response.json();
-
-    //         if (!result.success) {
-    //             for (const [key, value] of Object.entries(result.errors)) {
-    //                 const input = document.getElementById(key);
-    //                 const errorDiv = document.getElementById(`${key}Error`);
-    //                 if (input && errorDiv) {
-    //                     input.classList.add('is-invalid');
-    //                     errorDiv.textContent = value;
-    //                 }
-    //             }
-    //         } else if (result.redirect) {
-    //             window.location.href = result.redirect;
-    //         }
-    //     } catch (error) {
-    //         alert('An error occurred. Please try again.');
-    //     } finally {
-    //         button.disabled = false;
-    //         button.innerHTML = 'Update';
-    //     }
-    // });
-
-    // // Add Password
-    // document.getElementById('addPasswordBtn').addEventListener('click', async function() {
-    //     const button = this;
-    //     button.disabled = true;
-    //     button.innerHTML = 'Adding...';
-
-    //     const form = document.getElementById('addPasswordForm');
-    //     const inputs = form.querySelectorAll('input');
-    //     const data = new FormData(form);
-
-    //     // Clear previous errors
-    //     inputs.forEach(input => {
-    //         input.classList.remove('is-invalid');
-    //         const errorDiv = document.getElementById(`${input.id}Error`);
-    //         if (errorDiv) errorDiv.textContent = '';
-    //     });
-
-    //     try {
-    //         const response = await fetch('/user/add-password', {
-    //             method: 'POST',
-    //             body: data
-    //         });
-    //         const result = await response.json();
-
-    //         if (!result.success) {
-    //             for (const [key, value] of Object.entries(result.errors)) {
-    //                 const input = document.getElementById(key === 'newPassword' ? 'newPasswordAdd' : 'confirmPasswordAdd');
-    //                 const errorDiv = document.getElementById(`${key === 'newPassword' ? 'newPasswordAdd' : 'confirmPasswordAdd'}Error`);
-    //                 if (input && errorDiv) {
-    //                     input.classList.add('is-invalid');
-    //                     errorDiv.textContent = value;
-    //                 }
-    //             }
-    //         } else if (result.redirect) {
-    //             window.location.href = result.redirect;
-    //         }
-    //     } catch (error) {
-    //         alert('An error occurred. Please try again.');
-    //     } finally {
-    //         button.disabled = false;
-    //         button.innerHTML = 'Add Password';
-    //     }
-    // });
-
+ 
 
        
     })

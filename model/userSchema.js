@@ -57,30 +57,21 @@ const userSchema = new Schema({
     referralCode: {
         type: String,
         unique: true,
+        sparse: true
         // required: true
     },
-    redeemed: {
-        type: Boolean,
-        default: false
+    referredBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        default: null
     },
+
     redeemedUsers: [{
         type: Schema.Types.ObjectId,
         ref: "User",
         default: []
-    }]
-    // referralCode:{
-    //     type:String,
-    //     // required:true
-    // },
-    // redeemed:{
-    //     type:Boolean,
-    //     // default:false
-    // },
-    // redeemedUsers:[{
-    //     type:Schema.Types.ObjectId,
-    //     ref:"User",
-    //     // required:true  
-    // }],
+    }],
+   
     // searchHistory:[{
     //     category:{
     //         type:Schema.Types.ObjectId,
@@ -100,4 +91,17 @@ const userSchema = new Schema({
 },
 { timestamps: true })
 
+userSchema.pre('save', function(next) {
+    if (!this.referralCode) {
+        const usernamePrefix = this.username.slice(0, 2).toUpperCase();
+        const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase(); 
+        this.referralCode = `${usernamePrefix}${randomChars}`;
+    }
+    next();
+});
+
 module.exports = mongoose.model("User",userSchema);
+
+
+
+

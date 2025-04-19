@@ -10,9 +10,9 @@ const path = require('path');
 const getUserProfile = async (req, res) => {
     try {
        const user = res.locals.userData; 
-       if (!user) {
-        return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/user/signin" });
-    }  
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/user/signin" });
+        }  
 
         res.render('user/profile', { user ,  });
     } catch (error) {

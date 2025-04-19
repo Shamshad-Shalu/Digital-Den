@@ -2,6 +2,129 @@
 <link rel="stylesheet" href="/style/user/home.css">
 <link rel="stylesheet" href="/style/user/productDetails.css">
 
+<style>
+    .offers-wrapper {
+        position: relative;
+    }
+
+    .offers-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        background-color: rgba(0, 123, 255, 0.1);
+        border: 1px dashed #007bff;
+        border-radius: 4px;
+        color: #007bff;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        max-width: fit-content;
+    }
+
+    .offers-badge:hover {
+        background-color: rgba(0, 123, 255, 0.15);
+    }
+
+    .offers-count {
+        font-weight: 500;
+    }
+
+    .toggle-icon {
+        font-size: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .offers-badge[aria-expanded="true"] .toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    /* Offers Panel */
+    .offers-panel {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .offer-mini-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .offer-mini-item:last-child {
+        border-bottom: none;
+    }
+
+    .offer-mini-item:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .offer-mini-item i:first-child {
+        margin-right: 10px;
+        width: 18px;
+        text-align: center;
+    }
+
+    .offer-mini-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .offer-mini-info span {
+        font-size: 14px;
+    }
+
+    .offer-mini-info small {
+        font-size: 12px;
+    }
+
+    /* No Offers Style */
+    .no-offers {
+        padding: 6px 12px;
+        color: var(--text-color);
+        opacity: 0.7;
+        font-size: 14px;
+    }
+
+    /* Dark Mode Compatibility */
+    [data-theme="dark"] .offers-badge {
+        background-color: rgba(0, 123, 255, 0.2);
+        border-color: rgba(0, 123, 255, 0.5);
+    }
+
+    [data-theme="dark"] .offers-panel {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .offer-mini-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="dark"] .offer-mini-item {
+        border-color: var(--border-color);
+    }
+
+    .modal-footer ,
+    .modal-body {
+        background-color: var(--card-bg);
+
+    }
+
+    .text-muted {
+        color:var(--text-muted)!important;
+    }
+
+</style>
+
+
 <div class="container py-5">
     <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
@@ -23,7 +146,7 @@
                     <div class="zoom-instructions position-absolute bottom-0 end-0 p-2 bg-black bg-opacity-50 text-white rounded-start">
                         <i class="fas fa-search-plus me-1"></i> Hover to zoom
                     </div>
-                    <% if (product.productOffer > 0) { %>
+                    <% if ( availableOffers.length  > 0) { %>
                         <div class="position-absolute top-0 start-0 bg-danger text-white py-1 px-2 m-2 rounded">
                             SALE
                         </div>
@@ -64,7 +187,8 @@
                 <span class="reviews-count ms-2">(No reviews yet)</span>
             </div>
             <!-- Stock Status -->
-            <div class="stock-status mb-3 ">
+            <div class="stock-status  mb-3 ">
+                <input id="productQuanity" type="hidden" value="<%= product.quantity  %>">
             <% if (product.status === 'Available' && product.quantity > 0) { %>
                 <span class="badge bg-success">In Stock</span>
                 <span id="counts" class="text-muted ms-2">Only <%= product.quantity %> left</span>
@@ -74,21 +198,127 @@
         </div>
             <!-- Price and Discounts -->
             <div class="price-section mb-4">
-                <div class="current-price fs-3 fw-bold">₹<%= product.salePrice %></div>
-                <% if (product.regularPrice > product.salePrice) { %>
-                    <div class="original-price text-decoration-line-through">₹<%= product.regularPrice %></div>
+                <div class="current-price fs-3 fw-bold">₹<%=  finalPrice.toFixed(2)  %></div>
+                <% if (product.regularPrice >  finalPrice) { %>
+                    <div class="original-price text-decoration-line-through">₹<%= product.regularPrice.toFixed(2) %></div>
                     <div class="saving-badge bg-success text-white d-inline-block px-2 py-1 rounded mt-2">
-                        Save ₹<%= product.regularPrice - product.salePrice %> (<%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>%)
+                        Save ₹<%= (product.regularPrice -  finalPrice).toFixed(2) %> (<%= Math.round(((product.regularPrice - finalPrice ) / product.regularPrice) * 100) %>%)
                     </div>
                 <% } %>
-                <% if (product.productOffer > 0) { %>
+                <% if ( bestOffer?.amount  > 0) { %>
                     <div class="coupon-alert alert d-flex align-items-center mt-2" role="alert">
                         <i class="fas fa-tag me-2"></i>
-                        <div>Extra <%= product.productOffer %>% off applied!</div>
+                        <div>
+                            <% if (bestOffer.type === 'product') { %>
+                                Product discount applied!
+                            <% } else if (bestOffer.type === 'category') { %>
+                                <%= product.category.categoryOffer %>% category discount applied!
+                            <% } else if (bestOffer.type === 'brand') { %>
+                                <%= product.brand.brandOffer %>% brand discount applied!
+                            <% } else { %>
+                                Special offer applied!
+                            <% } %>
+                        </div>
                     </div>
                 <% } %>
             </div>
-            <!-- Purchase Options -->
+
+            <% if ( availableOffers?.length > 0 )  { %>
+                <div class="offers-wrapper mb-3">
+                    <div class="offers-badge" id="offersToggle" data-bs-toggle="collapse" href="#offersCollapse" role="button" aria-expanded="false" aria-controls="offersCollapse">
+                        <i class="fas fa-tags me-1"></i> 
+                        <span class="offers-count">
+                            <%= availableOffers.length %> Offer<%= availableOffers.length > 1 ? 's' : '' %> Available
+                        </span> 
+                        <i class="fas fa-chevron-down ms-1 toggle-icon"></i>
+                    </div>
+                    
+                    <!-- Collapsible Offers Panel -->
+                    <div class="collapse mt-2" id="offersCollapse">
+                        <div class="offers-panel">
+                            <% availableOffers.forEach((offer, index) => { %>
+                                <div class="offer-mini-item <%= offer.isSpecial ? 'special-offer' : '' %>" 
+                                    <% if(offer.isSpecial) { %>
+                                        data-bs-toggle="modal" data-bs-target="#offerModal<%= index %>"
+                                    <% } %>
+                                >
+                                    <% if (offer.type === 'product') { %>
+                                        <i class="fas fa-box text-success"></i>
+                                    <% } else if (offer.type === 'category') { %>
+                                        <i class="fas fa-list text-primary"></i>
+                                    <% } else if (offer.type === 'brand') { %>
+                                        <i class="fas fa-copyright text-warning"></i>
+                                    <% } else { %>
+                                        <i class="fas fa-percentage text-danger"></i>
+                                    <% } %>
+                                    <div class="offer-mini-info">
+                                        <span><%= offer.name %></span>
+                                        <% if (offer.isSpecial && offer.endDate) { %>
+                                            <small class="text-muted">Valid till <%= new Date(offer.endDate).toLocaleDateString() %></small>
+                                        <% } %>
+                                    </div>
+                                    <% if (offer.isSpecial) { %>
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    <% } %>
+                                </div>
+
+
+
+
+
+
+
+
+
+                                <div class="modal fade" id="offerModal<%= index %>" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-tag me-2"></i> <%= offer.name %>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="offer-details">
+                            <div class="mb-3">
+                                <small class="text-muted">Offer Type</small>
+                                <p class="mb-1">
+                                    <% if (offer.type === 'Percentage') { %>
+                                        <span class="badge bg-success">Percentage Discount</span>
+                                    <% } else { %>
+                                        <span class="badge bg-primary">Fixed Discount</span>
+                                    <% } %>
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Discount</small>
+                                <p class="mb-1 fs-4 fw-bold text-danger">
+                                    <%= offer.type === 'Percentage' ?  Math.round(((product.regularPrice - finalPrice ) / product.regularPrice) * 100)  + "% OFF" : offer.discount.toFixed(2) + " OFF" %>
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Description</small>
+                                <p class="mb-1"><%= offer.description %></p>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Valid Period</small>
+                                <p class="mb-1"><%= new Date(offer.endDate).toLocaleDateString() %></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            <%  } %>
+
             <% if (product.status === 'Available' && product.quantity > 0 ) { %>
                 <div class="purchase-options mb-4">
                     <div class="row align-items-center">
@@ -247,7 +477,11 @@
     </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+    
     function changeMainImage(thumbnail) {
         const mainImage = document.getElementById('mainImage');
         if (mainImage) {
@@ -345,14 +579,18 @@
     }
 
 
+
+
 document.addEventListener('DOMContentLoaded', function() {
+
+    let productQuanity = document.querySelector(".stock-status #productQuanity").value;
+
 
     const zoomContainers = document.querySelectorAll('.zoom-container');
         zoomContainers.forEach(container => {
             const img = container.querySelector('#mainImage');
             const lens = container.querySelector('.zoom-lens');
             const zoomFactor = 2; 
-
 
             img.addEventListener('load', () => {
                 container.addEventListener('mousemove', moveLens);
@@ -428,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.getElementById('quantity-plus').addEventListener('click', () => {
                 let value = parseInt(quantityInput.value);
-                if (value < <%= product.quantity %>){
+                if (value < productQuanity){
                     quantityInput.value = value + 1;
                 }
             });
@@ -438,12 +676,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (value < 1) {
                     quantityInput.value = 1
                 }
-                if (value > <%= product.quantity %>){
-                    quantityInput.value = <%= product.quantity %>;
+                if (value > productQuanity ){
+                    quantityInput.value = productQuanity;
                 } 
             });
-        }  
+        } 
+
 });
+
+
+
+
 
 </script>
 

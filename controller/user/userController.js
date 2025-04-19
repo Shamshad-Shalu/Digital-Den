@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const { validateUser ,sendVerificationEmail, genarateOtp }  = require("../../utils/helper.js");
 const Product = require("../../model/productSchema.js")
 const Review = require("../../model/reviewSchema .js");
+const Wallet = require("../../model/walletSchema.js");
 const {sendForgotOtp, sendSignupOtp} = require("../../utils/userEmails.js")
 
 const loadLoagin = async (req , res) =>{
@@ -82,7 +83,7 @@ const loadSignup = async (req,res) =>{
 const signup = async(req,res) =>{
     try {
         
-        const {username,email,password } = req.body;
+        const {username,email,password ,referralCode  } = req.body;
         const findUser = await User.findOne({email, isAdmin:false});
 
         if(findUser){
@@ -105,7 +106,6 @@ const signup = async(req,res) =>{
 
         // send verification email 
         const emailSent = await sendSignupOtp(username, email,otp);
-
         if(!emailSent){
             return res.status(400).json({
                 success:false,
@@ -116,7 +116,10 @@ const signup = async(req,res) =>{
 
         // Store OTP and user data in session
         req.session.userOtp = otp;
-        req.session.userData = {username,email,password};
+        req.session.userData = {
+            username,email,password,
+            referralCode : referralCode || null
+        };
 
         
         console.log("Otp generated:",otp);
@@ -151,55 +154,108 @@ const verifyOTP = async(req, res)=>{
         const {otp } = req.body;
 
         if(!otp || !req.session.userOtp){
-            return res.status(400).json({
-                success:false,
-                message:"OTP is required!",
-            })
+            return res.status(400).json({ success:false,message:"OTP is required!"})
         }
 
         console.log("session stored OTP:",req.session.userOtp);
-        if(otp === req.session.userOtp ){
-
-            let user = req.session.userData;
-            const harshPassword = await bcrypt.hash(user.password,10);
-
-            if(! harshPassword){
-                res.status(500).json({
-                    success:false,
-                    message:"An error found while processing!",
-                })
-            }
-            const newUserData = new User({
-                username:user.username,
-                email:user.email,
-                password:harshPassword
-            });
-
-            await newUserData.save();
-            req.session.user = newUserData._id;
-            
-            res.setHeader('Cache-Control', 'no-store',);
-            delete req.session.userOtp;
-            delete req.session.userData;
-
-            console.log("User created Successfully!!")
-            return  res.json({
-                success:true,
-                message:"Account created Successfully!!!",
-                redirectUrl:"/user/home"
-            });
-
-        }else {
-            res.status(400).json(({ 
-                success:false,
-                message:"Invalid OTP, Please try again"
-            }))
+        if(otp !== req.session.userOtp ){
+            res.status(400).json({success:false,message:"Invalid OTP, Please try again"})
         }
 
-    } catch (error) {
+        let user = req.session.userData;
 
+        console.log("line 167 -sessionuser :",user);
+
+        const harshPassword = await bcrypt.hash(user.password,10);
+
+        if (!harshPassword) {
+            return res.status(500).json({ success: false, message: "An error occurred while processing password!" });
+        }
+        const newUser = new User({
+            username:user.username,
+            email:user.email,
+            password:harshPassword
+        });
+
+        console.log("line 177 -newuser :",newUser);
+
+        if(user.referralCode) {
+            const refferer = await User.findOneAndUpdate(
+                { referralCode: user.referralCode },
+                { $push: { redeemedUsers: newUser._id } },
+                { new: true }
+            );
+
+        console.log("line 189 -reffereluser :",refferer);
+            
+              
+            if (refferer) {
+            newUser.referredBy = refferer._id;
+                // for refferer 
+                await Wallet.findOneAndUpdate(
+                    {userId : refferer._id},
+                    {
+                        $inc: {balance : 200},
+                        $push:{
+                            transactions:{
+                                amount: 100,
+                                type:"Credit",
+                                method: "Referral",
+                                status: "Completed",
+                                description: `Referral reward for ${newUser.username}`,
+                            },
+                        },
+                        $setOnInsert :{
+                            userId : refferer._id,
+                        },
+                    },
+                    {
+                        upsert: true,
+                        new: true,
+                    }
+                );
+                // for new user 
+                await Wallet.findOneAndUpdate(
+                    { userId: newUser._id },
+                    {
+                        $inc: { balance: 100 },
+                        $push: {
+                            transactions: {
+                                amount: 100,
+                                type: "Credit",
+                                method: "Referral Bonus",
+                                status: "Completed",
+                                description: "Welcome reward for using referral code",
+                                createdAt: new Date()
+                            }
+                        },
+                        $setOnInsert: {
+                            userId: newUser._id
+                        }
+                    },
+                    { upsert: true, new: true }
+                );
+            }   
+        }
+
+        await newUser.save();
+        req.session.user = newUser._id;
+        
+        res.setHeader('Cache-Control', 'no-store',);
+        delete req.session.userOtp;
+        delete req.session.userData;
+
+        console.log("User created Successfully!!")
+        return  res.json({
+            success:true,
+            message:"Account created Successfully!!!",
+            redirectUrl:"/user/home"
+        });
+       
+
+    } catch (error) {
         console.log("Error Verifying OTP :",error);
-        res.status(500).json({
+        return res.status(500).json({
             success:false,
             message:"An Error occured while processing otp"
         });  
@@ -472,8 +528,6 @@ const ResetPassword = async (req , res) => {
         
     }
 }
-
-
 
 const pageNotFound = async (req,res)=> {
     try {

@@ -58,7 +58,6 @@ const login = async (req , res) => {
     }
 }
 
-
 const logout = async (req, res)=>{
     try {
         req.session.destroy(err => {
@@ -96,8 +95,6 @@ const pageError = async (req, res ,next)=>{
         res.status(500).send("An Error found while loading error page");
     }
 }
-
-
 
 module.exports = {
     loadLoagin,
