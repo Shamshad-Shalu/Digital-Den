@@ -1,1021 +1,1070 @@
 <%- include("../../views/partial/admin/header") %>
-<link rel="stylesheet" href="../../public/admin/order.css">
 
-<!-- Order Management Section -->
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3">Order Management</h1>
-            <p class="text-muted">Track and manage customer orders</p>
-        </div>
-        <div>
-            <button type="button" class="btn btn-primary" id="exportOrdersBtn">
-                <i class="fas fa-file-export me-2"></i>Export Orders
-            </button>
-        </div>
-    </div>
+    <style>
+        .cursor-pointer {
+            cursor: pointer;
+        }
 
-    <!-- Search and Filter Bar -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="/admin/orders" method="get" class="row g-3" id="orderFilterForm">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0">
-                            <i class="fas fa-search"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Search order ID, customer..." name="search" value="">
-                        <button class="btn btn-primary" type="submit">Search</button>
-                        <button type="button" class="btn btn-secondary" id="clearFilterBtn">Clear</button>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" id="orderStatusFilter" name="orderStatus">
-                        <option value="All">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Returned">Returned</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" id="paymentStatusFilter" name="paymentStatus">
-                        <option value="All">Payment Status</option>
-                        <option value="Paid">Paid</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Failed">Failed</option>
-                        <option value="Refunded">Refunded</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" id="dateFilter" name="dateRange">
-                        <option value="All">All Time</option>
-                        <option value="Today">Today</option>
-                        <option value="Yesterday">Yesterday</option>
-                        <option value="Last7Days">Last 7 Days</option>
-                        <option value="Last30Days">Last 30 Days</option>
-                        <option value="ThisMonth">This Month</option>
-                        <option value="LastMonth">Last Month</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select" id="sortFilter" name="sort">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="highestValue">Highest Value</option>
-                        <option value="lowestValue">Lowest Value</option>
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div>
+        .date-header {
+            border-left: 3px solid #dee2e6;
+        }
 
-    <!-- Orders Table -->
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle order-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Order ID</th>
-                            <th>Date</th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Payment</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Sample Order 1 -->
-                        <tr>
-                            <td>1</td>
-                            <td>
-                                <span class="fw-medium">#ORD-2025032301</span>
-                            </td>
-                            <td>Mar 23, 2025</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-icon me-2">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">John Smith</div>
-                                        <div class="text-muted small">john@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>3 items</td>
-                            <td>
-                                <span class="fw-bold">₹12,599</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-success">Paid</span>
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm status-select bg-warning text-white" data-order-id="ORD-2025032301">
-                                    <option value="Pending" selected>Pending</option>
-                                    <option value="Processing">Processing</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info view-order-btn" data-order-id="ORD-2025032301" title="View order details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary invoice-btn" data-order-id="ORD-2025032301" title="Generate invoice">
-                                        <i class="fas fa-file-invoice"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Sample Order 2 -->
-                        <tr>
-                            <td>2</td>
-                            <td>
-                                <span class="fw-medium">#ORD-2025032302</span>
-                            </td>
-                            <td>Mar 22, 2025</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-icon me-2">
-                                        <img src="/uploads/user/profileimages/user-avatar.jpg" alt="Sarah Jones" class="rounded-circle" width="40" height="40">
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">Sarah Jones</div>
-                                        <div class="text-muted small">sarah@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>1 item</td>
-                            <td>
-                                <span class="fw-bold">₹4,999</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-success">Paid</span>
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm status-select bg-info text-white" data-order-id="ORD-2025032302">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Processing">Processing</option>
-                                    <option value="Shipped" selected>Shipped</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info view-order-btn" data-order-id="ORD-2025032302" title="View order details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary invoice-btn" data-order-id="ORD-2025032302" title="Generate invoice">
-                                        <i class="fas fa-file-invoice"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Sample Order 3 -->
-                        <tr>
-                            <td>3</td>
-                            <td>
-                                <span class="fw-medium">#ORD-2025032303</span>
-                            </td>
-                            <td>Mar 22, 2025</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-icon me-2">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">Michael Chen</div>
-                                        <div class="text-muted small">michael@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>2 items</td>
-                            <td>
-                                <span class="fw-bold">₹8,499</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-danger">Failed</span>
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm status-select bg-danger text-white" data-order-id="ORD-2025032303">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Processing">Processing</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Cancelled" selected>Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info view-order-btn" data-order-id="ORD-2025032303" title="View order details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary invoice-btn" data-order-id="ORD-2025032303" title="Generate invoice" disabled>
-                                        <i class="fas fa-file-invoice"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Sample Order 4 - Return Request -->
-                        <tr>
-                            <td>4</td>
-                            <td>
-                                <span class="fw-medium">#ORD-2025032204</span>
-                                <span class="badge bg-warning text-dark ms-1">Return Request</span>
-                            </td>
-                            <td>Mar 20, 2025</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-icon me-2">
-                                        <img src="/uploads/user/profileimages/user-avatar-2.jpg" alt="Emma Wilson" class="rounded-circle" width="40" height="40">
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">Emma Wilson</div>
-                                        <div class="text-muted small">emma@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>1 item</td>
-                            <td>
-                                <span class="fw-bold">₹6,799</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-success">Paid</span>
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm status-select bg-success text-white" data-order-id="ORD-2025032204">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Processing">Processing</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered" selected>Delivered</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                    <option value="Return Requested">Return Requested</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info view-order-btn" data-order-id="ORD-2025032204" title="View order details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-warning return-request-btn" data-order-id="ORD-2025032204" data-bs-toggle="modal" data-bs-target="#returnRequestModal" title="Process return request">
-                                        <i class="fas fa-undo-alt"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Sample Order 5 -->
-                        <tr>
-                            <td>5</td>
-                            <td>
-                                <span class="fw-medium">#ORD-2025032105</span>
-                            </td>
-                            <td>Mar 19, 2025</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-icon me-2">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">Robert Johnson</div>
-                                        <div class="text-muted small">robert@example.com</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>4 items</td>
-                            <td>
-                                <span class="fw-bold">₹15,299</span>
-                            </td>
-                            <td>
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            </td>
-                            <td>
-                                <select class="form-select form-select-sm status-select bg-primary text-white" data-order-id="ORD-2025032105">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Processing" selected>Processing</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Cancelled">Cancelled</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-info view-order-btn" data-order-id="ORD-2025032105" title="View order details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-primary invoice-btn" data-order-id="ORD-2025032105" title="Generate invoice">
-                                        <i class="fas fa-file-invoice"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="text-muted">
-                    Showing <span class="fw-bold">1</span> to <span class="fw-bold">5</span> of <span class="fw-bold">28</span> orders
-                </div>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination mb-0">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" aria-label="Previous">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#" aria-label="Next">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </div>
-    </div>
-</div>
+        .order-id-link {
+            max-width: 150px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-<!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        .avatar-sm {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .avatar-lg {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .timeline-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-top: 4px;
+        }
+
+        .stats-card {
+            transition: transform 0.3s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card .border-start {
+            border-left-width: 4px !important;
+        }
+
+        /* Custom date range styles */
+        .custom-date {
+            transition: all 0.3s ease;
+        }
+
+        /* Table date header styles */
+        .table-light .badge {
+            font-size: 0.8rem;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .stats-card .card-body {
+                padding: 1rem;
+            }
+
+        }
+
+        /* Revised Filter Styles - More distinct separate section */
+        .filter-section {
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid var(--bs-border-color);
+            background: transparent;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* Filter header styling */
+        .filter-header {
+            border-bottom: 1px solid var(--bs-border-color);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .filter-header h6 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Filter labels - slightly bigger */
+        .filter-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        /* Form controls - slightly taller */
+        .filter-control {
+            font-size: 14px;
+            border-radius: 4px;
+            height: calc(1.8em + 0.75rem + 2px);
+        }
+
+        /* Active filter indication */
+        .filter-control:not([value="all"]):not([value=""]):not([value="weekly"]) {
+            border-left: 3px solid var(--bs-primary);
+        }
+
+        /* Clear button - more visible */
+        #resetFiltersBtn {
+            border-width: 1px;
+            font-size: 13px;
+            padding: 0.25rem 0.7rem;
+        }
+
+        /* Search container - smaller */
+        .search-container {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        #searchInput {
+            height: 36px;
+            font-size: 14px;
+        }
+
+        #clearSearchBtn {
+            display: none;
+        }
+
+        #clearSearchBtn.active {
+            display: block;
+        }
+
+        /* Custom date display logic */
+        .custom-date-field input.d-none {
+            display: none !important;
+        }
+
+        .custom-date-field input:not(.d-none) {
+            display: block;
+        }
+
+        /* For dark mode compatibility */
+        @media (prefers-color-scheme: dark) {
+            .filter-section {
+                background-color: rgba(255, 255, 255, 0.05);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .input-group-text {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .filter-header {
+                border-bottom-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            .filter-section {
+                padding: 12px;
+            }
+
+            .filter-label {
+                font-size: 12px;
+            }
+
+            .row.g-3 {
+                --bs-gutter-y: 0.75rem;
+            }
+        }
+    </style>
+    
+    <!-- Sales Report Section -->
+    <div class="container-fluid py-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3">Sales Reports</h1>
+                <p class="text-muted">View and analyze your sales data</p>
             </div>
-            <div class="modal-body">
-                <div class="row">
-                    <!-- Order Information -->
-                    <div class="col-md-8">
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between">
-                                <h5 class="mb-0">Order #ORD-2025032301</h5>
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-muted">Ordered on</p>
-                                        <p class="fw-medium">March 23, 2025 at 10:42 AM</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-muted">Payment method</p>
-                                        <p class="fw-medium">Credit Card (ending in 4242)</p>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-muted">Shipping address</p>
-                                        <address>
-                                            John Smith<br>
-                                            123 Main Street<br>
-                                            Apt 4B<br>
-                                            Mumbai, 400001<br>
-                                            India<br>
-                                            +91 98765 43210
-                                        </address>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-1 text-muted">Billing address</p>
-                                        <address>
-                                            John Smith<br>
-                                            123 Main Street<br>
-                                            Apt 4B<br>
-                                            Mumbai, 400001<br>
-                                            India<br>
-                                            +91 98765 43210
-                                        </address>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Order Items -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Order Items</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table mb-0">
-                                        <thead class="bg-light">
-                                            <tr>
-                                                <th>Product</th>
-                                                <th class="text-center">Quantity</th>
-                                                <th class="text-end">Price</th>
-                                                <th class="text-end">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="/uploads/products/sample-product-1.jpg" alt="Smartphone" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                        <div>
-                                                            <h6 class="mb-0">Premium Smartphone X1</h6>
-                                                            <small class="text-muted">SKU: SP-X1-BLACK</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-end">₹9,999</td>
-                                                <td class="text-end">₹9,999</td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="/uploads/products/sample-product-2.jpg" alt="Phone Case" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                        <div>
-                                                            <h6 class="mb-0">Premium Phone Case</h6>
-                                                            <small class="text-muted">SKU: ACC-CASE-X1</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-end">₹1,499</td>
-                                                <td class="text-end">₹1,499</td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="/uploads/products/sample-product-3.jpg" alt="Screen Protector" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                        <div>
-                                                            <h6 class="mb-0">Tempered Glass Screen Protector</h6>
-                                                            <small class="text-muted">SKU: ACC-SCRN-X1</small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-end">₹699</td>
-                                                <td class="text-end">₹699</td>
-                                            </tr>
-                                        </tbody>
-                                        <tfoot class="bg-light">
-                                            <tr>
-                                                <td colspan="3" class="text-end fw-medium">Subtotal</td>
-                                                <td class="text-end">₹12,197</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="3" class="text-end fw-medium">Shipping</td>
-                                                <td class="text-end">₹99</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="3" class="text-end fw-medium">Tax (GST 5%)</td>
-                                                <td class="text-end">₹303</td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="3" class="text-end fw-bold">Total</td>
-                                                <td class="text-end fw-bold">₹12,599</td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Order Timeline -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Order Timeline</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul class="timeline">
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-success"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Order Placed</h6>
-                                            <small class="text-muted">March 23, 2025 at 10:42 AM</small>
-                                            <p class="mt-2 mb-0">Order #ORD-2025032301 has been placed successfully.</p>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-success"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Payment Confirmed</h6>
-                                            <small class="text-muted">March 23, 2025 at 10:43 AM</small>
-                                            <p class="mt-2 mb-0">Payment of ₹12,599 has been confirmed.</p>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-warning"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Order Processing</h6>
-                                            <small class="text-muted">Pending</small>
-                                            <p class="mt-2 mb-0">Your order is waiting to be processed.</p>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-secondary"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Order Shipped</h6>
-                                            <small class="text-muted">Pending</small>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-secondary"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Out for Delivery</h6>
-                                            <small class="text-muted">Pending</small>
-                                        </div>
-                                    </li>
-                                    <li class="timeline-item">
-                                        <div class="timeline-marker bg-secondary"></div>
-                                        <div class="timeline-content">
-                                            <h6 class="mb-0">Delivered</h6>
-                                            <small class="text-muted">Pending</small>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Customer Information and Actions -->
-                    <div class="col-md-4">
-                        <!-- Customer Information -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Customer Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="avatar-icon me-3">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">John Smith</h6>
-                                        <p class="text-muted mb-0">Customer since Jan 2025</p>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i> john@example.com</p>
-                                    <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i> +91 98765 43210</p>
-                                </div>
-                                <hr>
-                                <div class="mb-0">
-                                    <p class="mb-1 fw-medium">Customer Statistics</p>
-                                    <div class="row g-2 text-center">
-                                        <div class="col-4">
-                                            <div class="border rounded p-2">
-                                                <h6 class="mb-1">5</h6>
-                                                <small class="text-muted">Orders</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <div class="border rounded p-2">
-                                                <h6 class="mb-1">₹32,450</h6>
-                                                <small class="text-muted">Spent</small>
-                                            </div>
-                                        </div>
-                                        <div class="col-4">
-                                            <div class="border rounded p-2">
-                                                <h6 class="mb-1">0</h6>
-                                                <small class="text-muted">Returns</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Order Actions -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Order Actions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-primary" id="updateStatusBtn">
-                                        <i class="fas fa-truck me-2"></i>Update Status
-                                    </button>
-                                    <button class="btn btn-outline-primary" id="generateInvoiceBtn">
-                                        <i class="fas fa-file-invoice me-2"></i>Generate Invoice
-                                    </button>
-                                    <button class="btn btn-outline-secondary" id="sendTrackingBtn">
-                                        <i class="fas fa-location-arrow me-2"></i>Send Tracking Info
-                                    </button>
-                                    <button class="btn btn-outline-danger" id="cancelOrderBtn">
-                                        <i class="fas fa-times-circle me-2"></i>Cancel Order
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Order Notes -->
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Order Notes</h5>
-                                <button class="btn btn-sm btn-outline-primary" id="addNoteBtn">
-                                    <i class="fas fa-plus me-1"></i> Add Note
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div class="notes-list">
-                                    <div class="note-item mb-3">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-medium">System</span>
-                                            <small class="text-muted">Mar 23, 2025 10:43 AM</small>
-                                        </div>
-                                        <p class="mb-0">Payment of ₹12,599 confirmed via Credit Card.</p>
-                                    </div>
-                                    <div class="note-item">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="fw-medium">Admin</span>
-                                            <small class="text-muted">Mar 23, 2025 10:45 AM</small>
-                                        </div>
-                                        <p class="mb-0">Customer requested express delivery if possible.</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Add Note Form -->
-                                <div class="mt-3">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="noteText" placeholder="Add a note...">
-                                        <button class="btn btn-primary" type="button" id="saveNoteBtn">Save</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="printOrderBtn">
-                    <i class="fas fa-print me-2"></i>Print Order
+            <div>
+                <!-- <button class="btn btn-primary" id="exportReportBtn">
+            <i class="fas fa-file-export me-2"></i>Export Report
+        </button> -->
+                <button class="btn btn-sm btn-outline-primary me-2" id="downloadPdf">
+                    <i class="fas fa-file-pdf me-1"></i>PDF
+                </button>
+                <button class="btn btn-sm btn-outline-success" id="downloadExcel">
+                    <i class="fas fa-file-excel me-1"></i>Excel
                 </button>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Return Request Modal -->
-<div class="modal fade" id="returnRequestModal" tabindex="-1" aria-labelledby="returnRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="returnRequestModalLabel">Process Return Request</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="row g-4 mb-4">
+            <!-- Gross Sales -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-success overflow-auto">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-chart-line text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Gross Sales</p>
+                            <h3 class="mb-0 fw-bold">₹3,45,45,976</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <div class="row mb-4">
-                    <div class="col-md-8">
-                        <h6>Return Request #RTN-2025032001</h6>
-                        <p class="text-muted mb-0">Submitted on March 20, 2025 at 2:15 PM</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <span class="badge bg-warning text-dark">Pending Review</span>
-                    </div>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h6 class="mb-0">Order Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <p class="mb-1"><strong>Order ID:</strong> #ORD-2025032204</p>
-                                <p class="mb-1"><strong>Purchase Date:</strong> March 20, 2025</p>
-                                <p class="mb-1"><strong>Delivery Date:</strong> March 22, 2025</p>
-                                <p class="mb-0"><strong>Amount:</strong> ₹6,799</p>
-                            </div>
+
+            <!-- Cancelled Orders -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-danger">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-ban text-danger fs-4"></i>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100">
-                            <div class="card-header">
-                                <h6 class="mb-0">Customer Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <p class="mb-1"><strong>Name:</strong> Emma Wilson</p>
-                                <p class="mb-1"><strong>Email:</strong> emma@example.com</p>
-                                <p class="mb-1"><strong>Phone:</strong> +91 87654 32109</p>
-                                <p class="mb-0"><strong>Previous Returns:</strong> None</p>
-                            </div>
+                        <div>
+                            <p class="text-muted small mb-0">Cancelled Orders</p>
+                            <h3 class="mb-0 fw-bold">₹1,03,983.58</h3>
                         </div>
                     </div>
                 </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0">Return Item</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th>Product</th>
-                                        <th class="text-center">Quantity</th>
-                                        <th>Return Reason</th>
-                                        <th class="text-end">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <img src="/uploads/products/wireless-headphones.jpg" alt="Wireless Headphones" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                <div>
-                                                    <h6 class="mb-0">Premium Wireless Headphones</h6>
-                                                    <small class="text-muted">SKU: AUDIO-HDPH-01</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-center">1</td>
-                                        <td>Product defective - right speaker not working</td>
-                                        <td class="text-end">₹6,799</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+            </div>
+
+            <!-- Returns -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-warning">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-undo-alt text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Returns</p>
+                            <h3 class="mb-0 fw-bold">₹2,23,982.88</h3>
                         </div>
                     </div>
                 </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h6 class="mb-0">Customer's Return Details</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Reason for Return</label>
-                            <p>The right speaker of the headphones is not working. I've tried connecting them to multiple devices but the issue persists. The left speaker works fine.</p>
+            </div>
+
+            <!-- Coupons Redeemed -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-info">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-ticket-alt text-info fs-4"></i>
                         </div>
-                        <div class="mb-0">
-                            <label class="form-label">Attached Evidence</label>
+                        <div>
+                            <p class="text-muted small mb-0">Coupons Redeemed</p>
+                            <h3 class="mb-0 fw-bold">₹800</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discounts -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-primary">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-tag text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Discounts</p>
+                            <h3 class="mb-0 fw-bold">₹1,259.86</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Sales -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-success">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-rupee-sign text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Net Sales</p>
+                            <h3 class="mb-0 fw-bold">₹15,939.68</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Orders -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-primary">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-shopping-cart text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Orders</p>
+                            <h3 class="mb-0 fw-bold">13</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Revised Filter Section -->
+        <div class="filter-section mb-3">
+            <form action="" id="saleFilterForm">
+                <div class="filter-header d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Filter Sales</h6>
+                </div>
+
+                <div class="filter-content">
+                    <div class="row g-3">
+                        <!-- Status Filter -->
+                        <div class="col-md-6">
+                            <label class="filter-label opacity-0">search </label>
+                            <div class="input-group mt-2">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0 ps-0"
+                                    placeholder="Search offers..." id="searchInput" />
+                                <button class="btn btn-secondary" type="button" id="clearFilters">
+                                    <i class="fas fa-times me-1"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 col-6">
+                            <label class="filter-label">Status</label>
+                            <select class="form-select filter-control" id="statusFilter">
+                                <option value="All">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Return Request">Return Request</option>
+                                <option value="Returned">Returned</option>
+                            </select>
+                        </div>
+
+                        <!-- Payment Method Filter -->
+                        <div class="col-md-3 col-6">
+                            <label class="filter-label">Payment Method</label>
+                            <select class="form-select filter-control" id="paymentFilter">
+                                <option value="All">All Payments</option>
+                                <option value="COD">Cash on Delivery</option>
+                                <option value="Online">Razorpay</option>
+                                <option value="wallet">Wallet</option>
+                            </select>
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="col-md-4 col-12">
+                            <label class="filter-label">Price Range</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control filter-control" placeholder="Min"
+                                    id="minPrice" />
+                                <span class="input-group-text">to</span>
+                                <input type="number" class="form-control filter-control" placeholder="Max"
+                                    id="maxPrice" />
+                            </div>
+                        </div>
+
+                        <!-- Date Range Filter -->
+                        <div class="col-md-8 col-12">
+                            <label class="filter-label">Date Range</label>
                             <div class="row g-2">
                                 <div class="col-md-4">
-                                    <div class="position-relative">
-                                        <img src="/uploads/returns/evidence-1.jpg" alt="Evidence 1" class="img-thumbnail">
-                                        <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-1" data-bs-toggle="modal" data-bs-target="#imageViewerModal" data-img="/uploads/returns/evidence-1.jpg">
-                                            <i class="fas fa-search-plus"></i>
-                                        </button>
-                                    </div>
+                                    <select class="form-select filter-control" id="dateRangeSelect">
+                                        <option value="All">All Time</option>
+                                        <option value="today">Today</option>
+                                        <option value="yesterday">Yesterday</option>
+                                        <option value="weekly">This Week</option>
+                                        <option value="monthly">This Month</option>
+                                        <option value="custom">Custom Range</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="position-relative">
-                                        <img src="/uploads/returns/evidence-2.jpg" alt="Evidence 2" class="img-thumbnail">
-                                        <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-1" data-bs-toggle="modal" data-bs-target="#imageViewerModal" data-img="/uploads/returns/evidence-2.jpg">
-                                            <i class="fas fa-search-plus"></i>
-                                        </button>
-                                    </div>
+                                <div class="col-md-4 custom-date-field">
+                                    <input type="date" class="form-control filter-control d-none" id="startDate"
+                                        placeholder="From" />
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="position-relative">
-                                        <a href="/uploads/returns/evidence-video.mp4" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center" target="_blank">
-                                            <i class="fas fa-video mb-2"></i>
-                                            <span>Video Evidence</span>
-                                        </a>
-                                    </div>
+                                <div class="col-md-4 custom-date-field">
+                                    <input type="date" class="form-control filter-control d-none" id="endDate"
+                                        placeholder="To" />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">Return Action</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="returnStatus" class="form-label">Return Status</label>
-                            <select class="form-select" id="returnStatus">
-                                <option value="approved">Approve Return</option>
-                                <option value="rejected">Reject Return</option>
-                                <option value="more_info">Request More Information</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="refundMethod" class="form-label">Refund Method (if approved)</label>
-                            <select class="form-select" id="refundMethod">
-                                <option value="original">Original Payment Method</option>
-                                <option value="wallet">Store Wallet</option>
-                                <option value="exchange">Product Exchange</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="returnNote" class="form-label">Note to Customer</label>
-                            <textarea class="form-control" id="returnNote" rows="3" placeholder="Enter note to customer..."></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="internalNote" class="form-label">Internal Note</label>
-                            <textarea class="form-control" id="internalNote" rows="2" placeholder="Enter internal note..."></textarea>
-                        </div>
-                        <div class="form-check mb-0">
-                            <input class="form-check-input" type="checkbox" id="sendNotification" checked>
-                            <label class="form-check-label" for="sendNotification">
-                                Send email notification to customer
-                            </label>
-                        </div>
-                    </div>
+            </form>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0">Sales Details</h5>
+                <div>
+                    <!-- <button class="btn btn-sm btn-outline-primary me-2" id="downloadPdf">
+          <i class="fas fa-file-pdf me-1"></i>PDF
+        </button>
+        <button class="btn btn-sm btn-outline-success" id="downloadExcel">
+          <i class="fas fa-file-excel me-1"></i>Excel
+        </button> -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="processReturnBtn">Process Return</button>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Order ID</th>
+                                <th>Amount</th>
+                                <th>Discount</th>
+                                <th>Coupon</th>
+                                <th>Tax</th>
+                                <th>FinalAmount</th>
+                                <th>Return/Cancelled</th>
+                                <th>Revoked Coupon</th>
+                                <th>Date</th>
+                                <th width="70">Payment Method</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Dynamically populated  -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center p-3 " id="paginationSection">
+                    <!-- Dynamically populated  -->
+                </div>
+
             </div>
+            <!-- </div> -->
         </div>
-    </div>
-</div>
 
-<!-- Image Viewer Modal -->
-<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Image Viewer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center p-0">
-                <img src="" id="modalImage" class="img-fluid">
-            </div>
-        </div>
-    </div>
-</div>
+        <script>
 
-<!-- JavaScript for Order Management -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Order status change handling
-    const statusSelects = document.querySelectorAll('.status-select');
-    statusSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const orderId = this.getAttribute('data-order-id');
-            const newStatus = this.value;
-            const bgColorClass = getStatusColorClass(newStatus);
-            
-            // Remove existing background color classes
-            this.className = this.className.replace(/bg-\w+/g, '');
-            // Add new background color class
-            this.classList.add(bgColorClass);
+            async function fetchSales(page = 1) {
+                const search = document.getElementById("searchInput").value;
+                const status = document.getElementById('statusFilter').value;
+                const paymentMethod = document.getElementById('paymentFilter').value;
+                const minPrice = document.getElementById("minPrice").value;
+                const maxPrice = document.getElementById("maxPrice").value;
+                const dateRange = document.getElementById('dateRangeSelect').value;
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
 
-            // Here you would normally send an AJAX request to update the status
-            console.log(`Updating order ${orderId} status to ${newStatus}`);
-            
-            // Show success notification
-            Swal.fire({
-                icon: 'success',
-                title: 'Status Updated',
-                text: `Order #${orderId} status has been updated to ${newStatus}`,
-                showConfirmButton: false,
-                timer: 2000
-            });
-        });
-    });
+                console.log("Fetching sales with filters:", {
+                    search, paymentMethod, status,
+                    minPrice, maxPrice, dateRange, startDate, endDate
+                });
 
-    // View order details
-    const viewOrderBtns = document.querySelectorAll('.view-order-btn');
-    viewOrderBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
-            console.log(`Viewing order ${orderId} details`);
-            
-            // Show the order details modal
-            const orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-            orderDetailsModal.show();
-        });
-    });
+                const queryParams = new URLSearchParams({
+                    page,
+                    search,
+                    paymentMethod,
+                    status,
+                    minPrice,
+                    maxPrice,
+                    dateRange,
+                    startDate,
+                    endDate
+                }).toString();
 
-    // Export orders
-    document.getElementById('exportOrdersBtn').addEventListener('click', function() {
-        console.log('Exporting orders...');
-        
-        // Show loading notification
-        Swal.fire({
-            title: 'Exporting Orders...',
-            html: 'Please wait while we generate your export file.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        // Simulate file generation delay
-        setTimeout(() => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Export Complete',
-                text: 'Your orders export file has been generated successfully.',
-                confirmButtonText: 'Download File'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Simulate file download
-                    const link = document.createElement('a');
-                    link.href = '#';
-                    link.download = 'orders_export.csv';
-                    link.click();
+                try {
+                    const response = await fetch(`/admin/banner?${queryParams}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    });
+
+                    if (response.status === 401 || response.status === 403) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Unauthorized',
+                            text: 'Please log in to continue',
+                        }).then(() => {
+                            window.location.href = '/admin/login';
+                        });
+                        return;
+                    };
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Failed to fetch sales');
+                    }
+
+                    console.log("API Response:", data);
+
+                    const tableBody = document.getElementById("tableBody");
+                    tableBody.innerHTML = '';
+
+                    if (data.sales?.length > 0) {
+                        data.sales.forEach((sale, index) => {
+                            const row = `
+                    <tr class="fade-in">
+                      <td>${(data.page - 1) * data.limit + index + 1}</td>
+                      <td>${sale.orderId || 'Unknown'}</td>
+                      <td>₹${sale.subtotal.toFixed(2)}</td>
+                      <td class="text-danger">₹${(sale.discount || 0).toFixed(2)}</td>
+                      <td>₹${(sale.couponDiscount || 0).toFixed(2)}</td>
+                      <td class="ml-2" >₹${(sale.tax || 0).toFixed(2)}</td>
+                      <td class="fw-bold">₹${(sale.total || 0).toFixed(2)}</td>
+                      <td class="ml-2" >₹2340</td>
+                      <td class="ml-2" >₹0</td>
+                      <td><span class="text-muted">${sale.orderDate ? new Date(sale.orderDate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) : 'N/A'}</span></td>
+                      <td><span class="badge bg-warning text-dark">${sale.paymentMethod || 'Unknown'}</span></td>
+                      <td><span class="badge bg-${getStatusClass(sale.status)} ">${sale.status || 'Unknown'} </span></td>           
+                    </tr>
+                    `;
+                            tableBody.insertAdjacentHTML('beforeend', row);
+                        });
+                        function getStatusClass(status) {
+                            if (!status) return 'secondary';
+                            switch (status) {
+                                case 'Pending': return 'warning';
+                                case 'Processing': return 'primary';
+                                case 'Shipped': return 'info';
+                                case 'Out for Delivery': return 'primary';
+                                case 'Delivered': return 'success';
+                                case 'Cancelled': return 'danger';
+                                case 'Return Request': return 'warning';
+                                case 'Returned': return 'secondary';
+                                default: return 'secondary';
+                            }
+                        }
+
+                    } else {
+                        tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center py-4">
+                            <div class="d-flex flex-column align-items-center justify-content-center gap-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+                                    <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                    <path d="M12 11v4" />
+                                    <path d="M12 17h.01" />
+                                </svg>
+                                <p class="fs-5 fw-medium text-muted">No items found</p>
+                                <p class="text-muted">Try adjusting your search or filter to find what you're looking for.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                    }
+
+                    const paginationSection = document.getElementById("paginationSection");
+                    paginationSection.innerHTML = '';
+
+                    if (data.count > 0) {
+                        const totalPages = Math.ceil(data.count / data.limit);
+                        const maxPagesToShow = 5;
+                        const startPage = Math.max(1, data.page - Math.floor(maxPagesToShow / 2));
+                        const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                        const paginationHTML = `
+                    <div class="text-muted">
+                        Showing <span class="fw-bold">${(data.page - 1) * data.limit + 1}</span>
+                        to <span class="fw-bold">${Math.min(data.page * data.limit, data.count)}</span> 
+                        of <span class="fw-bold">${data.count}</span> Orders
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <li class="page-item ${data.page <= 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${data.page - 1}" aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            ${Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(i => `
+                                <li class="page-item ${data.page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `).join('')}
+                            <li class="page-item ${data.page >= totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${data.page + 1}" aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                `;
+
+                        paginationSection.innerHTML = paginationHTML;
+
+                        document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+                            link.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const page = parseInt(link.getAttribute('data-page'));
+                                if (page > 0 && page <= totalPages) fetchSales(page);
+                            });
+                        });
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching sales:', error);
+                    Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load sales' });
                 }
-            });
-        }, 2000);
-    });
-
-    // Clear filters
-    document.getElementById('clearFilterBtn').addEventListener('click', function() {
-        const form = document.getElementById('orderFilterForm');
-        
-        // Reset all form fields
-        form.querySelectorAll('input, select').forEach(field => {
-            if (field.type === 'text') {
-                field.value = '';
-            } else if (field.tagName === 'SELECT') {
-                field.selectedIndex = 0;
             }
-        });
-        
-        // Submit the form to reload with default values
-        form.submit();
-    });
 
-    // Process return button
-    document.getElementById('processReturnBtn').addEventListener('click', function() {
-        const returnStatus = document.getElementById('returnStatus').value;
-        const refundMethod = document.getElementById('refundMethod').value;
-        
-        let statusText = 'processed';
-        let icon = 'success';
-        
-        if (returnStatus === 'approved') {
-            statusText = 'approved';
-        } else if (returnStatus === 'rejected') {
-            statusText = 'rejected';
-            icon = 'error';
-        } else if (returnStatus === 'more_info') {
-            statusText = 'pending additional information';
-            icon = 'info';
-        }
-        
-        // Close the modal
-        const returnModal = bootstrap.Modal.getInstance(document.getElementById('returnRequestModal'));
-        returnModal.hide();
-        
-        // Show confirmation notification
-        Swal.fire({
-            icon: icon,
-            title: 'Return Request Processed',
-            text: `The return request has been ${statusText} successfully.`,
-            showConfirmButton: true
-        });
-    });
+            document.addEventListener("DOMContentLoaded", () => {
+                const filterForm = document.getElementById("saleFilterForm");
+                const clearFiltersBtn = document.getElementById('clearFilters');
 
-    // Image viewer modal
-    const imageViewerModal = document.getElementById('imageViewerModal');
-    imageViewerModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const imgUrl = button.getAttribute('data-img');
-        document.getElementById('modalImage').src = imgUrl;
-    });
+                filterForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    fetchSales();
+                });
 
-    // Helper function to get status color class
-    function getStatusColorClass(status) {
-        switch(status) {
-            case 'Pending':
-                return 'bg-warning';
-            case 'Processing':
-                return 'bg-primary';
-            case 'Shipped':
-                return 'bg-info';
-            case 'Out for Delivery':
-                return 'bg-purple';
-            case 'Delivered':
-                return 'bg-success';
-            case 'Cancelled':
-                return 'bg-danger';
-            case 'Returned':
-                return 'bg-secondary';
-            default:
-                return 'bg-light';
-        }
-    }
-});
-</script>
+                // All filter change listeners
+                document.querySelectorAll('#statusFilter, #paymentFilter, #dateRangeSelect').forEach(input => {
+                    input.addEventListener('change', () => {
+                        fetchSales(1);
+                        checkFilters();
+                    });
+                });
 
-<%- include("../../views/partial/admin/footer") %>
+                // Handle date range selection
+                document.getElementById('dateRangeSelect').addEventListener('change', function () {
+                    const customDateSelected = this.value === 'custom';
+
+                    // Show/hide date inputs based on selection
+                    const startDateField = document.getElementById('startDate');
+                    const endDateField = document.getElementById('endDate');
+
+                    startDateField.classList.toggle('d-none', !customDateSelected);
+                    endDateField.classList.toggle('d-none', !customDateSelected);
+
+                    // Clear dates if not using custom date range
+                    if (!customDateSelected) {
+                        startDateField.value = '';
+                        endDateField.value = '';
+                    }
+
+                    fetchSales();
+                    checkFilters();
+                });
+
+                // Date inputs
+                ['startDate', 'endDate'].forEach(id => {
+                    const dateInput = document.getElementById(id);
+                    if (dateInput) {
+                        dateInput.addEventListener("change", () => {
+                            fetchSales();
+                            checkFilters();
+                        });
+                    }
+                });
+
+                // Handle date range selection
+                ['minPrice', 'maxPrice', 'searchInput'].forEach(id => {
+                    const priceInput = document.getElementById(id);
+                    if (priceInput) {
+                        priceInput.addEventListener("input", () => {
+                            fetchSales();
+                            checkFilters();
+                        });
+                    }
+                });
+
+                if (clearFiltersBtn) {
+                    clearFiltersBtn.addEventListener('click', () => {
+                        document.getElementById('searchInput').value = '';
+                        document.getElementById('paymentFilter').value = 'All';
+                        document.getElementById('statusFilter').value = 'All';
+                        document.getElementById('minPrice').value = '';
+                        document.getElementById('maxPrice').value = '';
+                        document.getElementById('dateRangeSelect').value = 'all';
+                        document.getElementById('startDate').value = '';
+                        document.getElementById('endDate').value = '';
+
+                        // Hide date fields
+                        document.getElementById('startDate').classList.add('d-none');
+                        document.getElementById('endDate').classList.add('d-none');
+
+                        fetchSales();
+                        checkFilters();
+                    });
+                }
+
+                function checkFilters() {
+                    const filtersActive =
+                        document.getElementById('searchInput').value !== '' ||
+                        document.getElementById('paymentFilter').value !== 'All' ||
+                        document.getElementById('statusFilter').value !== 'All' ||
+                        document.getElementById('minPrice').value !== '' ||
+                        document.getElementById('maxPrice').value !== '' ||
+                        document.getElementById('dateRangeSelect').value !== 'All' ||
+                        document.getElementById('startDate').value !== '' ||
+                        document.getElementById('endDate').value !== '';
+
+                    const clearFiltersBtn = document.getElementById('clearFilters');
+                    if (clearFiltersBtn) {
+                        if (filtersActive) {
+                            clearFiltersBtn.classList.remove('d-none');
+                        } else {
+                            clearFiltersBtn.classList.add('d-none');
+                        }
+                    }
+                }
+
+                // Initialize
+                fetchSales();
+                checkFilters();
+            });
+
+            // document.addEventListener("DOMContentLoaded", function () {
+            //   // Initialize jsPDF
+            //   const { jsPDF } = window.jspdf;
+
+            //   // Export button event listener
+            //   const exportReportBtn = document.getElementById("exportReportBtn");
+            //   if (exportReportBtn) {
+            //     exportReportBtn.addEventListener("click", function () {
+            //       const exportModal = new bootstrap.Modal(
+            //         document.getElementById("exportModal")
+            //       );
+            //       exportModal.show();
+            //     });
+            //   }
+
+            //   // Confirm export button event listener
+            //   const confirmExport = document.getElementById("confirmExport");
+            //   if (confirmExport) {
+            //     confirmExport.addEventListener("click", function () {
+            //       const format = document.getElementById("exportFormat").value;
+            //       const includeSummary =
+            //         document.getElementById("includeSummary").checked;
+            //       const includeDetails =
+            //         document.getElementById("includeDetails").checked;
+
+            //       if (format === "pdf") {
+            //         generatePDF(includeSummary, includeDetails);
+            //       } else if (format === "excel") {
+            //         alert("Excel export not implemented yet");
+            //       }
+
+            //       // Hide modal
+            //       const exportModal = bootstrap.Modal.getInstance(
+            //         document.getElementById("exportModal")
+            //       );
+            //       exportModal.hide();
+            //     });
+            //   }
+
+            //   // Function to generate PDF
+            //   function generatePDF(includeSummary, includeDetails) {
+            //     const doc = new jsPDF();
+            //     let yPosition = 20;
+            //     const pageHeight = 280;
+            //     const margin = 10;
+            //     const fontSize = 12;
+            //     const lineHeight = 10;
+
+            //     // Get current date range
+            //     const dateRangeSelect = document.getElementById("dateRangeSelect");
+            //     const dateRange =
+            //       dateRangeSelect.value === "custom"
+            //         ? `${document.getElementById("startDate").value} to ${
+            //             document.getElementById("endDate").value
+            //           }`
+            //         : dateRangeSelect.options[dateRangeSelect.selectedIndex].text;
+
+            //     // Title
+            //     doc.setFontSize(18);
+            //     doc.text("Sales Report", margin, yPosition);
+            //     doc.setFontSize(fontSize);
+            //     doc.text(`Period: ${dateRange}`, margin, yPosition + 10);
+            //     yPosition += 20;
+
+            //     // Sales Summary Section
+            //     if (includeSummary) {
+            //       doc.setFontSize(14);
+            //       doc.text("Sales Summary", margin, yPosition);
+            //       yPosition += 10;
+
+            //       const summaryData = {
+            //         "Total Orders": document
+            //           .querySelector(".orders h3")
+            //           .textContent.trim(),
+            //         "Total Revenue": document
+            //           .querySelector(".revenue h3")
+            //           .textContent.trim(),
+            //         "Total Discount": document
+            //           .querySelector(".discount h3")
+            //           .textContent.trim(),
+            //         Returns: document.querySelector(".returns h3").textContent.trim(),
+            //       };
+
+            //       Object.entries(summaryData).forEach(([key, value], index) => {
+            //         if (yPosition > pageHeight) {
+            //           doc.addPage();
+            //           yPosition = 20;
+            //         }
+            //         doc.text(`${key}: ${value}`, margin, yPosition);
+            //         yPosition += lineHeight;
+            //       });
+            //       yPosition += 10;
+            //     }
+
+            //     // Order Details Section
+            //     if (includeDetails) {
+            //       doc.setFontSize(14);
+            //       doc.text("Order Details", margin, yPosition);
+            //       yPosition += 10;
+
+            //       // Dynamically extract data from the table
+            //       const table = document.querySelector("table tbody");
+            //       const orderData = [];
+            //       table.querySelectorAll("tr").forEach((row) => {
+            //         const columns = row.querySelectorAll("td");
+            //         if (columns.length > 0) {
+            //           orderData.push({
+            //             date: columns[1].textContent.trim(),
+            //             orderId: columns[2]
+            //               .querySelector(".order-id-link")
+            //               .getAttribute("title"),
+            //             customer: columns[3]
+            //               .querySelector("div .fw-medium")
+            //               .textContent.trim(),
+            //             items: columns[4].textContent.trim(),
+            //             payment: columns[5].querySelector(".badge").textContent.trim(),
+            //             subtotal: columns[6].textContent.trim(),
+            //             discount: columns[7].textContent.trim(),
+            //             total: columns[8].textContent.trim(),
+            //             status: columns[9].querySelector(".badge").textContent.trim(),
+            //           });
+            //         }
+            //       });
+
+            //       // Table headers
+            //       const headers = [
+            //         "#",
+            //         "Date",
+            //         "Order ID",
+            //         "Customer",
+            //         "Items",
+            //         "Payment",
+            //         "Subtotal",
+            //         "Discount",
+            //         "Total",
+            //         "Status",
+            //       ];
+            //       const data = orderData.map((order, index) => [
+            //         index + 1,
+            //         order.date,
+            //         order.orderId,
+            //         order.customer,
+            //         order.items,
+            //         order.payment,
+            //         order.subtotal,
+            //         order.discount,
+            //         order.total,
+            //         order.status,
+            //       ]);
+
+            //       doc.autoTable({
+            //         startY: yPosition,
+            //         head: [headers],
+            //         body: data,
+            //         theme: "grid",
+            //         styles: { fontSize: 10, cellPadding: 2 },
+            //         columnStyles: {
+            //           0: { cellWidth: 10 },
+            //           1: { cellWidth: 20 },
+            //           2: { cellWidth: 25 },
+            //           3: { cellWidth: 30 },
+            //           4: { cellWidth: 15 },
+            //           5: { cellWidth: 20 },
+            //           6: { cellWidth: 20 },
+            //           7: { cellWidth: 20 },
+            //           8: { cellWidth: 20 },
+            //           9: { cellWidth: 25 },
+            //         },
+            //       });
+
+            //       yPosition = doc.lastAutoTable.finalY + 10;
+            //     }
+
+            //     // Footer
+            //     doc.setFontSize(10);
+            //     doc.text(
+            //       `Generated on: ${new Date().toLocaleDateString()}`,
+            //       margin,
+            //       pageHeight - 10
+            //     );
+            //     doc.text(
+            //       `Page ${doc.internal.getNumberOfPages()}`,
+            //       200,
+            //       pageHeight - 10
+            //     );
+
+            //     // Download the PDF
+            //     doc.save(`Sales_Report_${dateRange.replace(/ /g, "_")}.pdf`);
+            //   }
+
+
+            //   // Integrate direct PDF/Excel buttons with modal
+            //   const downloadPdfBtn = document.getElementById("downloadPdf");
+            //   const downloadExcelBtn = document.getElementById("downloadExcel");
+            //   if (downloadPdfBtn && downloadExcelBtn) {
+            //     downloadPdfBtn.addEventListener("click", function () {
+            //       document.getElementById("exportFormat").value = "pdf";
+            //       document.getElementById("includeSummary").checked = true;
+            //       document.getElementById("includeDetails").checked = true;
+            //       generatePDF(true, true);
+            //     });
+            //     downloadExcelBtn.addEventListener("click", function () {
+            //       document.getElementById("exportFormat").value = "excel";
+            //       alert("Excel export not implemented yet");
+            //     });
+            //   }
+
+            //   // Revised filter functionality
+            //   const searchInput = document.getElementById("searchInput");
+            //   const clearSearchBtn = document.getElementById("clearSearchBtn");
+            //   const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+            //   const dateRangeSelect = document.getElementById("dateRangeSelect");
+            //   const startDate = document.getElementById("startDate");
+            //   const endDate = document.getElementById("endDate");
+            //   const filterControls = document.querySelectorAll(".filter-control");
+
+            //   function checkFiltersApplied() {
+            //     let hasValue = false;
+            //     if (searchInput.value.trim() !== "") {
+            //       clearSearchBtn.classList.add("active");
+            //       hasValue = true;
+            //     } else {
+            //       clearSearchBtn.classList.remove("active");
+            //     }
+            //     filterControls.forEach((el) => {
+            //       if (
+            //         (el.tagName === "SELECT" &&
+            //           el.value !== "all" &&
+            //           el.value !== "weekly") ||
+            //         (el.tagName === "INPUT" && el.value.trim() !== "")
+            //       ) {
+            //         hasValue = true;
+            //       }
+            //     });
+            //     resetFiltersBtn.classList.toggle("d-none", !hasValue);
+            //     return hasValue;
+            //   }
+
+            //   function applyFilters() {
+            //     const filters = {
+            //       searchQuery: searchInput.value.trim(),
+            //       paymentMethod: document.getElementById("paymentFilter").value,
+            //       status: document.getElementById("statusFilter").value,
+            //       category: document.getElementById("categoryFilter").value,
+            //       brand: document.getElementById("brandFilter").value,
+            //       minPrice: document.getElementById("minPrice").value || null,
+            //       maxPrice: document.getElementById("maxPrice").value || null,
+            //       dateRange: dateRangeSelect.value,
+            //       startDate: startDate.value || null,
+            //       endDate: endDate.value || null,
+            //     };
+            //     console.log("Applying filters:", filters);
+            //     // Here you would update the table with filtered data (e.g., via API or client-side filtering)
+            //   }
+
+            //   filterControls.forEach((control) => {
+            //     if (control.id !== "startDate" && control.id !== "endDate") {
+            //       control.addEventListener("change", function () {
+            //         applyFilters();
+            //         checkFiltersApplied();
+            //       });
+            //     }
+            //   });
+
+            //   let searchTimeout;
+            //   searchInput.addEventListener("input", function () {
+            //     clearTimeout(searchTimeout);
+            //     if (this.value.trim().length > 0) {
+            //       clearSearchBtn.classList.add("active");
+            //     } else {
+            //       clearSearchBtn.classList.remove("active");
+            //     }
+            //     searchTimeout = setTimeout(() => {
+            //       applyFilters();
+            //       checkFiltersApplied();
+            //     }, 300);
+            //   });
+
+            //   if (dateRangeSelect) {
+            //     dateRangeSelect.addEventListener("change", function () {
+            //       if (this.value === "custom") {
+            //         startDate.classList.remove("d-none");
+            //         endDate.classList.remove("d-none");
+            //       } else {
+            //         startDate.classList.add("d-none");
+            //         endDate.classList.add("d-none");
+            //         applyFilters();
+            //       }
+            //       checkFiltersApplied();
+            //     });
+            //   }
+
+            //   startDate.addEventListener("change", function () {
+            //     if (endDate.value) applyFilters();
+            //     checkFiltersApplied();
+            //   });
+            //   endDate.addEventListener("change", function () {
+            //     if (startDate.value) applyFilters();
+            //     checkFiltersApplied();
+            //   });
+
+            //   const priceInputs = document.querySelectorAll("#minPrice, #maxPrice");
+            //   priceInputs.forEach((input) => {
+            //     let timeout;
+            //     input.addEventListener("input", function () {
+            //       clearTimeout(timeout);
+            //       timeout = setTimeout(() => {
+            //         applyFilters();
+            //         checkFiltersApplied();
+            //       }, 500);
+            //     });
+            //   });
+
+            //   clearSearchBtn.addEventListener("click", function () {
+            //     searchInput.value = "";
+            //     this.classList.remove("active");
+            //     applyFilters();
+            //     checkFiltersApplied();
+            //   });
+
+            //   resetFiltersBtn.addEventListener("click", function () {
+            //     searchInput.value = "";
+            //     clearSearchBtn.classList.remove("active");
+            //     filterControls.forEach((control) => {
+            //       if (control.tagName === "SELECT") {
+            //         if (control.id === "dateRangeSelect") control.value = "weekly";
+            //         else control.value = "all";
+            //       } else if (control.tagName === "INPUT") control.value = "";
+            //     });
+            //     startDate.classList.add("d-none");
+            //     endDate.classList.add("d-none");
+            //     applyFilters();
+            //   });
+
+            //   checkFiltersApplied();
+            //   applyFilters();
+
+            //   if (dateRangeSelect.value === "custom") {
+            //     startDate.classList.remove("d-none");
+            //     endDate.classList.remove("d-none");
+            //   }
+            // });
+
+
+
+
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+        <%- include("../../views/partial/admin/footer") %>

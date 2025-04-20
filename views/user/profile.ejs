@@ -247,7 +247,7 @@
                 <div class="row align-items-center">
                     <div class="col-12 col-md-7">
                         <h5 class="mb-3">Invite friends and earn rewards!</h5>
-                        <p class="mb-3">Share your unique referral link with friends. When they sign up using your link, you'll both receive <strong>₹200</strong> in rewards.</p>
+                        <p class="mb-3">Share your unique referral link with friends. When they sign up using your link, you'll get <strong>₹200</strong> in rewards.</p>
                         
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="referralLink" value="?ref=<%= user.referralCode  || '1234'%>" readonly>
@@ -269,11 +269,11 @@
                         <div class="referral-stats p-3 rounded" style="background-color: var(--primary-light);">
                             <div class="mb-3">
                                 <h6 class="mb-1">Total Referrals</h6>
-                                <h3 class="mb-0"><%= user.referrals?.length || 0 %></h3>
+                                <h3 class="mb-0"><%= totalReferrals %></h3>
                             </div>
                             <div>
                                 <h6 class="mb-1">Rewards Earned</h6>
-                                <h3 class="mb-0">₹<%= user.wallet?.transactions?.filter(t => t.description.includes('Referral')).reduce((sum, t) => sum + t.amount, 0) || 0 %></h3>
+                                <h3 class="mb-0">₹<%= totalReferrals * 200  %></h3>
                             </div>
                         </div>
                     </div>

@@ -1,3 +1,633 @@
 <%- include("../../views/partial/admin/header") %>
+ <!-- Sidebar -->
 
+  
+  <!-- Main Content -->
+    <div class="main-content container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <h4>Dashboard Overview</h4>
+                <p class="text-muted">Analytics and sales performance</p>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-md-3 mb-3">
+                <div class="card stats-card border-start border-4 border-success">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-chart-line text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Revenue</p>
+                            <h3 class="mb-0 fw-bold">₹3,45,45,976</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Orders -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-primary">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-shopping-cart text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Orders</p>
+                            <h3 class="mb-0 fw-bold">13</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- users -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-warning">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-users text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">
+                                Total Customers</p>
+                            <h3 class="mb-0 fw-bold">256</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- products -->
+            <div class="col-md-3">
+                <div class="card stats-card border-start border-4 border-danger">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
+                            <i class="fas fa-box text-danger fs-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted small mb-0">Total Products</p>
+                            <h3 class="mb-0 fw-bold">256</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Sales Overview</span>
+                <div class="chart-filter">
+                <button class="filter-btn" data-period="day">Day</button>
+                <button class="filter-btn" data-period="week">Week</button>
+                <button class="filter-btn active" data-period="month">Month</button>
+                <button class="filter-btn" data-period="year">Year</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="salesChart" height="300"></canvas>
+            </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+            <div class="card-header">Revenue by Category</div>
+            <div class="card-body">
+                <canvas id="categoryChart" height="300"></canvas>
+            </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="row mt-3">
+        <div class="col-lg-4">
+            <div class="card">
+            <div class="card-header">Best Selling Products</div>
+            <div class="card-body">
+                <ul class="top-list">
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div>
+                        <h6>MacBook Pro M2</h6>
+                        <p>Electronics</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>245 units</span>
+                    <div class="text-success">+12%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div>
+                        <h6>iPhone 14 Pro</h6>
+                        <p>Electronics</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>184 units</span>
+                    <div class="text-success">+8%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fas fa-headphones"></i>
+                    </div>
+                    <div>
+                        <h6>AirPods Pro</h6>
+                        <p>Electronics</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>122 units</span>
+                    <div class="text-success">+5%</div>
+                    </div>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mt-1">
+            <div class="card">
+            <div class="card-header">Best Selling Categories</div>
+            <div class="card-body">
+                <ul class="top-list">
+                <li>
+                    <div class="info">
+                    <div>
+                        <h6>Electronics</h6>
+                        <p>542 products</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$124,200</span>
+                    <div class="text-success">+18%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div>
+                        <h6>Fashion</h6>
+                        <p>352 products</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$98,450</span>
+                    <div class="text-success">+11%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div>
+                        <h6>Home & Living</h6>
+                        <p>245 products</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$78,250</span>
+                    <div class="text-success">+7%</div>
+                    </div>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mt-1 ">
+            <div class="card">
+            <div class="card-header">Best Selling Brands</div>
+            <div class="card-body">
+                <ul class="top-list">
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fab fa-apple"></i>
+                    </div>
+                    <div>
+                        <h6>Apple</h6>
+                        <p>Electronics</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$145,200</span>
+                    <div class="text-success">+15%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fab fa-samsung"></i>
+                    </div>
+                    <div>
+                        <h6>Samsung</h6>
+                        <p>Electronics</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$122,450</span>
+                    <div class="text-success">+9%</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="info">
+                    <div class="img">
+                        <i class="fab fa-nike"></i>
+                    </div>
+                    <div>
+                        <h6>Nike</h6>
+                        <p>Fashion</p>
+                    </div>
+                    </div>
+                    <div class="value">
+                    <span>$98,250</span>
+                    <div class="text-success">+6%</div>
+                    </div>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="row my-3 ">
+        <div class="col-12">
+            <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Recent Orders</span>
+                <button class="btn btn-sm btn-primary">View All</button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>#ORD-2145</td>
+                        <td>John Smith</td>
+                        <td>Apr 18, 2025</td>
+                        <td>$1,250</td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><a class="dropdown-item" href="#">View Details</a></li>
+                            <li><a class="dropdown-item" href="#">Generate Invoice</a></li>
+                            <li><a class="dropdown-item" href="#">Cancel Order</a></li>
+                            </ul>
+                        </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-2144</td>
+                        <td>Emily Johnson</td>
+                        <td>Apr 17, 2025</td>
+                        <td>$845</td>
+                        <td><span class="badge bg-warning text-dark">Processing</span></td>
+                        <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                            <li><a class="dropdown-item" href="#">View Details</a></li>
+                            <li><a class="dropdown-item" href="#">Generate Invoice</a></li>
+                            <li><a class="dropdown-item" href="#">Cancel Order</a></li>
+                            </ul>
+                        </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-2143</td>
+                        <td>Michael Brown</td>
+                        <td>Apr 16, 2025</td>
+                        <td>$1,450</td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton3">
+                            <li><a class="dropdown-item" href="#">View Details</a></li>
+                            <li><a class="dropdown-item" href="#">Generate Invoice</a></li>
+                            <li><a class="dropdown-item" href="#">Cancel Order</a></li>
+                            </ul>
+                        </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-2142</td>
+                        <td>Jessica Davis</td>
+                        <td>Apr 15, 2025</td>
+                        <td>$920</td>
+                        <td><span class="badge bg-danger">Canceled</span></td>
+                        <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
+                            <li><a class="dropdown-item" href="#">View Details</a></li>
+                            <li><a class="dropdown-item" href="#">Generate Invoice</a></li>
+                            <li><a class="dropdown-item" href="#">Reorder</a></li>
+                            </ul>
+                        </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#ORD-2141</td>
+                        <td>Robert Wilson</td>
+                        <td>Apr 14, 2025</td>
+                        <td>$740</td>
+                        <td><span class="badge bg-primary">Shipped</span></td>
+                        <td>
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle" type="button" id="dropdownMenuButton5" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton5">
+                            <li><a class="dropdown-item" href="#">View Details</a></li>
+                            <li><a class="dropdown-item" href="#">Generate Invoice</a></li>
+                            <li><a class="dropdown-item" href="#">Track Order</a></li>
+                            </ul>
+                        </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+            <div class="card-header">Ledger Book</div>
+            <div class="card-body">
+                <div class="mb-3">
+                <label for="ledgerDate" class="form-label">Date Range</label>
+                <div class="input-group">
+                    <input type="date" class="form-control" id="ledgerStartDate" value="2025-04-01">
+                    <span class="input-group-text">to</span>
+                    <input type="date" class="form-control" id="ledgerEndDate" value="2025-04-19">
+                    <button class="btn btn-primary" id="generateLedger">Generate</button>
+                </div>
+                </div>
+                <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Credit</th>
+                        <th>Debit</th>
+                        <th>Balance</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Apr 15, 2025</td>
+                        <td>Product Sales</td>
+                        <td>$4,250</td>
+                        <td>-</td>
+                        <td>$34,250</td>
+                    </tr>
+                    <tr>
+                        <td>Apr 14, 2025</td>
+                        <td>Inventory Restock</td>
+                        <td>-</td>
+                        <td>$2,150</td>
+                        <td>$30,000</td>
+                    </tr>
+                    <tr>
+                        <td>Apr 13, 2025</td>
+                        <td>Product Sales</td>
+                        <td>$3,450</td>
+                        <td>-</td>
+                        <td>$32,150</td>
+                    </tr>
+                    <tr>
+                        <td>Apr 12, 2025</td>
+                        <td>Utility Payment</td>
+                        <td>-</td>
+                        <td>$750</td>
+                        <td>$28,700</td>
+                    </tr>
+                    <tr>
+                        <td>Apr 11, 2025</td>
+                        <td>Product Sales</td>
+                        <td>$2,950</td>
+                        <td>-</td>
+                        <td>$29,450</td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">Product Inventory</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search products...">
+                                <button class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                <th>Product ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>#PRD-001</td>
+                                        <td>MacBook Pro M2</td>
+                                        <td>Electronics</td>
+                                        <td>$1,999</td>
+                                        <td>45</td>
+                                        <td><span class="badge bg-success">In Stock</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>#PRD-002</td>
+                                        <td>iPhone 14 Pro</td>
+                                        <td>Electronics</td>
+                                        <td>$1,099</td>
+                                        <td>12</td>
+                                        <td><span class="badge bg-warning text-dark">Low Stock</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>#PRD-003</td>
+                                        <td>AirPods Pro</td>
+                                        <td>Electronics</td>
+                                        <td>$249</td>
+                                        <td>38</td>
+                                        <td><span class="badge bg-success">In Stock</span></td>
+                                    </tr>
+                                        <tr>
+                                        <td>#PRD-004</td>
+                                        <td>Samsung Galaxy S23</td>
+                                        <td>Electronics</td>
+                                        <td>$899</td>
+                                        <td>27</td>
+                                        <td><span class="badge bg-success">In Stock</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>#PRD-005</td>
+                                        <td>Sony WH-1000XM5</td>
+                                        <td>Electronics</td>
+                                        <td>$349</td>
+                                        <td>8</td>
+                                        <td><span class="badge bg-warning text-dark">Low Stock</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>                                  
+                </div>
+            </div>
+        </div>
+    </div>   
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+  // Sales Chart
+  const salesCtx = document.getElementById('salesChart').getContext('2d');
+  const salesChart = new Chart(salesCtx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Sales',
+        data: [18500, 22000, 19500, 24000, 23000, 24500, 28000, 26000, 32000, 34000, 32000, 38000],
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        tension: 0.3,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#6366f1',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            borderDash: [2, 2]
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+  
+  // Category Chart
+  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+  const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Electronics', 'Fashion', 'Home & Living', 'Beauty', 'Sports'],
+      datasets: [{
+        data: [45, 25, 15, 10, 5],
+        backgroundColor: ['#6366f1', '#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+        borderWidth: 0,
+        hoverOffset: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+  
+  // Filter buttons
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Update chart data based on period (for demonstration)
+      const period = btn.dataset.period;
+      let newData;
+      
+      switch(period) {
+        case 'day':
+          newData = [1200, 1800, 1500, 2100, 1900, 2200, 2500];
+          salesChart.data.labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+          break;
+        case 'week':
+          newData = [14500, 16800, 18200, 17500, 19800];
+          salesChart.data.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
+          break;
+        case 'month':
+          newData = [18500, 22000, 19500, 24000, 23000, 24500, 28000, 26000, 32000, 34000, 32000, 38000];
+          salesChart.data.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          break;
+        case 'year':
+          newData = [250000, 320000, 380000, 420000, 390000];
+          salesChart.data.labels = ['2021', '2022', '2023', '2024', '2025'];
+          break;
+      }
+      
+      salesChart.data.datasets[0].data = newData;
+      salesChart.update();
+    });
+  });
+</script>
 <%- include("../../views/partial/admin/footer.ejs") %>

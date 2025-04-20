@@ -429,9 +429,6 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
     return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
 }
 
-
-
-
 const addToCart = async (req ,res) => {
 
     const { userData} = res.locals;
@@ -967,11 +964,6 @@ const  proceedToCheckout = async (req , res) => {
     const { userData} = res.locals;
     
     try {
-
-        // const cart = await Cart.findOne({userId:userData._id})
-        //              .populate("items.productId")
-        //              .populate("productName productImage salePrice regularPrice isListed quantity status")
-        
         const cart = await Cart.findOne({ userId: userData._id })
             .populate({
                 path: "items.productId",

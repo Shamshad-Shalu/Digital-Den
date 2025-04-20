@@ -2,6 +2,7 @@ const User = require('../../model/userSchema');
 const bcrypt = require('bcrypt');
 const {validatePassword, validateEmail ,validateUserProfile} = require("../../utils/validation");
 const {genarateOtp} = require("../../utils/helper");
+const Wallet = require("../../model/walletSchema");
 const {sendProfileUpdateOtp} = require("../../utils/userEmails");
 const fs = require('fs');
 const path = require('path');
@@ -9,12 +10,19 @@ const path = require('path');
 
 const getUserProfile = async (req, res) => {
     try {
-       const user = res.locals.userData; 
-        if (!user) {
+
+        const {userData} = res.locals 
+  
+        if (!userData) {
             return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/user/signin" });
         }  
+        
+        const user = await User.findById(userData._id)
+             .populate('redeemedUsers');
 
-        res.render('user/profile', { user ,  });
+        const totalReferrals = user?.redeemedUsers?.length || 0 ;
+
+        res.render('user/profile', { user , totalReferrals });
     } catch (error) {
         console.error('Error fetching profile:', error);
         res.status(500).render('error', { message: 'Server error' });

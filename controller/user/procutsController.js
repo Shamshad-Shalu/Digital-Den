@@ -256,153 +256,9 @@ const getProducts = async (req, res) => {
 };
 
 
-async function calculateBestOffer (product , quantity) {
-
-    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0)* quantity;
-    const categoryDiscount = product.category?.categoryOffer 
-        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
-        : 0;
-    const brandDiscount = product.brand?.brandOffer 
-        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
-        : 0;
-
-    const specialOffer = await getSpecialOffer(product);
-    const specialDiscount = specialOffer.discount * quantity;
-
-    const maxDiscount = Math.max(productDiscount, categoryDiscount , brandDiscount ,specialDiscount);
-
-    let discountType = 'product';
-    if (maxDiscount === categoryDiscount){
-        discountType = 'category';
-    }else if (maxDiscount === brandDiscount) {
-        discountType = 'brand';
-    }else if (maxDiscount === specialDiscount) {
-        discountType = specialOffer.type;
-    }
-
-    return {amount : maxDiscount , type : discountType }
-};
-
-async function getSpecialOffer (product){
-    const now = new Date();
-    const regularPrice = product.regularPrice;
-    const MAX_DISCOUNT = regularPrice * 0.5 ; //50% of maximum
-
-    const offers = await Offer.find({
-        status: 'Active',
-        startDate: { $lte: now },
-        endDate: { $gte: now },
-        $or: [
-            { appliedOn: 'product', products: product._id },
-            { appliedOn: 'brand', brands: product.brand?._id || product.brand },
-            { appliedOn: 'category', categories: product.category?._id || product.category }
-        ]
-    });
-
-    let maxDiscount = 0;
-    let bestType = null;
-    let offerName = null;
-    let endDate = null;
-    let description = null;
-   
-    for(let offer of offers) {
-        let discount = 0 ;
-
-        if(offer.type === "Percentage" ){
-            discount = (regularPrice * offer.discount) / 100;
-        }else if(offer.type ==="Fixed"){
-            discount = offer.discount;
-        }
-        discount = Math.min(discount , MAX_DISCOUNT);
-        
-        if (discount > maxDiscount) {
-            maxDiscount = discount;
-            bestType = `${offer.appliedOn}`;
-            offerName = offer.name;
-            endDate = offer.endDate;
-            description = offer.description
-      
-        }
-    };
-
-    // console.log({
-    //     status: "Checking status of special discount",
-    //     specialDiscount: maxDiscount,
-    //     applyOn: bestType,
-    //     name: offerName,
-    // });
-
-    return {discount: maxDiscount, type: bestType ,offerName , endDate , description };
-};
-
-
-
-// Get Product Details
-// const getProductDetails = async (req, res) => {
-//     try {
-
-//         const { isLoggedIn, userData, isUserBlocked } = res.locals;
-//         const productId = req.params.id;
-
-//         let product = await Product.findById(productId)
-//             .populate('category', 'name isListed')
-//             .populate('brand', 'brandName isListed')
-//             .lean();
-
-//         if (!product || !product.isListed || product.isDeleted){
-//             return res.redirect('/user/products'); 
-//         }
-//         if  (!product?.category?.isListed || !product?.brand?.isListed){
-//             return res.redirect('/user/products');
-//         }
-
-
-//         const status = await determineStatus(productId);
-//         product.status = status; 
-
-//         if (status === 'Discontinued') {
-//             return res.redirect('/user/products');
-//         }
-
-
-
-//         // related products
-//         let relatedProducts = await Product.find({
-//             category: product.category._id,
-//             _id: { $ne: productId },
-//             isDeleted: false,
-//             isListed: true
-//         })
-//         .populate('category', 'name  isListed')
-//         .populate('brand', 'brandName isListed')
-//         .lean();
-
-//         relatedProducts = relatedProducts.filter(pr => pr?.category?.isListed && pr?.brand?.isListed).slice(0,7)
-         
-//         for (let i = 0; i < relatedProducts.length; i++) {
-//             const relProduct = relatedProducts[i];
-//             const relStatus = await determineStatus(relProduct._id);
-//             relProduct.status = relStatus;
-//         }
-
-//         res.render('user/product-details', {
-//             product,
-//             relatedProducts,
-//             title: product.productName,
-//             isLoggedIn: isLoggedIn,              
-//             user: userData,                     
-//             showBlockedNotification: isUserBlocked 
-//         });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).send('Server Error');
-//     }
-// };
-
-
 const getProductDetails = async (req, res) => {
     try {
-            const { userData ,isLoggedIn , isUserBlocked } = res.locals;
+        const { userData ,isLoggedIn , isUserBlocked } = res.locals;
         const productId = req.params.id;
         
         let product = await Product.findById(productId)
@@ -427,7 +283,7 @@ const getProductDetails = async (req, res) => {
             : 0;
         
         // Get special offers
-        const specialOffer = await getSpecialOffer(product);
+        const specialOffers = await getSpecialOffer(product);
         
         const availableOffers = [];
         
@@ -460,16 +316,18 @@ const getProductDetails = async (req, res) => {
                 description: `${product.brand.brandOffer}% off on all ${product.brand.brandName} products`
             });
         }
-        
-        if (specialOffer.discount > 0) {
-            availableOffers.push({
-                type: specialOffer.type,
-                name: specialOffer.offerName,
-                discount: specialOffer.discount,
-                description: `Special offer: ${specialOffer.description}`,
-                endDate: specialOffer.endDate,
-                isSpecial: true
-            });
+
+        for (const special of specialOffers) {
+            if (special.discount > 0) {
+                availableOffers.push({
+                    type: special.appliedOn ,
+                    name: special.offerName,
+                    discount: special.discount,
+                    description: `Special offer: ${special.description}`,
+                    endDate: special.endDate,
+                    isSpecial: true
+                });
+            }
         }
         
         // Calculate best offer
@@ -516,32 +374,6 @@ const getProductDetails = async (req, res) => {
     }
 };
 
-async function calculateBestOffer(product, quantity) {
-    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0) * quantity;
-    const categoryDiscount = product.category?.categoryOffer 
-        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
-        : 0;
-    const brandDiscount = product.brand?.brandOffer 
-        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
-        : 0;
-
-    const specialOffer = await getSpecialOffer(product);
-    const specialDiscount = specialOffer.discount * quantity;
-
-    const maxDiscount = Math.max(productDiscount, categoryDiscount, brandDiscount, specialDiscount);
-
-    let discountType = 'product';
-    if (maxDiscount === categoryDiscount && categoryDiscount > 0) {
-        discountType = 'category';
-    } else if (maxDiscount === brandDiscount && brandDiscount > 0) {
-        discountType = 'brand';
-    } else if (maxDiscount === specialDiscount && specialDiscount > 0) {
-        discountType = specialOffer.type;
-    }
-
-    return { amount: maxDiscount, type: discountType };
-}
-
 async function getSpecialOffer(product) {
     const now = new Date();
     const regularPrice = product.regularPrice;
@@ -558,11 +390,7 @@ async function getSpecialOffer(product) {
         ]
     });
 
-    let maxDiscount = 0;
-    let bestType = null;
-    let offerName = null;
-    let endDate = null;
-    let description = null;
+    const specialOffers = [];
    
     for (let offer of offers) {
         let discount = 0;
@@ -574,24 +402,50 @@ async function getSpecialOffer(product) {
         }
 
         discount = Math.min(discount, MAX_DISCOUNT);
-        
-        if (discount > maxDiscount) {
-            maxDiscount = discount;
-            bestType = offer.type;
-            offerName = offer.name;
-            endDate = offer.endDate;
-            description = offer.description;
-        }
+
+        specialOffers.push({
+            discount,
+            type: offer.type,
+            offerName: offer.name,
+            endDate: offer.endDate,
+            description: offer.description,
+            appliedOn: offer.appliedOn,
+        });
     }
 
-    return { 
-        discount: maxDiscount, 
-        type: bestType , 
-        offerName: offerName , 
-        endDate: endDate,
-        description  
-    };
+    return specialOffers;
 }
+
+async function calculateBestOffer (product , quantity) {
+
+    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0)* quantity;
+    const categoryDiscount = product.category?.categoryOffer 
+        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+        : 0;
+    const brandDiscount = product.brand?.brandOffer 
+        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+        : 0;
+
+    const specialOffers = await getSpecialOffer(product);
+
+    const specialDiscount = specialOffers.length > 0
+        ? Math.max(...specialOffers.map(offer => offer.discount * quantity))
+        : 0;
+
+    const maxDiscount = Math.max(productDiscount, categoryDiscount , brandDiscount ,specialDiscount);
+
+    let discountType = 'product';
+    if (maxDiscount === categoryDiscount){
+        discountType = 'category';
+    }else if (maxDiscount === brandDiscount) {
+        discountType = 'brand';
+    }else if (maxDiscount === specialDiscount) {
+        discountType = 'special';
+    }
+
+    return {amount : maxDiscount , type : discountType }
+};
+
 
 module.exports  = {
     loadHome,

@@ -1157,7 +1157,7 @@
     }).toString();
     
     try {
-        const response = await fetch(`/admin/sales?${queryParams}`,{
+        const response = await fetch(`/admin/sale?${queryParams}`,{
             headers:{'X-Requested-With': 'XMLHttpRequest'},
         });
 
@@ -1425,6 +1425,8 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchSales();
     checkFilters();
 });
+
+
  </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
