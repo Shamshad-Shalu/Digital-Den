@@ -29,7 +29,6 @@ const getUserProfile = async (req, res) => {
     }
 };
 
-
 const getEditProfile = async (req, res) => {
     try {
         const user = res.locals.userData;
@@ -41,7 +40,6 @@ const getEditProfile = async (req, res) => {
         res.status(500).render('error', { message: 'Server error' });
     }
 };
-
 
 const addPassword = async (req , res ) => {
     try {
@@ -206,7 +204,6 @@ const verifyEmailOtp = async (req , res) => {
     }
 }
 
-
 const updateProfile = async (req, res) => {
     try {
         const user = await User.findById(res.locals.userData._id); 
@@ -286,7 +283,6 @@ const updateProfile = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error occurred' });
     }
 };
-
 
 const verifyPhoneOtp = async (req, res) => {
     try {

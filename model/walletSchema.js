@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const {generateCustomId} = require("../utils/helper");
 
 const walletSchema = new Schema({
     userId: {
@@ -22,7 +23,7 @@ const walletSchema = new Schema({
         transactionId: {
             type: String,
             unique: true,
-            default: () => Math.random().toString(36).substr(2, 9)
+            default: () => generateCustomId ("TXN")
         },
         amount: {
             type: Number,

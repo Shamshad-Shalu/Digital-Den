@@ -38,15 +38,6 @@ const couponSchema = new Schema({
         enum: ['Active', 'Expired', 'Disabled'],
         default: 'Active'
     },
-    // usageLimit: {
-    //     type: Number,
-    //     default: 1, 
-    //     min: 1
-    // },
-    // usersUsed: [{
-    //     userId: { type: Schema.Types.ObjectId, ref: 'User' },
-    //     //usedCount: { type: Number, default: 1 }
-    // }],
     usersUsed: [{
         type: Schema.Types.ObjectId,
         ref: 'User'

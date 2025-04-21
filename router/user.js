@@ -105,7 +105,7 @@ router.post('/verify-phone-otp',userUpload ,profileController.verifyPhoneOtp);
 
 //walllet management 
 router.get("/wallet",walletController.getWalletPage);
-router.post('/wallet/add', walletController.addAmountWallet);
+router.post('/wallet/add',walletController.addAmountWallet);
 router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 

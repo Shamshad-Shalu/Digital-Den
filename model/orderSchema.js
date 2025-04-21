@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const {Schema} = mongoose;
 const {v4:uuidv4} = require("uuid");
+const {generateCustomId} = require("../utils/helper");
 
 const orderSchema = new Schema({
     orderId:{
         type:String,
-        default:uuidv4,
+        default:generateCustomId("ORD"),
         unique:true
     },
     userId :{
@@ -31,6 +32,10 @@ const orderSchema = new Schema({
             type: String,
             enum: ["Not Returned", "Return Requested", "Returned"],
             default: "Not Returned",
+        },
+        totalAmount:{
+            type:Number,
+            required:true
         },
         returnReason: { type: String, trim: true }
     }],

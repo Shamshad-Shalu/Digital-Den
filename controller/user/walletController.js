@@ -2,7 +2,12 @@ const User = require("../../model/userSchema");
 const Wallet = require("../../model/walletSchema");
 const crypto = require("crypto");
 const Razorpay = require('razorpay');
+const {generateCustomId } = require("../../utils/helper");
 
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 const getWalletPage = async (req, res) => {
     try {
@@ -30,7 +35,6 @@ const getWalletPage = async (req, res) => {
             wallet = new Wallet({
                 userId: user._id,
                 balance: 0,
-                currency: "INR"
             });
             await wallet.save();
         }
@@ -98,11 +102,6 @@ const getWalletPage = async (req, res) => {
     }
 };
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
-
 const addAmountWallet = async (req, res) => {
     try {
         const { userData, isLoggedIn } = res.locals;
@@ -145,7 +144,6 @@ const addAmountWallet = async (req, res) => {
             wallet = new Wallet({
                 userId: user._id,
                 balance: 0,
-                currency: "INR"
             });
             await wallet.save();
         }
@@ -153,8 +151,8 @@ const addAmountWallet = async (req, res) => {
         const receiptId = "rcpt_" + Date.now();
         
         const orderOptions = {
-            amount: amount * 100, 
-            currency: "INR",
+            amount: amount * 100,
+            currency: "INR", 
             receipt: receiptId,
             notes: {
                 userId: user._id.toString(),
@@ -165,7 +163,7 @@ const addAmountWallet = async (req, res) => {
 
         const razorpayOrder = await razorpay.orders.create(orderOptions);
         
-        const transactionId = "RZP" + Date.now() + crypto.randomBytes(3).toString('hex');
+        const transactionId = generateCustomId("RZP");
         
         wallet.transactions.push({
             transactionId: transactionId,
@@ -182,7 +180,7 @@ const addAmountWallet = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Payment initiated",
-            order: {
+            order: { 
                 id: razorpayOrder.id,
                 amount: razorpayOrder.amount / 100, 
                 currency: razorpayOrder.currency,

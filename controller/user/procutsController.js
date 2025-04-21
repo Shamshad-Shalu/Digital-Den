@@ -2,9 +2,8 @@ const mongoose = require("mongoose");
 const Product = require("../../model/productSchema"); 
 const Category = require("../../model/categorySchema"); 
 const Brand = require("../../model/brandSchema"); 
-const {determineStatus} = require("../../utils/helper");
+const {determineStatus ,getSpecialOffer , calculateBestOffer} = require("../../utils/helper");
 const Wishlist = require("../../model/wishlistSchema");
-const Offer = require("../../model/offerSchema")
 const { ObjectId } = require('mongoose').Types;
 
 
@@ -255,7 +254,6 @@ const getProducts = async (req, res) => {
     }
 };
 
-
 const getProductDetails = async (req, res) => {
     try {
         const { userData ,isLoggedIn , isUserBlocked } = res.locals;
@@ -374,77 +372,6 @@ const getProductDetails = async (req, res) => {
     }
 };
 
-async function getSpecialOffer(product) {
-    const now = new Date();
-    const regularPrice = product.regularPrice;
-    const MAX_DISCOUNT = regularPrice * 0.5; 
-
-    const offers = await Offer.find({
-        status: 'Active',
-        startDate: { $lte: now },
-        endDate: { $gte: now },
-        $or: [
-            { appliedOn: 'product', products: product._id },
-            { appliedOn: 'brand', brands: product.brand?._id || product.brand },
-            { appliedOn: 'category', categories: product.category?._id || product.category }
-        ]
-    });
-
-    const specialOffers = [];
-   
-    for (let offer of offers) {
-        let discount = 0;
-
-        if (offer.type === "Percentage") {
-            discount = (regularPrice * offer.discount) / 100;
-        } else if (offer.type === "Fixed") {
-            discount = offer.discount;
-        }
-
-        discount = Math.min(discount, MAX_DISCOUNT);
-
-        specialOffers.push({
-            discount,
-            type: offer.type,
-            offerName: offer.name,
-            endDate: offer.endDate,
-            description: offer.description,
-            appliedOn: offer.appliedOn,
-        });
-    }
-
-    return specialOffers;
-}
-
-async function calculateBestOffer (product , quantity) {
-
-    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0)* quantity;
-    const categoryDiscount = product.category?.categoryOffer 
-        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
-        : 0;
-    const brandDiscount = product.brand?.brandOffer 
-        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
-        : 0;
-
-    const specialOffers = await getSpecialOffer(product);
-
-    const specialDiscount = specialOffers.length > 0
-        ? Math.max(...specialOffers.map(offer => offer.discount * quantity))
-        : 0;
-
-    const maxDiscount = Math.max(productDiscount, categoryDiscount , brandDiscount ,specialDiscount);
-
-    let discountType = 'product';
-    if (maxDiscount === categoryDiscount){
-        discountType = 'category';
-    }else if (maxDiscount === brandDiscount) {
-        discountType = 'brand';
-    }else if (maxDiscount === specialDiscount) {
-        discountType = 'special';
-    }
-
-    return {amount : maxDiscount , type : discountType }
-};
 
 
 module.exports  = {

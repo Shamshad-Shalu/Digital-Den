@@ -21,133 +21,6 @@ const getorderSuccessPage = async (req, res) => {
     }
 };
 
-// const getOrders = async (req , res) => {
-//     const {userData } = res.locals;
-
-//     try {
-//         // Fetch the user
-//         const user = await User.findById(userData);
-//         if (!user) {
-//             console.error("User not found for ID:", userData._id);
-//             return res.redirect("/user/home");
-//         }
-
-//         const orders = await Order.find({userId:userData._id})
-//                 .populate("orderedItems.product")
-//                 .sort({ invoiceDate: -1 });
-//         const summary = {
-//             totalOrders :orders.length,
-//             activeOrders : orders.filter(order => ['Pending', 'Processing', 'Shipped'].includes(order.status)).length,
-//             totalSpend :orders.reduce((sum , order ) => sum + order.finalAmount , 0)
-//         }
-
-//         res.render('user/orders', { user,orders, summary });
-        
-//     } catch (error) {
-//         console.error('Error fetching orders:', error);
-//         res.status(500).send('Server error');
-//     }
-// }
-
-
-// const getOrders = async (req , res) => {
-//     const {userData } = res.locals;
-
-//     try {
-
-//         // Fetch the user
-//         const user = await User.findById(userData);
-//         if (!user) {
-//             console.error("User not found for ID:", userData._id);
-//             return res.redirect("/user/home");
-//         }
-
-//         let  {page , limit , filter , sort} = req.query;
-
-//         page = parseInt(page) || 1 ;
-//         limit = parseInt(limit) || 5 ;
-//         filter = filter || "all";
-//         sort = sort || "date-desc"
-
-//         let query = { userId: userData._id };
-
-//         if (req.query.search) {
-//             const searchTerm = req.query.search.trim();
-//             query.$or = [
-//                 { orderId: { $regex: searchTerm, $options: 'i' } },
-//                 { status: { $regex: searchTerm, $options: 'i' } },
-//                 { 'orderedItems.product.productName': { $regex: searchTerm, $options: 'i' } }
-//             ];
-//         }
-
-//         // Apply status filter
-//         if (filter !== "all") {
-//             query.status = filter.charAt(0).toUpperCase() + filter.slice(1); // Capitalize first letter (e.g., "processing" -> "Processing")
-//         }
-
-//         // Calculate total orders for pagination
-//         const totalOrders = await Order.countDocuments(query);
-
-//         // Calculate pagination metadata
-//         const totalPages = Math.ceil(totalOrders / limit);
-//         const skip = (page - 1) * limit;
-
-//         // Build sort criteria
-//         let sortCriteria = {};
-//         switch (sort) {
-//             case "date-desc":
-//                 sortCriteria = { invoiceDate: -1 };
-//                 break;
-//             case "date-asc":
-//                 sortCriteria = { invoiceDate: 1 };
-//                 break;
-//             case "total-desc":
-//                 sortCriteria = { finalAmount: -1 };
-//                 break;
-//             case "total-asc":
-//                 sortCriteria = { finalAmount: 1 };
-//                 break;
-//             case "status":
-//                 sortCriteria = { status: 1 };
-//                 break;
-//             default:
-//                 sortCriteria = { invoiceDate: -1 }; // Fallback to date-desc
-//         }
-
-//         const orders = await Order.find({userId:userData._id})
-//                 .populate("orderedItems.product")
-//                 .sort(sortCriteria)
-//                 .skip(skip)
-//                 .limit(limit);
-        
-//         // Calculate summary
-//         const allOrders = await Order.find({ userId: userData._id }); // Fetch all orders for summary
-//         const summary = {
-//             totalOrders: allOrders.length,
-//             activeOrders: allOrders.filter(order => ['Pending', 'Processing', 'Shipped'].includes(order.status)).length,
-//             totalSpend: allOrders.reduce((sum, order) => sum + order.finalAmount, 0),
-//         };
-
-//         res.render('user/orders', {
-//             user,
-//             orders,
-//             summary,
-//             pagination: {
-//                 currentPage: page,
-//                 totalPages,
-//                 totalOrders,
-//                 limit
-//             },
-//             filter,
-//             sort,
-//         });
-        
-//     } catch (error) {
-//         console.error('Error fetching orders:', error);
-//         res.status(500).send('Server error');
-//     }
-// }
-
 const getOrders = async (req, res) => {
     const { userData } = res.locals;
 
@@ -470,176 +343,6 @@ const returnOrder = async (req, res) => {
     }
 };
 
-
-// const returnItem = async (req, res) => {
-
-// const returnOrder = async (req,res ) => {
-//     try {
-//         const {isUserBlocked ,userData } = res.locals;
-//         if (isUserBlocked) {
-//             return res.status(403).json({ success: false, message: 'Account is blocked' });
-//         }
-
-//         const { orderId } = req.params;
-//         const { reason } = req.body;
-    
-//         // Validate request data
-//         const errors = validateReturnRequest({ reason });
-//         if (errors) {
-//             return res.status(400).json({ success: false, errors });
-//         }
-
-//         const user = await User.findById(userData)
-//         if (!user) {
-//             return res.status(404).json({ success: false, message: 'User not found' });
-//         }
-
-//         // Find the order
-//         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
-//         if (!order) {
-//             return res.status(404).json({ success: false, message: 'Order not found' });
-//         }
-
-//         // Check if the user is authorized to cancel
-//         if (order.userId.toString() !== user._id.toString()  && !user.isAdmin) {
-//             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
-//         }
-
-//         //checking
-//         if (order.status !== 'Delivered') {
-//             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
-//         }
-
-//         // Checking the order is already returned or has a return request
-//         if (['Return Request', 'Returned'].includes(order.status)) {
-//             return res.status(400).json({ success: false, message: 'Order is already in the return process' });
-//         }
-
-//         const returnRequest = new ReturnRequest({
-//             orderId: order._id,
-//             itemId: null, 
-//             reason,
-//             requestedBy: user._id,
-//             status: user.isAdmin ? 'Approved' : 'Pending', 
-//         });
-//         await returnRequest.save();
-
-//         // increment stock for  approved requests  
-//         if (returnRequest.status === 'Approved') {
-//             for (const item of order.orderedItems) {
-//                 const product = item.product;
-//                 product.quantity += item.quantity;
-//                 await product.save();
-
-//                 // Update the return status of each item
-//                 item.returnStatus = 'Returned';
-//             }
-
-//             // Update the order status
-//             order.status = 'Returned';
-//             await order.save();
-
-//         } else {
-//             // update the order status to Return Request  for pending  
-//             order.status = 'Return Request';
-//             await order.save();
-//         }
-
-//         res.json({
-//             success: true,
-//             message: returnRequest.status === 'Approved'? 'Order returned successfully'
-//             : 'Return request submitted for review',
-//         });
-        
-//     } catch (error) {
-//         console.error('Return order error:', error);
-//         res.status(500).json({ success: false, message: 'Server error' });
-//     }
-// }
- 
-// //specific item 
-// const returnItem = async (req,res ) => {//     try {
-//         const { userData, isUserBlocked } = res.locals;
-//         const { orderId, itemId } = req.params;
-//         const { reason } = req.body;
-
-//         if (isUserBlocked) {
-//             return res.status(403).json({ success: false, message: 'Account is blocked' });
-//         }
-
-//         const errors = validateReturnRequest({ reason });
-//         if (errors) {
-//             return res.status(400).json({ success: false, errors });
-//         }
-
-//         const user = await User.findById(userData);
-//         if (!user) {
-//             return res.status(404).json({ success: false, message: 'User not found' });
-//         }
-
-//         const order = await Order.findOne({ orderId }).populate('orderedItems.product');
-//         if (!order) {
-//             return res.status(404).json({ success: false, message: 'Order not found' });
-//         }
-
-//         if (order.userId.toString() !== user._id.toString() && !user.isAdmin) {
-//             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
-//         }
-
-//         if (order.status !== 'Delivered') {
-//             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
-//         }
-
-//         const item = order.orderedItems.find(i => i._id.toString() === itemId);
-//         if (!item) {
-//             return res.status(404).json({ success: false, message: 'Item not found in order' });
-//         }
-
-//         if (['Return Requested', 'Returned'].includes(item.returnStatus)) {
-//             return res.status(400).json({ success: false, message: 'Item is already in the return process' });
-//         }
-
-//         const returnRequest = new ReturnRequest({
-//             orderId: order._id,
-//             itemIds: [itemId], 
-//             reason,
-//             requestedBy: user._id,
-//             status: user.isAdmin ? 'Approved' : 'Pending',
-//         });
-//         await returnRequest.save();
-
-//         if (returnRequest.status === 'Approved') {
-//             const product = item.product;
-//             product.quantity += item.quantity;
-//             await product.save();
-
-//             item.returnStatus = 'Returned';
-//             item.returnReason = reason; // Store reason in the order item
-
-//             const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
-//             if (allItemsReturned) {
-//                 order.status = 'Returned';
-//             }
-//         } else {
-//             item.returnStatus = 'Return Requested';
-//             item.returnReason = reason; 
-//             if (order.status !== 'Return Request') {
-//                 order.status = 'Return Request';
-//             }
-//         }
-
-//         await order.save();
-
-//         res.json({
-//             success: true,
-//             message: returnRequest.status === 'Approved' ? 'Item returned successfully' : 'Return request submitted for review',
-//         });
-//     } catch (error) {
-//         console.error('Return order error:', error);
-//         res.status(500).json({ success: false, message: 'Server error' });
-//     }
-// };
-
 const returnItem = async (req, res) => {
     try {
         const { userData, isUserBlocked } = res.locals;
@@ -700,7 +403,7 @@ const returnItem = async (req, res) => {
             await product.save();
 
             item.returnStatus = 'Returned';
-            item.returnReason = reason; // Store reason in the order item
+            item.returnReason = reason; 
 
             const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
             if (allItemsReturned) {
@@ -713,7 +416,6 @@ const returnItem = async (req, res) => {
                 order.status = 'Return Request';
             }
         }
-
         await order.save();
 
         res.json({
@@ -725,7 +427,6 @@ const returnItem = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
 
 module.exports = {
     getorderSuccessPage,

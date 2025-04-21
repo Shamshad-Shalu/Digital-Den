@@ -28,6 +28,10 @@ const cartSchema = new Schema({
         totalPrice:{
             type:Number,
             required:true
+        },
+        totalDiscount:{
+            type:Number,
+            default: 0
         }
     }],
     subtotal: { 

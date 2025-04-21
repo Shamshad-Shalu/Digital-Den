@@ -13,7 +13,6 @@ const loadAddresspage = async (req, res) => {
         return res.redirect("/user/home");
       }
   
-      
       const addressDoc = await Address.findOne({ userId: res.locals.userData });
       const addresses = addressDoc ? addressDoc.addresses : []; 
   
@@ -33,7 +32,6 @@ const loadAddresspage = async (req, res) => {
         
     }
 }
-
 
 const addAddress = async (req, res) => {
     try {
@@ -94,7 +92,6 @@ const addAddress = async (req, res) => {
         });
     }
 };
-
 
 const editAddress = async (req, res) => {
     try {
@@ -190,15 +187,6 @@ const deleteAddress = async (req , res) =>{
         return res.status(500).json({ success: false, message: "Server error: " + error.message });
     }
 }
-
-
-
-
-
-
-
-
-
 
 module.exports = {
     loadAddresspage,

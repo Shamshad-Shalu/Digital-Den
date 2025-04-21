@@ -2,7 +2,6 @@ const Coupon = require("../../model/couponSchema");
 const User = require("../../model/userSchema");
 const {validateCoupon } = require("../../utils/validation");
 
-
 const getCoupons = async (req,res)=>{
     try {
 

@@ -4,7 +4,6 @@ const Category = require('../../model/categorySchema');
 const Brand = require('../../model/brandSchema');
 const { validateOffer } = require('../../utils/validation');
 
-
 const getOffers = async (req, res) => {
    try {
 
@@ -133,7 +132,6 @@ const addOffer = async (req, res) => {
       res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
-
 
 const editOffer = async (req , res)=> {
   try {

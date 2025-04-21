@@ -1,5 +1,7 @@
 const validator = require("validator");
 const Product  = require("../model/productSchema");
+const Offer = require("../model/offerSchema");
+
 
 // async function determineStatus (productId, isListed, quantity)  {
 //     try {
@@ -112,30 +114,6 @@ const updateProductsForCategory = async (categoryId) => {
     }
 };
 
-
-// const updateAllProductStatuses = async () => {
-//     try {
-//         console.log('Starting product status update job...');
-//         const products = await Product.find()
-//             .populate('category')
-//             .populate('brand');
-
-//         for (let product of products) {
-//             const newStatus = await determineStatus(product._id);
-//             if (product.status !== newStatus) {
-//                 product.status = newStatus;
-//                 await product.save();
-//                 console.log(`Updated status for product ${product._id} to ${newStatus}`);
-//             }
-//         }
-//         console.log('Product status update job completed.');
-//     } catch (error) {
-//         console.error('Error in product status update job:', error.stack);
-//     }
-// };
-
-
-
 function validateUser(req) {
     const {username, email, password} = req.body;
     
@@ -154,17 +132,97 @@ function validateUser(req) {
     return null; 
 }
 
-
 //otp generating 
 function genarateOtp(){
   return  Math.floor(100000 + Math.random() * 900000).toString();
 } 
 
+// Generates a custom ID  for transactions 
+function generateCustomId(TNX = "ID") {
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return `${TNX}-${date}-${random}`;
+}
+
+async function getSpecialOffer(product) {
+    const now = new Date();
+    const regularPrice = product.regularPrice;
+    const MAX_DISCOUNT = regularPrice * 0.5; 
+
+    const offers = await Offer.find({
+        status: 'Active',
+        startDate: { $lte: now },
+        endDate: { $gte: now },
+        $or: [
+            { appliedOn: 'product', products: product._id },
+            { appliedOn: 'brand', brands: product.brand?._id || product.brand },
+            { appliedOn: 'category', categories: product.category?._id || product.category }
+        ]
+    });
+
+    const specialOffers = [];
+   
+    for (let offer of offers) {
+        let discount = 0;
+
+        if (offer.type === "Percentage") {
+            discount = (regularPrice * offer.discount) / 100;
+        } else if (offer.type === "Fixed") {
+            discount = offer.discount;
+        }
+
+        discount = Math.min(discount, MAX_DISCOUNT);
+
+        specialOffers.push({
+            discount,
+            type: offer.type,
+            offerName: offer.name,
+            endDate: offer.endDate,
+            description: offer.description,
+            appliedOn: offer.appliedOn,
+        });
+    }
+
+    return specialOffers;
+}
+
+async function calculateBestOffer (product , quantity) {
+
+    const productDiscount = Math.max((product.regularPrice - product.salePrice), 0)* quantity;
+    const categoryDiscount = product.category?.categoryOffer 
+        ? (product.regularPrice * product.category.categoryOffer * quantity) / 100 
+        : 0;
+    const brandDiscount = product.brand?.brandOffer 
+        ? (product.regularPrice * product.brand.brandOffer * quantity) / 100 
+        : 0;
+
+    const specialOffers = await getSpecialOffer(product);
+
+    const specialDiscount = specialOffers.length > 0
+        ? Math.max(...specialOffers.map(offer => offer.discount * quantity))
+        : 0;
+
+    const maxDiscount = Math.max(productDiscount, categoryDiscount , brandDiscount ,specialDiscount);
+
+    let discountType = 'product';
+    if (maxDiscount === categoryDiscount){
+        discountType = 'category';
+    }else if (maxDiscount === brandDiscount) {
+        discountType = 'brand';
+    }else if (maxDiscount === specialDiscount) {
+        discountType = 'special';
+    }
+
+    return {amount : maxDiscount , type : discountType }
+};
+
 module.exports = {
     validateUser,
     genarateOtp,
+    getSpecialOffer,
+    calculateBestOffer,
     determineStatus,
     updateProductsForBrand,
-
+    generateCustomId,
     updateProductsForCategory
 }

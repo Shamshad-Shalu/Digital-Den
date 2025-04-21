@@ -6,7 +6,6 @@ const { validateProduct } = require('../../utils/validation');
 const fs = require('fs').promises;
 const path = require('path');
 
-
 const productInfo = async (req, res) => {
     try {
         const categories = await Category.find({ isListed: true, isDeleted: false });
@@ -73,7 +72,6 @@ const productInfo = async (req, res) => {
     }
 }
 
-
 const viewProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id)
@@ -90,7 +88,6 @@ const viewProduct = async (req, res) => {
         res.status(500).render('error', { message: 'Server error' });
     }
 };
-
 
 const getEditProduct = async (req, res) => {
     try {
@@ -175,8 +172,6 @@ const toggleProductStatus = async (req , res ) => {
        }
 }
 
-
-
 const addProduct = async (req, res) => {
     try {
       const {
@@ -248,7 +243,6 @@ const addProduct = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Server error: in add product  ' + error.message });
     }
   };
-
 
   // Edit Product
 const editProduct = async (req, res) => {
@@ -375,17 +369,17 @@ const editProduct = async (req, res) => {
     }
   };
   
-  // Helper function to clean
-  async function cleanupFiles(files) {
-    if (!files) return;
-    const uploadDir = path.join(__dirname, '../public/uploads/products');
-    const filePaths = [
-      ...(files['cardImage'] || []).map((file) => path.join(uploadDir, file.filename)),
-      ...(files['productImages'] || []).map((file) => path.join(uploadDir, file.filename)),
-    ];
-    await Promise.all(filePaths.map((filePath) => fs.unlink(filePath).catch(() => {})));
-  }
-  
+// Helper function to clean
+async function cleanupFiles(files) {
+  if (!files) return;
+  const uploadDir = path.join(__dirname, '../public/uploads/products');
+  const filePaths = [
+    ...(files['cardImage'] || []).map((file) => path.join(uploadDir, file.filename)),
+    ...(files['productImages'] || []).map((file) => path.join(uploadDir, file.filename)),
+  ];
+  await Promise.all(filePaths.map((filePath) => fs.unlink(filePath).catch(() => {})));
+}
+
 const getAddProductPage = async (req, res) => {
     try {
 
@@ -424,7 +418,6 @@ const getEditProductPage = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
-
 
 module.exports = { 
     getAddProductPage, 

@@ -3,6 +3,7 @@ const User = require("../../model/userSchema");
 const ReturnRequest = require("../../model/returnRequestModel");
 const Product = require("../../model/productSchema");
 const { sendEmail } = require('../../utils/email');
+const { generateCustomId } = require("../../utils/helper");
 const Wallet = require("../../model/walletSchema");
 
 // Get All Orders
@@ -163,6 +164,7 @@ const processReturnRequest = async (req, res) => {
       populate: [
         { path: 'userId', select: 'email username' },
         { path: 'orderedItems.product', select: 'productName quantity' },
+        {path: 'appliedCoupon'}
       ],
     });
 
@@ -174,9 +176,8 @@ const processReturnRequest = async (req, res) => {
     returnRequest.status = returnStatus === 'approved' ? 'Approved' : returnStatus === 'rejected' ? 'Rejected' : 'Pending';
     await returnRequest.save();
 
-    console.log(returnRequest.status)
-
     if (returnStatus === 'approved') {
+      
       // Find or create the user's wallet
       let wallet = await Wallet.findOne({ userId: order.userId._id });
       if (!wallet) {
@@ -186,34 +187,71 @@ const processReturnRequest = async (req, res) => {
           currency: 'INR',
         });
       }
-      wallet.balance += order.finalAmount;
+      let refundAmount = 0 ;
+
+      const refundItems = order.orderedItems.filter(item =>
+        returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())
+      );
+
+      const totalOrderItemAmount = order.orderedItems.reduce((sum, item) => sum + item.totalAmount, 0);
+      const itemsTotal = refundItems.reduce((sum, item) => sum + item.totalAmount, 0);
+
+      let coupon = 0;
+      const appliedCoupon = order.appliedCoupon;
+
+      // Subtotal after this return
+      const remainingItems = order.orderedItems.filter(item => 
+        !returnRequest.itemIds.includes(item._id.toString())
+      );
+      const remainingTotal = remainingItems.reduce((sum, item) => sum + item.totalAmount, 0);
+
+      if( appliedCoupon && remainingTotal < appliedCoupon.minPurchase){
+        coupon = order.couponDiscount;
+      }
+
+      let shipping = 0;
+      if (totalOrderItemAmount >= 500 && (remainingTotal < 500)) {
+        shipping = 50;
+      }
+
+      const tax = (itemsTotal / (totalOrderItemAmount - coupon) ) * order.tax;
+      refundAmount = itemsTotal + tax - coupon - shipping; 
+
+      refundAmount = Math.round(refundAmount); 
+
+      returnRequest.refundAmount = refundAmount;
+      await returnRequest.save();
+
+      // wallet update 
+      wallet.balance += refundAmount ;
       wallet.transactions.push({
-        amount: order.finalAmount,
+        transactionId: generateCustomId("RFD"),
+        amount:refundAmount,
         type: 'Credit',
+        status:'Completed',
         method: 'Refund',
-        description: `Refund for order #${order.orderId}`,
+        description: `Refund for items in order #${order.orderId}`,
       });
       await wallet.save();
 
-      // Update order status and payment status
-      order.paymentStatus = 'Refunded';
-      order.status = 'Returned';
-      for (const item of order.orderedItems) {
-        if (returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())) {
+      // product  update
+      for (const item of refundItems) {
           const product = await Product.findById(item.product._id);
           if (product) {
             product.quantity += item.quantity;
             await product.save();
           }
           item.returnStatus = 'Returned';
-        }
       }
+
+       // Update status
+       order.paymentStatus = 'Refunded';
+       order.status = 'Returned';
+
     } else if (returnStatus === 'rejected') {
       order.status = 'Delivered';
-      for (const item of order.orderedItems) {
-        if (returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())) {
-          item.returnStatus = 'Not Returned';
-        }
+      for (const item of refundItems) {
+        item.returnStatus = 'Not Returned';
       }
     }
 
@@ -240,34 +278,6 @@ const processReturnRequest = async (req, res) => {
     res.status(500).json({ success: false, message: `Server error: ${error.message}` });
   }
 };
-
-// const getReturnRequestsByOrder = async (req, res) => {
-//   try {
-//     const { orderId } = req.params;
-//     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-//       return res.status(400).json({ success: false, message: 'Invalid order ID format' });
-//     }
-
-//     const returnRequests = await ReturnRequest.find({ orderId: mongoose.Types.ObjectId(orderId) })
-//       .populate({
-//         path: 'orderId',
-//         populate: {
-//           path: 'orderedItems.product',
-//           select: 'productName'
-//         }
-//       })
-//       .lean();
-
-//     if (!returnRequests || returnRequests.length === 0) {
-//       return res.status(404).json({ success: false, message: `No return requests found for order #${orderId}` });
-//     }
-
-//     res.json({ success: true, returnRequests });
-//   } catch (error) {
-//     console.error('Error fetching return requests:', error);
-//     res.status(500).json({ success: false, message: `Failed to fetch return requests: ${error.message}` });
-//   }
-// };
 
 module.exports = {
   getAllOrders,
