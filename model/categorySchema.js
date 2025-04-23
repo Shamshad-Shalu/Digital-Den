@@ -7,7 +7,7 @@ const categorySchema = new Schema({
         required:true,
         trim: true,
         unique: true
-    },
+    }, 
     description:{
         type:String,
         required:true

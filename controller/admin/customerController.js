@@ -1,5 +1,6 @@
  const { sendUserStatusEmail } = require('../../utils/userEmails');
  const User = require("../../model/userSchema");
+ const Wallet = require("../../model/walletSchema");
 
 const customerInfo = async (req, res) =>{
     try {
@@ -83,7 +84,97 @@ const toggleUserStatus = async (req, res )=>{
     }
 }
 
+const customerWalletInfo = async (req, res) => {
+    try {
+        const {userId} = req.params;
+        console.log("userId:",userId);
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(403).json({
+                success:false, message: "User not found with this ID",
+            });
+        }
+        
+        const { search = '', type = 'All', filter = 'All', status = 'All', page = 1,} = req.query;
+        const  limit = 5 
+        
+        // Find the wallet
+        let wallet = await Wallet.findOne({userId: user._id});
+        
+        if (!wallet) {
+            wallet = new Wallet({
+                userId: user._id,
+                balance: 0,
+            });
+            await wallet.save();
+        }
+        
+        let filteredWallet = { ...wallet.toObject() };
+        let transactions = wallet.transactions || [];
+        let count = 0;
+
+        if (transactions && transactions.length > 0) {
+            if (search) {
+                transactions = transactions.filter(t => 
+                    t.transactionId.toLowerCase().includes(search.toLowerCase().trim())
+                );
+            }
+            
+            if (type !== 'All') {
+                transactions = transactions.filter(t => t.type === type);
+            } 
+            
+            if (filter !== 'All') {
+                transactions = transactions.filter(t => t.method === filter);
+            }
+            
+            if (status !== 'All') {
+                transactions = transactions.filter(t => t.status === status);
+            }
+            
+            count = transactions.length;
+            
+            transactions = transactions
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice((page - 1) * limit, page * limit);
+        }
+
+        filteredWallet.transactions = transactions;
+
+        if (req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest") {
+            return res.status(200).json({ 
+                success: true, 
+                user,
+                wallet: filteredWallet,
+                page,
+                limit,
+                count
+            });
+        }
+
+        res.render("admin/wallet", { 
+            user,
+            wallet: filteredWallet,
+            page,
+            limit,
+            count,
+            search,
+            filter,
+            status,
+            type
+        });
+
+    } catch (error) {
+        console.error("Error in getWalletPage:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Something Went Wrong!",
+        });
+    }
+};
+
 module.exports = {
     customerInfo,
-    toggleUserStatus
+    toggleUserStatus,
+    customerWalletInfo
 }

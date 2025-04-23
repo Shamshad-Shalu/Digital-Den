@@ -229,6 +229,7 @@ const cancelOrder = async (req , res) => {
                 wallet.lastUpdated = Date.now();
                 await wallet.save();
                 
+                order.refundAmount =  refundAmount;
                 order.paymentStatus = 'Refunded';
             }
             

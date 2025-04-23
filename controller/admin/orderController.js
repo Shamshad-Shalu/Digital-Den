@@ -217,7 +217,7 @@ const processReturnRequest = async (req, res) => {
       const tax = (itemsTotal / (totalOrderItemAmount - coupon) ) * order.tax;
       refundAmount = itemsTotal + tax - coupon - shipping; 
 
-      refundAmount = Math.round(refundAmount); 
+      refundAmount = Math.round(refundAmount);
 
       returnRequest.refundAmount = refundAmount;
       await returnRequest.save();
@@ -244,6 +244,8 @@ const processReturnRequest = async (req, res) => {
           item.returnStatus = 'Returned';
       }
 
+      order.refundAmount =  refundAmount;
+      order.revokedCoupon = coupon;
        // Update status
        order.paymentStatus = 'Refunded';
        order.status = 'Returned';

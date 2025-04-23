@@ -1,0 +1,1638 @@
+<%- include("../../views/partial/admin/header") %>
+<!-- 
+<style>
+    /* Theme variables consistent with Address Management */
+    :root {
+        --card-bg: #ffffff;
+        --text-color: #333333;
+        --border-color: #e5e7eb;
+        --primary-color: #6366f1;
+        --primary-light: rgba(99, 102, 241, 0.1);
+        --secondary-color: #4f46e5;
+        --dark-color: #1e293b;
+        --light-color: #f8fafc;
+        --danger-color: #ef4444;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --body-bg: #f9fafb;
+        --light-text: #666666;
+        --card-gradient: linear-gradient(135deg, #6366f1, #4f46e5);
+        --pending-color: #f59e0b;
+        --failed-color: #ef4444;
+    }
+
+    [data-theme="dark"] {
+        --card-bg: #2d2d2d;
+        --text-color: #e0e0e0;
+        --border-color: #444444;
+        --body-bg: #1a1a1a;
+        --light-text: #b0b0b0;
+        --dark-color: #e0e0e0;
+        --light-color: #1e293b;
+        --card-gradient: linear-gradient(135deg, #4f46e5, #6366f1);
+    }
+
+    body {
+        background-color: var(--body-bg);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        color: var(--text-color);
+        min-height: 100vh;
+    }
+
+    .profile-container {
+        max-width: 1400px;
+        padding: 2rem;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        min-height: calc(100vh - 4rem);
+        padding: 0;
+    }
+
+    .sidebar-content {
+        padding: 2rem;
+        position: sticky;
+        top: 0;
+        background-color: var(--card-bg);
+        max-height: 100vh;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: var(--text-color);
+        text-decoration: none;
+        border-radius: 8px;
+        margin: 5px 0;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-link:hover,
+    .sidebar-link.active {
+        background-color: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .sidebar-link i {
+        margin-right: 12px;
+        font-size: 1.2rem;
+    }
+
+    /* Content Area */
+    .content-area {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        color: var(--text-color);
+    }
+
+    .section-title {
+        color: var(--dark-color);
+        font-weight: 700;
+        margin-bottom: 1.75rem;
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-title i {
+        margin-right: 12px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    /* Wallet Card */
+    .wallet-card {
+        background: var(--card-gradient);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+    }
+
+    .wallet-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.3);
+    }
+
+    .wallet-card-bg {
+        position: absolute;
+        bottom: -50px;
+        right: -50px;
+        width: 250px;
+        height: 250px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .wallet-card h3 {
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .wallet-card h3 i {
+        margin-right: 10px;
+    }
+
+    .wallet-card .balance {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 1rem 0;
+    }
+
+    .wallet-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1.5rem;
+    }
+
+    .wallet-info-item {
+        display: flex;
+        flex-direction: column;
+        opacity: 0.9;
+    }
+
+    .wallet-info-item span.label {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .wallet-info-item span.value {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* Add Money Form */
+    .add-money-form {
+        background: var(--primary-light);
+        padding: 1.75rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .add-money-form h5 {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .add-money-form h5 i {
+        margin-right: 10px;
+        background: var(--card-bg);
+        color: var(--primary-color);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .form-control {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        color: var(--text-color);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    }
+
+    .form-control::placeholder {
+        color: var(--light-text);
+        opacity: 1;
+    }
+
+    [data-theme="dark"] .form-control::placeholder {
+        color: #b0b0b0;
+    }
+
+    .input-group-text {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px 0 0 12px;
+        color: var(--text-color);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .razorpay-logo {
+        height: 32px;
+        margin-right: 12px;
+    }
+
+    /* Transaction Section */
+    .transaction-section {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.75rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+    }
+
+    .transaction-section span {
+        font-weight: 600;
+        color: var(--dark-color);
+        /* margin-bottom: 1.5rem; */
+        display: flex;
+        align-items: center;
+    }
+
+    .transaction-section span i {
+        margin-right: 10px;
+        background: var(--primary-light);
+        color: var(--primary-color);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .transaction-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .transaction-search {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
+
+    .transaction-search input {
+        padding-left: 40px;
+    }
+
+    .transaction-search i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--light-text);
+    }
+
+    .transaction-filter {
+        min-width: 150px;
+    }
+
+    .form-select {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        color: var(--text-color);
+        background-position: right 16px center;
+    }
+
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    }
+
+    .table-container {
+        background: transparent;
+        border-radius: 12px;
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+
+    .table {
+        width: 100%;
+        color: var(--text-color);
+        border-collapse: collapse;
+        font-size: 0.95rem;
+        background-color: transparent !important;
+    }
+
+    .table thead {
+        background-color: var(--primary-light);
+        color: var(--dark-color);
+    }
+
+    [data-theme="dark"] .table thead {
+        background-color: rgba(79, 70, 229, 0.2);
+        color: var(--light-color);
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid var(--border-color);
+        background-color: transparent;
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--light-color);
+    }
+
+    [data-theme="dark"] .table tbody tr:hover {
+        background-color: rgba(30, 41, 59, 0.5);
+    }
+
+    .table tbody td {
+        /* padding: 1.25rem 1rem; */
+        vertical-align: middle;
+        color: var(--text-color);
+        white-space: nowrap;
+        background-color: transparent;
+    }
+
+    .table tbody td:first-child {
+        font-weight: 500; /* Bold row index */
+    }
+
+    .transaction-amount {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .transaction-amount.debit {
+        color: var(--danger-color);
+    }
+
+    .transaction-amount.credit {
+        color: var(--success-color);
+    }
+
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .transaction-type.Credit {
+        background: #ecfdf5;
+        color: var(--success-color);
+    }
+
+    [data-theme="dark"] .transaction-type.Credit {
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    .transaction-type.Debit {
+        background: #fef2f2;
+        color: var(--danger-color);
+    }
+
+    [data-theme="dark"] .transaction-type.Debit {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .transaction-type i {
+        margin-right: 5px;
+    }
+
+    .transaction-method {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .transaction-method.Razorpay {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+    .transaction-method.OrderPayment {
+        background: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .transaction-method.Cashback {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .transaction-method.Refund {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    [data-theme="dark"] .transaction-method.Razorpay {
+        background: rgba(37, 99, 235, 0.3);
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .transaction-method.OrderPayment {
+        background: rgba(126, 34, 206, 0.3);
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .transaction-method.Cashback {
+        background: rgba(22, 163, 74, 0.3);
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .transaction-method.Refund {
+        background: rgba(180, 83, 9, 0.3);
+        color: #ffffff;
+    }
+
+    .transaction-date {
+        color: var(--light-text);
+        font-size: 0.9rem;
+    }
+
+    .transaction-id {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .transaction-id:hover::after {
+        content: attr(data-description);
+        position: absolute;
+        top: -2.5rem;
+        left: 0;
+        background: var(--card-bg);
+        color: var(--text-color);
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .badge.Completed {
+        background-color: #d1fae5;
+        color: var(--success-color);
+    }
+
+    .badge.Pending {
+        background-color: #fef3c7;
+        color: var(--pending-color);
+    }
+
+    .badge.Failed {
+        background-color: #fee2e2;
+        color: var(--failed-color);
+    }
+
+    [data-theme="dark"] .badge.Completed {
+        background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    [data-theme="dark"] .badge.Pending {
+        background-color: rgba(245, 158, 11, 0.1);
+    }
+
+    [data-theme="dark"] .badge.Failed {
+        background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .pagination-info {
+        color: var(--light-text);
+        font-size: 0.9rem;
+    }
+
+    .pagination {
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .page-item {
+        margin: 0 2px;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        border: none;
+        color: var(--text-color);
+        padding: 0 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        background: var(--card-bg);
+        text-decoration: none;
+    }
+
+    .page-link:hover {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .page-item.disabled .page-link {
+        color: #d1d5db;
+        cursor: not-allowed;
+    }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .content-area {
+            padding: 1rem;
+        }
+
+        .sidebar {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-content {
+            position: static;
+            max-height: none;
+        }
+
+        .transaction-filters {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .wallet-info {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            min-width: 800px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .wallet-card {
+            padding: 1.5rem;
+        }
+
+        .wallet-card .balance {
+            font-size: 2rem;
+        }
+
+        .content-area {
+            padding: 1.25rem;
+        }
+
+        .add-money-form,
+        .transaction-section {
+            padding: 1.25rem;
+            margin-top: 1.25rem;
+        }
+
+        .table thead th,
+        .table tbody td {
+            padding: 0.75rem 1rem;
+        }
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Razorpay button styling */
+    .razorpay-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0052cc;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: white;
+        box-shadow: 0 4px 6px rgba(0, 82, 204, 0.2);
+    }
+
+    .razorpay-button:hover {
+        background: #003d99;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 82, 204, 0.25);
+    }
+
+    .razorpay-button img {
+        height: 34px;
+        margin-right: 10px;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+        text-align: center;
+        /* margin-left: 50%; */
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--light-text);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h6 {
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: var(--text-color);
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .table>:not(caption)>*>* {
+        background-color: transparent;
+        color: var(--text-color);
+    }
+
+    .clearbutton{
+        background-color: rgba(108, 117, 125, 1);
+        color: white;
+        font-weight: 600;
+        position: absolute;
+        padding: 12px;
+        top: 0;
+        right: 0;
+    }
+    .clearbutton:hover {
+        background-color: rgb(81, 72, 126);
+    }
+</style> -->
+
+<style>
+    :root {
+        --primary: #4361ee;
+        --sidebar-width: 250px;
+        --sidebar-collapsed-width: 70px;
+        --header-height: 60px;
+        --transition-speed: 0.3s;
+    }
+
+    [data-bs-theme="dark"] {
+        --bs-body-bg: #1e1e2d;
+        --bs-body-color: #e2e8f0;
+        --bs-card-bg: #2a2a3c;
+        --bs-border-color: #3f3f5a;
+        --sidebar-bg: #131320;
+        --sidebar-text: #e2e8f0;
+        --spec-bg: #2a2a3c;
+        --input-bg: #3f3f5a;
+        --btn-success: #28a745;
+        --btn-danger: #dc3545;
+        --shadow-color: rgba(255, 255, 255, 0.1);
+        --hover-shadow: rgba(255, 255, 255, 0.15);
+        --primary-light: rgba(67, 97, 238, 0.1);
+        --text-muted: #94a3b8;
+    }
+
+    [data-bs-theme="light"] {
+        --bs-body-bg: #f5f7fb;
+        --bs-body-color: #333;
+        --bs-card-bg: #ffffff;
+        --bs-border-color: #eee;
+        --sidebar-bg: #ffffff;
+        --sidebar-text: #333333;
+        --spec-bg: #f8f9fa;
+        --input-bg: #ffffff;
+        --btn-success: #28a745;
+        --btn-danger: #dc3545;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --hover-shadow: rgba(0, 0, 0, 0.15);
+        --primary-light: rgba(67, 97, 238, 0.1);
+        --text-muted: #6b7280;
+    }
+
+    body {
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+        min-height: 100vh;
+    }
+
+    /* Profile Container */
+    .profile-container {
+        max-width: 1400px;
+        padding: 1.5rem;
+        margin: 0 auto;
+        min-height: 100vh;
+    }
+
+    /* Content Area */
+    .content-area {
+        background-color: var(--bs-card-bg);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px var(--shadow-color);
+        padding: 1.5rem;
+        transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+    }
+
+    /* Section Title */
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-title i {
+        margin-right: 0.75rem;
+        color: var(--primary);
+        font-size: 1.25rem;
+    }
+
+    /* Wallet Card */
+    .wallet-card {
+        background: linear-gradient(135deg, var(--primary), #3b82f6);
+        border-radius: 8px;
+        padding: 1.5rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px var(--shadow-color);
+        transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    }
+
+    .wallet-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px var(--hover-shadow);
+    }
+
+    .wallet-card-bg {
+        position: absolute;
+        bottom: -40px;
+        right: -40px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+    }
+
+    .wallet-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .wallet-card h3 i {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .wallet-card .balance {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.75rem 0;
+    }
+
+    .wallet-info {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+    }
+
+    .wallet-info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .wallet-info-item .label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        margin-bottom: 0.25rem;
+    }
+
+    .wallet-info-item .value {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Transaction Section */
+    .transaction-section {
+        background: var(--bs-card-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px var(--shadow-color);
+        margin-bottom: 1.5rem;
+        transition: background-color var(--transition-speed);
+    }
+
+    .transaction-section span {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .transaction-section span i {
+        margin-right: 0.5rem;
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    /* Transaction Filters */
+    .transaction-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .transaction-search {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
+
+    .transaction-search input {
+        padding-left: 2.5rem;
+        background: var(--input-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 6px;
+        color: var(--bs-body-color);
+        transition: border-color var(--transition-speed), background-color var(--transition-speed);
+    }
+
+    .transaction-search input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .transaction-search i {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .transaction-filter {
+        min-width: 150px;
+    }
+
+    .form-select {
+        background: var(--input-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 6px;
+        color: var(--bs-body-color);
+        padding: 0.5rem 1rem;
+        transition: border-color var(--transition-speed), background-color var(--transition-speed);
+    }
+
+    .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    /* Clear Button */
+    .clearbutton {
+        background-color: #6b7280;
+        color: #ffffff;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        transition: background-color var(--transition-speed);
+    }
+
+    .clearbutton:hover {
+        background-color: #4b5563;
+    }
+
+    /* Table */
+    .table-container {
+        overflow-x: auto;
+        margin-bottom: 1rem;
+    }
+
+    .table {
+        width: 100%;
+        color: var(--bs-body-color);
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.875rem;
+    }
+
+    .table thead {
+        background: var(--spec-bg);
+        color: var(--bs-body-color);
+    }
+
+    .table thead th {
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .table tbody tr {
+        transition: background-color var(--transition-speed);
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .table tbody tr:hover {
+        background-color: var(--primary-light);
+    }
+
+    .table tbody td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .table tbody td:first-child {
+        font-weight: 500;
+    }
+
+    .transaction-amount {
+        font-weight: 600;
+    }
+
+    .transaction-amount.credit {
+        color: var(--btn-success);
+    }
+
+    .transaction-amount.debit {
+        color: var(--btn-danger);
+    }
+
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .transaction-type.Credit {
+        background: rgba(40, 167, 69, 0.1);
+        color: var(--btn-success);
+    }
+
+    .transaction-type.Debit {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--btn-danger);
+    }
+
+    .transaction-type i {
+        margin-right: 0.25rem;
+    }
+
+    .transaction-method {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .transaction-method.Razorpay {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .transaction-method.OrderPayment {
+        background: rgba(124, 58, 237, 0.1);
+        color: #7c3aed;
+    }
+
+    .transaction-method.Cashback {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .transaction-method.Refund {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .transaction-date {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .transaction-id {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .transaction-id:hover::after {
+        content: attr(data-description);
+        position: absolute;
+        top: -2rem;
+        left: 0;
+        background: var(--bs-card-bg);
+        color: var(--bs-body-color);
+        padding: 0.5rem;
+        border-radius: 6px;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px var(--shadow-color);
+        z-index: 10;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .badge.Completed {
+        background: rgba(40, 167, 69, 0.1);
+        color: var(--btn-success);
+    }
+
+    .badge.Pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .badge.Failed {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--btn-danger);
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-top: 1px solid var(--bs-border-color);
+    }
+
+    .pagination-info {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+
+    .pagination {
+        display: flex;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .page-item {
+        margin: 0 0.25rem;
+    }
+
+    .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        color: var(--bs-body-color);
+        background: var(--bs-card-bg);
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: background-color var(--transition-speed), color var(--transition-speed);
+    }
+
+    .page-link:hover {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary);
+        color: #ffffff;
+    }
+
+    .page-item.disabled .page-link {
+        color: var(--text-muted);
+        cursor: not-allowed;
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state h6 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--bs-body-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        max-width: 300px;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 991.98px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .content-area {
+            padding: 1rem;
+        }
+
+        .transaction-filters {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .wallet-info {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .table {
+            min-width: 800px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .wallet-card {
+            padding: 1rem;
+        }
+
+        .wallet-card .balance {
+            font-size: 1.5rem;
+        }
+
+        .content-area {
+            padding: 0.75rem;
+        }
+
+        .transaction-section {
+            padding: 0.75rem;
+        }
+
+        .table thead th,
+        .table tbody td {
+            padding: 0.5rem;
+        }
+    }
+</style>
+
+<div class="container-fluid profile-container" data-user-id="<%= user._id %>" >
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-12 ">
+            <div class="content-area">
+                <h4 class="section-title">
+                    <i class="bi bi-wallet2"></i> Wallet Dashboard
+                </h4>
+                <!-- Wallet Card -->
+                <div class="wallet-card animate-fade-in">
+                    <div class="wallet-card-bg"></div>
+                    <h3><i class="bi bi-wallet2"></i> Digital Wallet</h3>
+                    <div class="balance">
+                        ₹<%= Number(wallet.balance).toLocaleString("en-IN") %>
+                    </div>
+                    <div class="wallet-info">
+                        <div class="wallet-info-item">
+                            <span class="label">Currency</span>
+                            <span class="value"><%= wallet.currency %></span>
+                        </div>
+                        <div class="wallet-info-item">
+                            <span class="label">Last Updated</span>
+                            <span class="value">
+                                <%= new Date(wallet.lastUpdated).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) %>
+                            </span>
+                        </div>
+                        <div class="wallet-info-item">
+                            <span class="label">Wallet ID</span>
+                            <span class="value"><%= wallet._id %></span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Transaction History -->
+                <div class="transaction-section animate-fade-in ">
+                    <span><i class="bi bi-clock-history"></i> Transaction History   
+                    </span>
+                    <form id="walletFilterForm">
+                        <div class="transaction-filters">
+                            <div class="transaction-search ">
+                                <i class="bi bi-search"></i>
+                                <input type="text" class="form-control" placeholder="Search transactions..." id="searchInput">
+                                <a class="btn clearbutton " id="clearFilters"  >Clear</a>  
+                            </div>
+                            <div class="transaction-filter">
+                                <select class="form-select" id="typeFilter">
+                                    <option value="All" <%= type === "All" ? 'selected' : '' %> >All Types</option>
+                                    <option value="Credit" <%= type === "Credit" ? 'selected' : '' %> >Credit</option>
+                                    <option value="Debit" <%= type === "Debit" ? 'selected' : '' %> >Debit</option>
+                                </select>
+                            </div>
+                            <div class="transaction-filter">
+                                <select class="form-select" id="methodFilter">
+                                    <option value="All" <%= filter === "All" ? 'selected' : '' %>  >All Methods</option>
+                                    <option value="Razorpay" <%= filter === "Razorpay" ? 'selected' : '' %>  >Razorpay</option>
+                                    <option value="Cashback" <%= filter === "Cashback" ? 'selected' : '' %> >Cashback</option>
+                                    <option value="Refund" <%= filter === "Refund" ? 'selected' : '' %> >Refund</option>
+                                    <option value="OrderPayment" <%= filter === "OrderPayment" ? 'selected' : '' %> >Order Payment</option>
+                                </select>
+                            </div>
+                            <div class="transaction-filter">
+                                <select class="form-select" id="statusFilter">
+                                    <option value="All"  <%= status === "All" ? 'selected' : '' %> >All Statuses</option>
+                                    <option value="Completed" <%= status === "Completed" ? 'selected' : '' %>>Completed</option>
+                                    <option value="Pending" <%= status === "Pending" ? 'selected' : '' %>>Pending</option>
+                                    <option value="Failed" <%= status === "Failed" ? 'selected' : '' %> >Failed</option>
+                                </select>
+                            </div> 
+                        </div>
+                    </form>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Transaction ID</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Method</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionBody">
+                            <!-- Dynamically Populated --> 
+                            </tbody>
+                        </table>
+                        <div class="pagination-container" id="paginationSection">
+                            <!-- Dynamically Populated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Details Modal -->
+                <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="transactionModalLabel">Transaction Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="transaction-detail-header">
+                                    <div id="modalTransactionAmount" class="modal-transaction-amount"></div>
+                                    <div id="modalTransactionStatus" class="modal-transaction-status"></div>
+                                </div>
+                                
+                                <div class="transaction-detail-content">
+                                    <div class="detail-row">
+                                        <div class="detail-label">Transaction ID</div>
+                                        <div id="modalTransactionId" class="detail-value"></div>
+                                    </div>
+                                    <div class="detail-row">
+                                        <div class="detail-label">Date & Time</div>
+                                        <div id="modalTransactionDate" class="detail-value"></div>
+                                    </div>
+                                    <div class="detail-row">
+                                        <div class="detail-label">Type</div>
+                                        <div id="modalTransactionType" class="detail-value"></div>
+                                    </div>
+                                    <div class="detail-row">
+                                        <div class="detail-label">Method</div>
+                                        <div id="modalTransactionMethod" class="detail-value"></div>
+                                    </div>
+                                    <div class="detail-row">
+                                        <div class="detail-label">Description</div>
+                                        <div id="modalTransactionDescription" class="detail-value"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" id="downloadReceiptBtn">Download Receipt</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchWallet (page = 1) {
+        const userId = document.querySelector('.profile-container').dataset.userId;
+        const search = document.getElementById("searchInput").value;
+        const type = document.getElementById('typeFilter').value;
+        const filter = document.getElementById('methodFilter').value;
+        const status = document.getElementById('statusFilter').value;
+
+        const queryParams = new URLSearchParams({
+            page,
+            search,
+            type,
+            filter,
+            status 
+        }).toString();
+
+        try {
+            const response = await fetch(`/admin/user/wallet/${userId}?${queryParams}`,{
+                headers:{'X-Requested-With': 'XMLHttpRequest'},
+            });
+
+            if(response.status === 401 || response.status === 403) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unauthorized',
+                    text: 'Please log in to continue',
+                }).then(() => {
+                    window.location.href = '/user/signin';
+                });
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch wallet');
+            }
+
+            const data = await response.json();
+
+            //wallet amount and update date 
+            document.querySelector('.wallet-card .balance').innerHTML = 
+                `₹${Number(data.wallet.balance).toLocaleString("en-IN")}`;
+            const lastUpdated = new Date(data.wallet.lastUpdated).toLocaleDateString("en-US", 
+                { month: "long", day: "2-digit", year: "numeric" });
+            document.querySelector('.wallet-card .wallet-info-item:nth-child(2) .value').textContent = lastUpdated;
+
+
+            const transactionBody = document.getElementById("transactionBody");
+            transactionBody.innerHTML = " ";
+
+            if(data.wallet?.transactions?.length > 0 ){
+                data.wallet.transactions.forEach((transaction, index )=> {
+                    let amount = Number(transaction.amount).toLocaleString("en-IN") 
+                    let date =  new Date(transaction.date).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })
+                    const row = `
+                        <tr>
+                            <td>${(data.page - 1) * data.limit + index + 1}</td>
+                            <td><span class="transaction-id" data-description="${transaction.description}">${transaction.transactionId}</span></td>
+                            <td><span class="transaction-amount ${(transaction.type).toLowerCase()}">₹${amount}</span></td>
+                            <td><span class="transaction-type  ${transaction.type}"><i class="bi bi-arrow-down-circle"></i> ${transaction.type}</span></td>
+                            <td><span class="transaction-method ${transaction.method}">${transaction.method}</span></td>
+                            <td><span class="transaction-date">${date}</span></td>
+                            <td><span class="badge ${transaction.status}">${transaction.status}</span></td>
+                        </tr>
+                    `;
+                    transactionBody.insertAdjacentHTML('beforeend', row);
+                });
+            } else {
+                transactionBody.innerHTML = `
+                <div class="empty-state animate-fade-in ">
+                    <i class="bi bi-clock-history"></i>
+                    <h6>No Transactions Found</h6>
+                    <p>There are no transactions matching your search criteria.</p>
+                </div>
+                `
+            }
+
+            const paginationSection = document.getElementById("paginationSection");
+            paginationSection.innerHTML = '';
+
+            if(data.wallet?.transactions?.length > 0 ){
+                const totalPages = Math.ceil(data.count/data.limit);
+                const maxPagesToShow = 5;
+                const startPage = Math.max(1, data.page - Math.floor(maxPagesToShow / 2));
+                const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+                const paginationHTML = `
+                    <div class="pagination-info">
+                        Showing ${startPage}-${endPage} of ${data.count} transactions
+                    </div>
+                    <nav aria-label="Transaction pagination">
+                        <ul class="pagination">
+                            <li class="page-item ${data.page <= 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${data.page - 1}" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            ${Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map(i => `
+                                <li class="page-item ${data.page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `).join('')}
+                            <li class="page-item ${data.page >= totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${data.page + 1}" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                `;
+                paginationSection.innerHTML = paginationHTML;
+
+                document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = parseInt(link.getAttribute('data-page'));
+                        if (page > 0 && page <= totalPages){
+                            fetchWallet(page);
+                        } 
+                    });
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+            Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load orders' });
+        }
+    } 
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const clearFiltersBtn = document.getElementById('clearFilters');
+        const filterForm = document.getElementById('walletFilterForm');
+
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            fetchWallet();
+        });
+
+        const addMoneyForm = document.getElementById('addMoneyForm');
+        const amountInput = document.getElementById("amount"); 
+
+        document.getElementById("searchInput").addEventListener("input",()=>{
+            fetchWallet();
+            checkFilters();
+        });
+
+        document.querySelectorAll('#statusFilter, #methodFilter, #typeFilter, #searchInput').forEach(input => {
+            input.addEventListener('change', () =>{
+                fetchWallet();
+                checkFilters();
+            });
+        });
+
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', () => {
+
+                document.getElementById('searchInput').value = '';
+                document.getElementById('typeFilter').value = 'All';
+                document.getElementById('methodFilter').value = 'All';
+                document.getElementById('statusFilter').value = 'All';
+
+                fetchWallet();
+                checkFilters();
+            });
+        }
+
+        function checkFilters() {
+            const filtersActive = 
+                document.getElementById('searchInput').value !== '' || 
+                document.getElementById('typeFilter').value !== 'All' || 
+                document.getElementById('methodFilter').value !== 'All' || 
+                document.getElementById('statusFilter').value !== 'All';
+
+            if (filtersActive) {
+                clearFiltersBtn.classList.remove('d-none');
+            } else {
+                clearFiltersBtn.classList.add('d-none');
+            }
+        }
+        fetchWallet();
+        checkFilters();
+    })
+</script>
+<%- include("../../views/partial/admin/footer") %>

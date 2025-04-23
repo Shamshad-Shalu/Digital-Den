@@ -56,6 +56,11 @@ const walletSchema = new Schema({
     lastUpdated: {
         type: Date,
         default: Date.now
+    },
+    orderId: {
+        type: Schema.Types.ObjectId,
+        ref: "Order",
+        default: null
     }
 }, {
     timestamps: true

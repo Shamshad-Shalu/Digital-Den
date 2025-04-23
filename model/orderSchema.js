@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const {Schema} = mongoose;
-const {v4:uuidv4} = require("uuid");
 const {generateCustomId} = require("../utils/helper");
 
 const orderSchema = new Schema({
@@ -123,8 +122,15 @@ const orderSchema = new Schema({
         canceledBy: { type: Schema.Types.ObjectId, ref: 'User' },
         canceledAt: Date
     },
-    isCanceled: { type: Boolean, default: false }
-
+    isCanceled: { type: Boolean, default: false },
+    revokedCoupon:{
+        type: Number,
+        default: 0
+    },
+    refundAmount:{
+        type: Number,
+        default: 0
+    }
 },
 {timestamps:true});
 

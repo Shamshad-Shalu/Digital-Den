@@ -24,10 +24,11 @@ router.get("/pageError",adminController.pageError);
 router.use(adminAuth);
 
 //dashboard-routes
-router.get("/dashboard",adminController.loadDashboard);
+// router.get("/dashboard",adminController.loadDashboard);
 
 //customer-routes
 router.get("/users",customerController.customerInfo);
+router.get("/user/wallet/:userId", customerController.customerWalletInfo);
 router.patch("/users/toggle/:id",customerController.toggleUserStatus);
 
 //category-routes 
@@ -78,12 +79,13 @@ router.post('/coupon/add', couponController.addCoupon);
 router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
 router.patch('/coupon/edit/:id',couponController.editCoupon);
 
-
+ 
 // router.get("/sale",saleController.getSalePage);
 
 // sales management 
-router.get("/banner",saleController.getSalePage)
-
+router.get("/sales",saleController.getSalePage);
+router.get('/sales/export', saleController.exportSales);
+router.get('/dashboard', saleController.getDashboardPage);
 
 
 router.get("pageError",(req,res)=>{
