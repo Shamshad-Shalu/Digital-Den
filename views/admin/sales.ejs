@@ -1101,7 +1101,7 @@
 
             //  format currency 
             function formatCurrency(value) {
-                return '₹' + Number(value).toLocaleString('en-IN', {
+                return 'Rs.' + Number(value).toLocaleString('en-IN', {
                     minimumFractionDigits: 2, // show 2 decimal 
                     maximumFractionDigits: 2  // no more than 2 decimal 
                 });

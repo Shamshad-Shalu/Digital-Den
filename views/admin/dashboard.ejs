@@ -1,5 +1,4 @@
 <%- include("../../views/partial/admin/header") %>
-
 <style>
     .cursor-pointer {
         cursor: pointer;
@@ -199,200 +198,12 @@
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- 
-<script>
-    let salesChart, categoryChart;
-
-    async function fetchDashboardData(period = 'month') {
-        const queryParams = new URLSearchParams({
-            period
-        }).toString();
-
-        try {
-            const response = await fetch(`/admin/dashboard?${queryParams}`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            });
-
-            if (response.status === 401 || response.status === 403) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Unauthorized',
-                    text: 'Please log in to continue',
-                }).then(() => {
-                    window.location.href = '/admin/login';
-                });
-                return;
-            }
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch dashboard data');
-            }
-
-            // Update Stats
-            document.getElementById('netSale').innerHTML = `₹${Number(data.netSale).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            document.getElementById('totalOrders').innerHTML = data.totalOrders;
-            document.getElementById('totalCustomer').innerHTML = data.totalCustomers;
-            document.getElementById('totalProduct').innerHTML = data.totalProducts;
-
-            // Update Sales Chart
-            salesChart.data.labels = data.salesChart.labels;
-            salesChart.data.datasets[0].data = data.salesChart.data;
-            salesChart.update();
-
-            // Update Category Chart
-            categoryChart.data.labels = data.categoryChart.labels;
-            categoryChart.data.datasets[0].data = data.categoryChart.data;
-            categoryChart.update();
-
-            // Update Best Selling Products
-            const bestProducts = document.getElementById('bestProducts');
-            bestProducts.innerHTML = data.bestProducts.map(product => `
-                <li>
-                    <div class="info">
-                        <div>
-                            <h6>${product.name || 'N/A'}</h6>
-                            <p>${product.categoryName || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="value">
-                        <span>${product.units || 0} units</span>
-                    </div>
-                </li>
-            `).join('');
-
-            // Update Best Selling Categories
-            const bestCategories = document.getElementById('bestCategories');
-            bestCategories.innerHTML = data.bestCategories.map(category => `
-                <li>
-                    <div class="info">
-                        <div>
-                            <h6>${category.name || 'N/A'}</h6>
-                            <p>${category.products || 0} products</p>
-                        </div>
-                    </div>
-                    <div class="value">
-                        <span>₹${Number(category.revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                </li>
-            `).join('');
-
-            // Update Best Selling Brands
-            const bestBrands = document.getElementById('bestBrands');
-            bestBrands.innerHTML = data.bestBrands.map(brand => `
-                <li>
-                    <div class="info">
-                        <div>
-                            <h6>${brand.name || 'N/A'}</h6>
-                            <p>${brand.categoryName || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="value">
-                        <span>₹${Number(brand.revenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    </div>
-                </li>
-            `).join('');
-
-            // Update Recent Orders
-            const recentOrders = document.getElementById('recentOrders');
-            recentOrders.innerHTML = data.recentOrders.map(order => `
-                <tr>
-                    <td>${order.orderId || 'N/A'}</td>
-                    <td>${order.customer || 'N/A'}</td>
-                    <td>${new Date(order.date || Date.now()).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}</td>
-                    <td>₹${Number(order.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td><span class="badge bg-${getStatusClass(order.status)}">${order.status || 'N/A'}</span></td>
-                </tr>
-            `).join('');
-
-            function getStatusClass(status) {
-                switch (status) {
-                    case 'Completed': return 'success';
-                    case 'Processing': return 'warning text-dark';
-                    case 'Shipped': return 'primary';
-                    case 'Canceled': return 'danger';
-                    default: return 'secondary';
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load dashboard data' });
-        }
-    }
-
-    // Initialize Charts
-    document.addEventListener("DOMContentLoaded", () => {
-        const salesCtx = document.getElementById('salesChart').getContext('2d');
-        salesChart = new Chart(salesCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Sales',
-                    data: [],
-                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                    borderColor: '#6366f1',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#6366f1',
-                    pointBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
-                    x: { grid: { display: false } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-        categoryChart = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: ['#6366f1', '#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-                    borderWidth: 0,
-                    hoverOffset: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-
-        // Chart Filter Buttons
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                fetchDashboardData(btn.dataset.period);
-            });
-        });
-
-        // Initial Fetch
-        fetchDashboardData('month');
-    });
-</script> -->
-
 
 <script>
-
     let salesChart, categoryChart;
     async function fetchDashboardData(period = "month") {
         const queryParams = new URLSearchParams({
@@ -447,7 +258,7 @@
             categoryChart.data.datasets[0].data = data.categoryChart.data;
             categoryChart.update();
 
-            // Update Best Selling Products
+            //  Best Selling Products
             const bestProducts = document.getElementById("bestProducts");
             bestProducts.innerHTML = data.bestProducts
                 .map(
@@ -467,7 +278,7 @@
                 )
                 .join("");
 
-            // Update Best Selling Categories
+            // Best Selling Categories
             const bestCategories = document.getElementById("bestCategories");
             bestCategories.innerHTML = data.bestCategories
                 .map(
@@ -513,43 +324,40 @@
                 )
                 .join("");
 
-            // Update Recent Orders
+            //  Recent Orders
             const recentOrders = document.getElementById("recentOrders");
             recentOrders.innerHTML = data.recentOrders
-                .map(
-                    (order) => `
-                <tr>
-                    <td>${order.orderId || "N/A"}</td>
-                    <td>${order.customer || "N/A"}</td>
-                    <td>${new Date(order.date || Date.now()).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                    })}</td>
-                    <td>₹${Number(order.amount || 0).toLocaleString("en-IN", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    })}</td>
-                    <td><span class="badge bg-${getStatusClass(order.status)}">${
-                        order.status || "N/A"
-                    }</span></td>
-                </tr>
-            `
+                .map(order => 
+                    `
+                        <tr>
+                            <td>${order.orderId || "N/A"}</td>
+                            <td>${order.customer || "N/A"}</td>
+                            <td>${new Date(order.date || Date.now()).toLocaleDateString("en-US", { month: "short",  day: "2-digit",year: "numeric",})}
+                            </td>
+                            <td>₹${Number(order.amount || 0).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                            })}</td>
+                            <td><span class="badge ${getStatusClass(order.status)}">${
+                                order.status || "N/A"
+                            }</span></td>
+                        </tr>
+                    `
                 )
                 .join("");
 
             function getStatusClass(status) {
+                console.log("statuses:",status);
                 switch (status) {
-                    case "Completed":
-                        return "success";
-                    case "Processing":
-                        return "warning text-dark";
-                    case "Shipped":
-                        return "primary";
-                    case "Canceled":
-                        return "danger";
-                    default:
-                        return "secondary";
+                    case 'Pending': return 'bg-warning';
+                    case 'Processing': return 'bg-primary';
+                    case 'Shipped': return 'bg-info';
+                    case 'Out for Delivery': return 'bg-purple';
+                    case 'Delivered': return 'bg-success';
+                    case 'Cancelled': return 'bg-danger';
+                    case 'Returned': return 'bg-secondary';
+                    case 'Return Request': return 'bg-amber';
+                    default: return 'bg-light';
                 }
             }
         } catch (error) {
@@ -630,7 +438,7 @@
             },
         });
 
-        // Chart Filter Buttons
+        // Filter Buttons
         const filterBtns = document.querySelectorAll(".filter-btn");
         filterBtns.forEach((btn) => {
             btn.addEventListener("click", () => {
@@ -640,7 +448,6 @@
             });
         });
 
-        // Initial Fetch
         fetchDashboardData("month");
     });
 </script>

@@ -2,6 +2,7 @@ const User = require("../../model/userSchema");
 const Order  = require("../../model/orderSchema"); 
 const ReturnRequest = require("../../model/returnRequestModel"); 
 const Wallet = require("../../model/walletSchema");
+const Coupon = require("../../model/couponSchema")
 const {validateCancelOrder ,validateReturnRequest} = require("../../utils/validation");
 
 
@@ -202,7 +203,7 @@ const cancelOrder = async (req , res) => {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
-        if (order.paymentStatus === 'Paid') {
+        if (order.paymentStatus === 'Paid' &&  order.refundAmount === 0  ) {
             const refundAmount = order.finalAmount;
             
             if (order.paymentMethod === 'Wallet' || order.paymentMethod === 'Online') {
@@ -212,12 +213,12 @@ const cancelOrder = async (req , res) => {
                     wallet = new Wallet({
                         userId: order.userId,
                         balance: 0,
-                        transactions: []
                     });
+                   await wallet.save();
                 }
-                
+                console.log("refundAmount:",refundAmount)
                 // Add refund to wallet
-                wallet.balance += refundAmount;
+                wallet.balance += refundAmount;  
                 wallet.transactions.push({
                     amount: refundAmount,
                     type: 'Credit',
@@ -248,16 +249,18 @@ const cancelOrder = async (req , res) => {
             comments: comments || '',
             canceledBy: user._id,
             canceledAt: new Date()
-      };
-      order.isCanceled = true;
-      order.status = 'Cancelled'; 
+        };
 
-        // Increment stock for each product
+        order.isCanceled = true;
+        order.revokedCoupon = order.couponDiscount;
+        order.status = 'Cancelled'; 
+        
+        //update product
         for (const item of order.orderedItems) {
             const product = item.product;
             product.quantity += item.quantity;
             await product.save();
-        }
+        };
 
         await order.save();
         res.json({success: true,message: 'Order canceled successfully',});
@@ -266,7 +269,7 @@ const cancelOrder = async (req , res) => {
         console.error('Cancel order error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-}
+};
 
 const returnOrder = async (req, res) => {
     try {
@@ -428,6 +431,7 @@ const returnItem = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 
 module.exports = {
     getorderSuccessPage,

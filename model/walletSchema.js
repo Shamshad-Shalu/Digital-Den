@@ -22,7 +22,6 @@ const walletSchema = new Schema({
     transactions: [{
         transactionId: {
             type: String,
-            unique: true,
             default: () => generateCustomId ("TXN")
         },
         amount: {

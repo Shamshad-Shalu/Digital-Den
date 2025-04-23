@@ -41,7 +41,6 @@ router.patch('/brands/edit/:id', brandController.editBrand);
 router.patch('/brands/toggle/:id', brandController.toggleBrandStatus);
 router.patch('/brands/delete/:id', brandController.deleteBrand);
 
-
 // product-routes
 router.get('/products', productController.productInfo);
 router.get("/products/view/:id",productController.viewProduct);
@@ -52,13 +51,11 @@ router.post('/products/add', upload, productController.addProduct);
 router.get('/products/edit/:id', productController.getEditProductPage);
 router.patch('/products/edit/:id', upload, productController.editProduct);
 
-
 //  Order Management 
 router.get("/orders",orderController.getAllOrders);
 router.patch("/orders/update-status/:orderId",  orderController.updateOrderStatus);
 router.get("/orders/details/:orderId", orderController.getOrderDetails);
 router.post('/orders/return/:returnId', orderController.processReturnRequest);
-
 
 // offer management 
 router.get('/offers', offerController.getOffers);
@@ -72,12 +69,10 @@ router.post('/coupon/add', couponController.addCoupon);
 router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
 router.patch('/coupon/edit/:id',couponController.editCoupon);
 
-
 // sales management 
 router.get("/sales",saleController.getSalePage);
 router.get('/sales/export', saleController.exportSales);
 router.get('/dashboard', saleController.getDashboardPage);
-
 
 router.get("pageError",(req,res)=>{
     res.render("admin/pageError")

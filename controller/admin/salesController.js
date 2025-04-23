@@ -382,18 +382,18 @@ const getDashboardPage = async (req, res) => {
                     $gte: new Date(now.setHours(0, 0, 0, 0)),
                     $lte: new Date(now.setHours(23, 59, 59, 999))
                 };
-                break;
+                 break;
             case 'week':
                 const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-                query.createdAt = { $gte: new Date(weekStart.setHours(0, 0, 0, 0)) };
+                 query.createdAt = { $gte: new Date(weekStart.setHours(0, 0, 0, 0)) };
                 break;
             case 'month':
                 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-                query.createdAt = { $gte: new Date(monthStart.setHours(0, 0, 0, 0)) };
+             query.createdAt = { $gte: new Date(monthStart.setHours(0, 0, 0, 0)) };
                 break;
             case 'year':
                 const yearStart = new Date(now.getFullYear(), 0, 1);
-                query.createdAt = { $gte: new Date(yearStart.setHours(0, 0, 0, 0)) };
+                 query.createdAt = { $gte: new Date(yearStart.setHours(0, 0, 0, 0)) };
                 break;
         }
 

@@ -2,7 +2,6 @@
 
 <!-- Offers Management Section -->
 <div class="container-fluid py-4">
-    <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3">Offers Management</h1>
@@ -14,7 +13,6 @@
             </button>
         </div>
     </div>
-    
     <!-- Search and Filter Bar -->
     <div class="card mb-4">
         <div class="card-body">
@@ -92,8 +90,6 @@
         </div>
     </div>
 </div>
-
-
 
 <!-- add offer modal  -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
@@ -462,8 +458,6 @@
     </div>
 </div>
 
-
-
 <!-- Status Change Modal -->
 <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -484,8 +478,8 @@
 </div>
 
 <script>
-    
-async function fetchOffer( page=1 ){
+
+    async function fetchOffer( page=1 ){
         const search = document.getElementById("searchInput").value;
         const type = document.getElementById('typeFilter').value;
         const status = document.getElementById('statusFilter').value;
@@ -661,7 +655,7 @@ async function fetchOffer( page=1 ){
             console.error('Error fetching offer:', error);
             Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Failed to load offers' });   
         }
-    };``
+    };
     
     document.addEventListener("DOMContentLoaded",()=> {
         const offerFilterForm = document.getElementById("offerFilterForm");
@@ -1032,12 +1026,12 @@ async function fetchOffer( page=1 ){
         const showMoreText = showMoreBtn.querySelector('.show-more-text');
         const showLessText = showMoreBtn.querySelector('.show-less-text');
         
-        // Toggle visibility of additional items
+        // Toggle visibility
         additionalItems.forEach(item => {
             item.classList.toggle('d-none');
         });
         
-        // Toggle button text
+        // Toggle button
         showMoreText.classList.toggle('d-none');
         showLessText.classList.toggle('d-none');
     }
@@ -1059,7 +1053,6 @@ async function fetchOffer( page=1 ){
             }
         });
         
-        // Toggle "no items found" message
         if (visibleCount === 0) {
             noItemsFoundMsg.classList.remove('d-none');
         } else {
