@@ -422,31 +422,29 @@ const getDashboardPage = async (req, res) => {
             totalOrders: 0
         };
 
-        // Total Customers
+        // Total Customers & products
         const totalCustomers = await User.countDocuments({ isAdmin: false, isBlocked: false });
-
-        // Total Products
         const totalProducts = await Product.countDocuments({ isListed: true, isDeleted: false });
 
-        // Sales Chart Data (Dynamic Grouping Based on Period)
+        // Sales Chart Data 
         let dateFormat;
         let limit;
         switch (period) {
             case 'day':
-                dateFormat = "%Y-%m-%d %H:00"; // Group by hour for daily view
-                limit = 24; // 24 hours in a day
+                dateFormat = "%Y-%m-%d %H:00"; // hour for daily view
+                limit = 24; // 24 hours
                 break;
             case 'week':
-                dateFormat = "%Y-%m-%d"; // Group by day for weekly view
-                limit = 7; // 7 days in a week
+                dateFormat = "%Y-%m-%d"; //  day for weekly view
+                limit = 7; // 7 days 
                 break;
             case 'month':
-                dateFormat = "%Y-%m-%d"; // Group by day for monthly view
-                limit = 31; // Up to 31 days in a month
+                dateFormat = "%Y-%m-%d"; //day for monthly view
+                limit = 31; // month
                 break;
             case 'year':
-                dateFormat = "%Y-%m"; // Group by month for yearly view
-                limit = 12; // 12 months in a year
+                dateFormat = "%Y-%m"; //month for yearly view
+                limit = 12; 
                 break;
             default:
                 dateFormat = "%Y-%m";
@@ -509,7 +507,7 @@ const getDashboardPage = async (req, res) => {
             data: categoryChartData.map(d => d.total)
         };
 
-        // Best Selling Products (Top 10)
+        //Top 10 Best Selling Products 
         const bestProducts = await Order.aggregate([
             { $match: query },
             { $unwind: "$orderedItems" },
@@ -600,10 +598,19 @@ const getDashboardPage = async (req, res) => {
             },
             { $unwind: "$brandDetails" },
             {
+                $lookup: {
+                    from: "categories",
+                    localField: "productDetails.category",
+                    foreignField: "_id",
+                    as: "categoryDetails"
+                }
+            },
+            { $unwind: "$categoryDetails" },
+            {
                 $group: {
                     _id: "$brandDetails._id",
                     name: { $first: "$brandDetails.brandName" },
-                    categoryName: { $first: "$productDetails.category" },
+                    categoryName: {$first: "$categoryDetails.name"},
                     revenue: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } }
                 }
             },
@@ -661,7 +668,7 @@ const getDashboardPage = async (req, res) => {
             salesChart,
             categoryChart,
             bestProducts: bestProducts.map(p => ({
-                name: p.name,
+                name: p.name, 
                 categoryName: p.categoryName,
                 units: p.units
             })),
@@ -682,8 +689,8 @@ const getDashboardPage = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
-
-
+ 
+ 
 module.exports = {
 getSalePage,
 getDashboardPage ,

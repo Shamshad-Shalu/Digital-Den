@@ -1,6 +1,41 @@
 <%- include("../../views/partial/admin/header") %>
-<link rel="stylesheet" href="/public/admin/order.css">
 
+<style>
+    #newStatus {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid var(--bs-border-color);
+        background-color: var(--input-bg);
+        color: var(--bs-body-color);
+        font-size: 14px;
+        width: 100%;
+        transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+    }
+
+    #newStatus:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem var(--primary-light);
+        outline: none;
+    }
+
+    #newStatus option:not([disabled]) {
+        background-color: var(--bs-card-bg); 
+        color: var(--bs-body-color);
+        font-weight: 500;
+    }
+
+    #newStatus option[disabled] {
+        background-color: var(--spec-bg); 
+        color: var(--text-muted);
+        opacity: 0.6; 
+        font-style: italic; 
+    }
+
+    #newStatus option:not([disabled]):hover {
+        background-color: var(--bs-body-bg);
+    }
+
+</style>
 <!-- Order Management Section -->
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -170,6 +205,19 @@
 </div>
 
 <script>
+
+    const validTransitions = {
+        'Pending': ['Processing', 'Cancelled'],
+        'Processing': ['Shipped', 'Cancelled'],
+        'Shipped': ['Out for Delivery', 'Cancelled'],
+        'Out for Delivery': ['Delivered'],
+        'Delivered': ['Return Request'],
+        'Return Request': ['Delivered', 'Returned'],
+        'Returned': [],
+        'Cancelled': [],
+    };
+
+
     function getStatusColorClass(status) {
         switch (status) {
             case 'Pending': return 'bg-warning';
@@ -240,7 +288,8 @@
                             <td>${order.orderedItems.length} items</td>
                             <td><span class="fw-bold">₹${order.finalAmount.toLocaleString('en-IN')}</span></td>
                             <td>
-                                <button class="btn btn-sm status-btn ${getStatusColorClass(order.status)} text-white"
+                                <button  class="btn btn-sm status-btn ${getStatusColorClass(order.status)} text-white"
+                                   ${order.status === "Returned" || order.status === "Cancelled" || order.status === "Delivered" ? 'disabled' : ''}
                                     data-bs-toggle="modal" data-bs-target="#statusModal"
                                     data-status="${order.status}" data-id="${order.orderId}">
                                     <span class="status-text">${order.status}</span>
@@ -253,7 +302,7 @@
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     ${order.status === 'Return Request' ? `
-                                        <button class="btn btn-sm btn-outline-warning return-request-btn" 
+                                        <button class="btn btn-sm btn-outline-warning return-request-btn"
                                             data-order-id="${order.orderId}" data-return-id="${order._id}" 
                                             data-bs-toggle="modal" data-bs-target="#returnRequestModal" 
                                             title="Process return request">
@@ -332,15 +381,44 @@
         // Status Change
         const statusModal = document.getElementById('statusModal');
         let currentOrderId = '';
+
+        //  statusModal 
         statusModal.addEventListener('show.bs.modal', (event) => {
             const button = event.relatedTarget;
             currentOrderId = button.getAttribute('data-id');
             const currentStatus = button.getAttribute('data-status');
             document.getElementById('statusMessage').textContent = 
                 `Are you sure you want to change the status of order #${currentOrderId} from ${currentStatus}?`;
-            document.getElementById('newStatus').value = currentStatus;
-        });
 
+            const statusSelect = document.getElementById('newStatus');
+            statusSelect.value = currentStatus;
+
+            // Get all status options
+            const statusOptions = statusSelect.querySelectorAll('option');
+            
+            // Reset styles and attributes
+            statusOptions.forEach(option => {
+                option.disabled = true; // Disable by default
+                option.setAttribute('data-enabled', 'false'); // Custom attribute for styling
+            });
+
+            // Enable only the valid transitions
+            const allowedStatuses = validTransitions[currentStatus] || [];
+            statusOptions.forEach(option => {
+                const optionValue = option.value;
+                // Enable valid transitions and the current status (for display)
+                if (allowedStatuses.includes(optionValue)) {
+                    option.disabled = false;
+                    option.setAttribute('data-enabled', 'true');
+                }
+                // Explicitly disable the current status to prevent selecting it
+                if (optionValue === currentStatus) {
+                    option.disabled = true;
+                    option.setAttribute('data-enabled', 'false');
+                }
+            });
+        });
+        
         document.getElementById('confirmStatus').addEventListener('click', async () => {
             const newStatus = document.getElementById('newStatus').value;
             try {
@@ -527,12 +605,6 @@
                     const modalInstance = bootstrap.Modal.getInstance(returnModal);
                     modalInstance.hide();
 
-                    // Swal.fire({
-                    //     icon: returnStatus === 'approved' ? 'success' : 'info',
-                    //     title: 'Return Request Processed',
-                    //     text: `The return request has been ${returnStatus} successfully.`,
-                    // }).then(() => fetchOrders()); 
-
                     returnModal.addEventListener('hidden.bs.modal', function hideListener() {
                         returnModal.removeEventListener('hidden.bs.modal', hideListener);
                         Swal.fire({
@@ -628,7 +700,6 @@
                                                         <div class="d-flex align-items-center">
                                                             <div>
                                                                 <h6 class="mb-0">${item.product?.productName || 'Unknown'}</h6>
-                                                                <small class="text-muted">SKU: ${item.product?.sku || 'N/A'}</small>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -646,6 +717,10 @@
                                             <tr>
                                                 <td colspan="3" class="text-end fw-medium">Shipping</td>
                                                 <td class="text-end">₹${order.shipping?.toLocaleString('en-IN') || '0'}</td>
+                                            </tr>
+                                             <tr>
+                                                <td colspan="3" class="text-end fw-medium">Coupon</td>
+                                                <td class="text-end">₹${order.coupon?.toLocaleString('en-IN') || '0'}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="3" class="text-end fw-medium">Tax (GST 18%)</td>
@@ -713,4 +788,5 @@
         fetchOrders();
     });
 </script>
+
 <%- include("../../views/partial/admin/footer") %>

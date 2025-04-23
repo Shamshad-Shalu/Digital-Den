@@ -392,8 +392,8 @@
 
 
 <script>
-    let salesChart, categoryChart;
 
+    let salesChart, categoryChart;
     async function fetchDashboardData(period = "month") {
         const queryParams = new URLSearchParams({
             period
@@ -421,12 +421,8 @@
             }
 
             // Update Stats
-            document.getElementById("netSale").innerHTML = `₹${Number(
-                data.netSale
-            ).toLocaleString("en-IN", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            })}`;
+            document.getElementById("netSale").innerHTML = `
+            ₹${Number(data.netSale).toLocaleString("en-IN", {minimumFractionDigits: 2, maximumFractionDigits: 2,})}`;
             document.getElementById("totalOrders").innerHTML = data.totalOrders;
             document.getElementById("totalCustomer").innerHTML = data.totalCustomers;
             document.getElementById("totalProduct").innerHTML = data.totalProducts;
@@ -438,13 +434,11 @@
             salesChart.options.scales.x.ticks.callback = function(value, index, values) {
                 const label = this.getLabelForValue(value);
                 if (period === "day") {
-                    // For daily view, show hour (e.g., "14:00")
                     return label.split(" ")[1];
                 } else if (period === "week" || period === "month") {
-                    // For weekly/monthly view, show day (e.g., "2025-04-22" -> "22")
                     return label.split("-")[2];
                 }
-                return label; // For yearly view, show as is (e.g., "2025-04")
+                return label; 
             };
             salesChart.update();
 

@@ -51,17 +51,17 @@ const walletSchema = new Schema({
         description: {
             type: String,
             default: "No description provided"
+        },
+        orderId: {
+            type: Schema.Types.ObjectId,
+            ref: "Order",
+            default: null
         }
     }],
     lastUpdated: {
         type: Date,
         default: Date.now
     },
-    orderId: {
-        type: Schema.Types.ObjectId,
-        ref: "Order",
-        default: null
-    }
 }, {
     timestamps: true
 });

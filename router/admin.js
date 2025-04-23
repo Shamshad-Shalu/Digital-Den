@@ -9,10 +9,8 @@ const orderController = require("../controller/admin/orderController.js");
 const couponController = require("../controller/admin/couponController.js");
 const offerController = require("../controller/admin/offerController.js");
 const saleController = require("../controller/admin/salesController.js");
-
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
-
 
 // login
 router.get("/login",adminController.loadLoagin)
@@ -23,8 +21,6 @@ router.get("/pageError",adminController.pageError);
 // Protected routes
 router.use(adminAuth);
 
-//dashboard-routes
-// router.get("/dashboard",adminController.loadDashboard);
 
 //customer-routes
 router.get("/users",customerController.customerInfo);
@@ -57,18 +53,15 @@ router.get('/products/edit/:id', productController.getEditProductPage);
 router.patch('/products/edit/:id', upload, productController.editProduct);
 
 
-
-// Admin Order Management Routes
+//  Order Management 
 router.get("/orders",orderController.getAllOrders);
 router.patch("/orders/update-status/:orderId",  orderController.updateOrderStatus);
 router.get("/orders/details/:orderId", orderController.getOrderDetails);
 router.post('/orders/return/:returnId', orderController.processReturnRequest);
-// router.get('/orders/return-requests/:orderId', orderController.getReturnRequestsByOrder);
+
 
 // offer management 
 router.get('/offers', offerController.getOffers);
-router.post('/offer/add', offerController.addOffer);
-router.post('/offer/add', offerController.addOffer);
 router.post('/offer/add', offerController.addOffer);
 router.patch('/offer/update-status/:id',offerController.toggleOfferStatus);
 router.patch('/offer/edit/:id',offerController.editOffer);
@@ -79,8 +72,6 @@ router.post('/coupon/add', couponController.addCoupon);
 router.patch('/coupons/update-status/:id',couponController.toggleCouponStatus);
 router.patch('/coupon/edit/:id',couponController.editCoupon);
 
- 
-// router.get("/sale",saleController.getSalePage);
 
 // sales management 
 router.get("/sales",saleController.getSalePage);

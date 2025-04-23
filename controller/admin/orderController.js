@@ -94,20 +94,51 @@ const updateOrderStatus = async (req, res) => {
       'Cancelled': [],
     };
 
-    if (!validTransitions[order.status]?.includes(status)) {
-      return res.status(400).json({ success: false, message: `Cannot change status from ${order.status} to ${status}` });
+    const currentStatus = order.status.trim();
+    const newStatus = status.trim();
+
+    if (!validTransitions[currentStatus]?.includes(newStatus)) {
+      return res.status(400).json({ success: false, message: `Cannot change status from ${currentStatus} to ${newStatus}` });
     }
 
-    if (status === 'Cancelled' && !order.isCanceled) {
-      order.cancellation = {
-        reason: req.body.reason || 'Admin cancellation',
-        canceledBy: req.user?._id,
-        canceledAt: new Date(),
-      };
-      order.isCanceled = true;
+    if (newStatus === 'Cancelled' && !order.isCanceled) {
+        order.cancellation = {
+          reason: req.body.reason || 'Admin cancellation',
+          canceledBy: req.user?._id,
+          canceledAt: new Date(),
+        };
+        order.isCanceled = true;
+
+        if (order.paymentStatus === 'Paid') {
+            let wallet = await Wallet.findOne({ userId: order.userId });
+            if (!wallet) {
+                wallet = new Wallet({
+                    userId: order.userId,
+                    balance: 0,
+                    currency: 'INR',
+                });
+            }
+
+            const refundAmount = order.finalAmount; 
+            wallet.balance += refundAmount;
+            wallet.transactions.push({
+                transactionId: generateCustomId("RFD"),
+                amount: refundAmount,
+                type: 'Credit',
+                status: 'Completed',
+                method: 'Refund',
+                description: `Refund for cancelled order #${order.orderId}`,
+                orderId: order._id
+            });
+            wallet.lastUpdated = new Date();
+            await wallet.save();
+             
+            order.refundAmount = refundAmount;
+            order.paymentStatus = 'Refunded';
+        }
     }
 
-    if (['Cancelled', 'Returned'].includes(status) && !order.isCanceled && order.status !== 'Returned') {
+    if (['Cancelled', 'Returned'].includes(newStatus) && !order.isCanceled && order.status !== 'Returned') {
       for (const item of order.orderedItems) {
         const product = await Product.findById(item.product._id);
         if (product) {
@@ -117,10 +148,10 @@ const updateOrderStatus = async (req, res) => {
       }
     }
 
-    order.status = status;
-    if (status === 'Delivered') order.paymentStatus = 'Paid';
-    else if (status === 'Cancelled') order.paymentStatus = 'Failed';
-    else if (status === 'Returned') order.paymentStatus = 'Refunded';
+    order.status = newStatus;
+    if (newStatus === 'Delivered') order.paymentStatus = 'Paid';
+    else if (newStatus === 'Cancelled' && order.paymentStatus !== 'Refunded') order.paymentStatus = 'Failed';
+    else if (newStatus === 'Returned') order.paymentStatus = 'Refunded';
     order.updatedAt = new Date();
 
     await order.save();
