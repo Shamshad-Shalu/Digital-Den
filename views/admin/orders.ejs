@@ -212,11 +212,11 @@
         'Shipped': ['Out for Delivery', 'Cancelled'],
         'Out for Delivery': ['Delivered'],
         'Delivered': ['Return Request'],
-        'Return Request': ['Delivered', 'Returned'],
+        'Return Request': ['Delivered', 'Returned',"Partially Returned"],
+        "Partially Returned" :  ["Partially Returned", 'Returned'],
         'Returned': [],
         'Cancelled': [],
     };
-
 
     function getStatusColorClass(status) {
         switch (status) {
@@ -227,6 +227,7 @@
             case 'Delivered': return 'bg-success';
             case 'Cancelled': return 'bg-danger';
             case 'Returned': return 'bg-secondary';
+            case 'Return Request': return 'bg-secondary';
             case 'Return Request': return 'bg-warning';
             default: return 'bg-light';
         }
@@ -289,7 +290,7 @@
                             <td><span class="fw-bold">₹${order.finalAmount.toLocaleString('en-IN')}</span></td>
                             <td>
                                 <button  class="btn btn-sm status-btn ${getStatusColorClass(order.status)} text-white"
-                                   ${order.status === "Returned" || order.status === "Cancelled" || order.status === "Delivered" ? 'disabled' : ''}
+                                   ${order.status === "Returned" || order.status === "Cancelled" || order.status === "Delivered" || order.status === "Return Request"  ? 'disabled' : ''}
                                     data-bs-toggle="modal" data-bs-target="#statusModal"
                                     data-status="${order.status}" data-id="${order.orderId}">
                                     <span class="status-text">${order.status}</span>

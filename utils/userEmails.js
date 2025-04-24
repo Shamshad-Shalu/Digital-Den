@@ -99,9 +99,36 @@ async function sendProfileUpdateOtp(username, email, otp) {
     });
 }
 
+async function sendstatusUpdateMail(status , order) {
+    const emailContent = status === "approved" 
+        ? {
+              subject: 'Return Request Approved',
+              html: `
+
+              <p>Dear ${order.userId.username}, 
+              your return request for order #${order.orderId} has been approved.
+               ₹${order.finalAmount.toLocaleString('en-IN')} has been credited to your wallet.</p>
+             
+                `,
+          }
+        : {
+              subject: 'Return Request Rejected',
+              html: `
+                  <p>Dear ${order.userId.username}, your return request for order #${order.orderId} has been rejected.</p>
+              `,
+          };
+
+    return await sendEmail({
+        to: order.userId.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+    });
+}
+
 module.exports = { 
     sendUserStatusEmail, 
     sendForgotOtp,
     sendSignupOtp,
-    sendProfileUpdateOtp
+    sendProfileUpdateOtp,
+    sendstatusUpdateMail
 };

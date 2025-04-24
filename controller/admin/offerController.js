@@ -91,8 +91,8 @@ const getOffers = async (req, res) => {
             redirectUrl: "/admin/pageError"
         });
       }
-};
-
+};   
+   
 const addOffer = async (req, res) => {
     try {
         const {

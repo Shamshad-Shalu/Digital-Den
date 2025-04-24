@@ -29,7 +29,7 @@ const orderSchema = new Schema({
         },
         returnStatus: {
             type: String,
-            enum: ["Not Returned", "Return Requested", "Returned"],
+            enum: ["Not Returned", "Return Requested", "Returned","Cancelled"],
             default: "Not Returned",
         },
         totalAmount:{
@@ -60,7 +60,7 @@ const orderSchema = new Schema({
         default: null
     },
     couponDiscount: { 
-        type: Number,
+        type: Number, 
         default: 0
     },
     finalAmount:{
@@ -95,7 +95,7 @@ const orderSchema = new Schema({
     status:{  
         type:String,
         required:true,
-        enum:["Pending","Processing","Shipped", "Out for Delivery","Delivered","Cancelled","Return Request","Returned"],
+        enum:["Pending","Processing","Shipped", "Out for Delivery","Delivered","Cancelled","Return Request","Returned","Partially Returned"],
         default:"Pending"   
     },
     paymentStatus:{
@@ -128,6 +128,10 @@ const orderSchema = new Schema({
         default: 0
     },
     refundAmount:{
+        type: Number,
+        default: 0
+    },
+    returnTax:{
         type: Number,
         default: 0
     }

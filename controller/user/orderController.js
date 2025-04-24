@@ -2,8 +2,10 @@ const User = require("../../model/userSchema");
 const Order  = require("../../model/orderSchema"); 
 const ReturnRequest = require("../../model/returnRequestModel"); 
 const Wallet = require("../../model/walletSchema");
-const Coupon = require("../../model/couponSchema")
+const Coupon = require("../../model/couponSchema");
+const Product = require("../../model/productSchema");
 const {validateCancelOrder ,validateReturnRequest} = require("../../utils/validation");
+const  { generateCustomId }= require("../../utils/helper"); 
 
 
 const getorderSuccessPage = async (req, res) => {
@@ -215,16 +217,18 @@ const cancelOrder = async (req , res) => {
                         balance: 0,
                     });
                    await wallet.save();
-                }
-                console.log("refundAmount:",refundAmount)
+                };
+                
                 // Add refund to wallet
-                wallet.balance += refundAmount;  
+                wallet.balance += refundAmount; 
                 wallet.transactions.push({
+                    transactionId: generateCustomId("RFD"),
                     amount: refundAmount,
                     type: 'Credit',
-                    method: 'Refund',
                     status: 'Completed',
-                    description: `Refund for cancelled order ${order.orderId}`,
+                    method: 'Refund',
+                    description: `Refund for cancelled order #${order.orderId}`,
+                    orderId: order._id,
                     date: Date.now()
                 });
                 wallet.lastUpdated = Date.now();
@@ -232,14 +236,6 @@ const cancelOrder = async (req , res) => {
                 
                 order.refundAmount =  refundAmount;
                 order.paymentStatus = 'Refunded';
-            }
-            
-            // If a coupon was applied, remove user 
-            if (order.appliedCoupon) {
-                await Coupon.updateOne(
-                    { _id: order.appliedCoupon._id },
-                    { $pull: { usersUsed: order.userId } }
-                );
             }
         }
     
@@ -255,12 +251,25 @@ const cancelOrder = async (req , res) => {
         order.revokedCoupon = order.couponDiscount;
         order.status = 'Cancelled'; 
         
+        // If a coupon was applied, remove user 
+        if (order.appliedCoupon) {
+            await Coupon.updateOne(
+                { _id: order.appliedCoupon._id },
+                { $pull: { usersUsed: order.userId } }
+            );
+        }
+        
         //update product
         for (const item of order.orderedItems) {
+            item.returnStatus = "Cancelled";
+             const productss = await Product.findOne({_id:item.product._id});
+            console.log("product:",productss);
             const product = item.product;
             product.quantity += item.quantity;
             await product.save();
         };
+
+        console.log("order :",order);
 
         await order.save();
         res.json({success: true,message: 'Order canceled successfully',});

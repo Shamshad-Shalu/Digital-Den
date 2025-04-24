@@ -3,7 +3,6 @@ const User = require("../../model/userSchema");
 const Product = require("../../model/productSchema");
 
 
-
 const getSalePage = async (req, res) => {
     try {
         
@@ -95,40 +94,52 @@ const getSalePage = async (req, res) => {
             {
               $group: {
                 _id: null,
-                grossSales : { $sum: "$totalPrice" }, 
+                grossSales : { $sum: "$finalAmount" }, 
                 totalDiscount: { $sum: "$discount" },
                 cancelOrders: {
                     $sum: {
                       $cond: [{ $eq: ["$status", "Cancelled"] }, "$finalAmount", 0]
                     }
-                },
+                },      
                 totalReturns: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "Returned"] }, "$finalAmount", 0]
+                      $cond: [{ $eq: ["$status", "Returned"] }, "$refundAmount", 0]
                     }
                 },
                 totalCouponDiscount: { $sum: "$couponDiscount"},
-                netSale: { 
-                    $sum: {
-                      $cond: [
-                        { $in: ["$status", ["Cancelled", "Returned"]] },
-                        0,
-                        "$finalAmount"
-                      ]
-                    }
-                },
+                totalRevokedCoupon: { $sum: "$revokedCoupon"},
+                totalRefunds: { $sum: "$refundAmount" },
+                grossTaxes :{ $sum: "$tax"},
+                returnTax: { $sum: "$returnTax"},
               }
+            },     
+            {
+                $project: {
+                    _id: 0,
+                    grossSales: 1,
+                    totalDiscount: 1,
+                    totalReturns: 1,
+                    cancelOrders: 1,
+                    totalRefunds: 1,
+                    totalCouponDiscount: 1,
+                    totalRevokedCoupon: 1,
+                    netSale: { $subtract: ["$grossSales", "$totalRefunds"] },
+                    totalTax : { $subtract: ["$grossTaxes", "$returnTax"] } 
+                }
             }
-        ]);
-          
+        ]); 
+           
         let stats = statsCalculations.length > 0 ? statsCalculations[0] : { 
             grossSales: 0, 
             totalDiscount: 0, 
-            totalReturns: 0 ,
-            cancelOrders: 0 ,
-            totalCouponDiscount : 0,
-            netSale : 0,
-        };
+            totalReturns: 0,
+            cancelOrders: 0,
+            totalRefunds: 0,
+            totalCouponDiscount: 0,
+            totalRevokedCoupon: 0,
+            totalTax : 0,
+            netSale: 0,
+        };  
 
         const totalOrders = await Order.countDocuments(query);
 
@@ -146,16 +157,16 @@ const getSalePage = async (req, res) => {
             orderDate: sale.invoiceDate || sale.createdAt,
             orderId: sale.orderId,
             items: sale.orderedItems || [], 
-            paymentMethod: sale.paymentMethod, 
-            subtotal: sale.totalPrice ,
-            discount: sale.discount ,
-            revokedCoupon:sale.refundAmount || 0,
-            refundAmount:sale.refundAmount || 0,
-            tax: sale.tax ,
-            couponDiscount:sale.couponDiscount ,
-            total: sale.finalAmount, 
+            paymentMethod: sale.paymentMethod,
+            grossAmount: sale.finalAmount.toFixed(2), 
+            discount: sale.discount.toFixed(2),
+            couponDiscount: sale.couponDiscount.toFixed(2),
+            revokedCoupon: sale.revokedCoupon.toFixed(2) || 0,
+            refundAmount: sale.refundAmount.toFixed(2) || 0,    
+            tax: sale.tax.toFixed(2),
+            netAmount: (sale.finalAmount - sale.refundAmount).toFixed(2) , 
             status: sale.status
-        }));
+        }));     
 
         if (req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest") {
             return res.json({
@@ -167,8 +178,8 @@ const getSalePage = async (req, res) => {
                 totalDiscount: stats.totalDiscount,
                 cancelOrders: stats.cancelOrders,
                 totalReturns: stats.totalReturns,
-                totalCoupon : stats.totalCouponDiscount,
-                netSale : stats.netSale,
+                totalCoupon: stats.totalCouponDiscount,
+                netSale: stats.netSale,
                 totalPages,
                 totalOrders,
             });
@@ -181,8 +192,8 @@ const getSalePage = async (req, res) => {
             totalDiscount: stats.totalDiscount,
             cancelOrders: stats.cancelOrders,
             totalReturns: stats.totalReturns,
-            totalCoupon : stats.totalCouponDiscount,
-            netSale : stats.netSale,
+            totalCoupon: stats.totalCouponDiscount,
+            netSale: stats.netSale,
             totalPages,
             totalOrders,
             search,
@@ -214,7 +225,6 @@ const exportSales = async (req, res) => {
             endDate = ''
         } = req.query;
 
-        // For exports, we need a higher limit
         const limit = parseInt(req.query.limit) || 1000;
 
         let query = {};
@@ -225,20 +235,15 @@ const exportSales = async (req, res) => {
             ];
         }
 
-        if (status !== 'All') {
-            query.status = status;
-        }
-
-        if (paymentMethod !== 'All') {
-            query.paymentMethod = paymentMethod; 
-        }
-
+        if (status !== 'All') query.status = status;
+        if (paymentMethod !== 'All') query.paymentMethod = paymentMethod; 
+        
         if (minPrice || maxPrice) {
             query.finalAmount = {}; 
             if (minPrice) query.finalAmount.$gte = Number(minPrice);
             if (maxPrice) query.finalAmount.$lte = Number(maxPrice);
         }
-
+     
         if (dateRange !== 'All') {
             const now = new Date();
             switch (dateRange) {
@@ -291,46 +296,57 @@ const exportSales = async (req, res) => {
             {
               $group: {
                 _id: null,
-                grossSales : { $sum: "$totalPrice" }, 
+                grossSales : { $sum: "$finalAmount" }, 
                 totalDiscount: { $sum: "$discount" },
                 cancelOrders: {
                     $sum: {
                       $cond: [{ $eq: ["$status", "Cancelled"] }, "$finalAmount", 0]
                     }
-                },
+                },      
                 totalReturns: {
                     $sum: {
-                      $cond: [{ $eq: ["$status", "Returned"] }, "$finalAmount", 0]
+                      $cond: [{ $eq: ["$status", "Returned"] }, "$refundAmount", 0]
                     }
                 },
                 totalCouponDiscount: { $sum: "$couponDiscount"},
-                netSale: { 
-                    $sum: {
-                      $cond: [
-                        { $in: ["$status", ["Cancelled", "Returned"]] },
-                        0,
-                        "$finalAmount"
-                      ]
-                    }
-                },
+                totalRevokedCoupon: { $sum: "$revokedCoupon"},
+                totalRefunds: { $sum: "$refundAmount" },
+                grossTaxes :{ $sum: "$tax"},
+                returnTax: { $sum: "$returnTax"},
               }
+            },     
+            {
+                $project: {
+                    _id: 0,
+                    grossSales: 1,
+                    totalDiscount: 1,
+                    totalReturns: 1,
+                    cancelOrders: 1,
+                    totalRefunds: 1,
+                    totalCouponDiscount: 1,
+                    totalRevokedCoupon: 1,
+                    netSale: { $subtract: ["$grossSales", "$totalRefunds"] },
+                    totalTax : { $subtract: ["$grossTaxes", "$returnTax"] } 
+                }
             }
-        ]);
-          
+        ]); 
+           
         let stats = statsCalculations.length > 0 ? statsCalculations[0] : { 
             grossSales: 0, 
             totalDiscount: 0, 
             totalReturns: 0,
             cancelOrders: 0,
+            totalRefunds: 0,
             totalCouponDiscount: 0,
+            totalRevokedCoupon: 0,
+            totalTax : 0,
             netSale: 0,
-        };
+        }; 
 
         const totalOrders = await Order.countDocuments(query);
-        
-        // For export, we retrieve all matching records (up to the limit)
+    
         const sales = await Order.find(query)
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: 1 })
             .limit(limit)
             .lean();
 
@@ -339,14 +355,14 @@ const exportSales = async (req, res) => {
             orderDate: sale.invoiceDate || sale.createdAt,
             orderId: sale.orderId,
             items: sale.orderedItems || [], 
-            paymentMethod: sale.paymentMethod, 
-            subtotal: sale.totalPrice,
-            discount: sale.discount,
-            couponDiscount: sale.couponDiscount,
-            revokedCoupon: sale.refundAmount || 0,
-            refundAmount: sale.refundAmount || 0,
-            tax: sale.tax,
-            total: sale.finalAmount, 
+            paymentMethod: sale.paymentMethod,
+            grossAmount: sale.finalAmount.toFixed(2), 
+            discount: sale.discount.toFixed(2),
+            couponDiscount: sale.couponDiscount.toFixed(2),
+            revokedCoupon: sale.revokedCoupon.toFixed(2) || 0,
+            refundAmount: sale.refundAmount.toFixed(2) || 0,    
+            tax: sale.tax.toFixed(2),
+            netAmount: (sale.finalAmount - sale.refundAmount).toFixed(2) , 
             status: sale.status
         }));
 
@@ -356,7 +372,10 @@ const exportSales = async (req, res) => {
             totalDiscount: stats.totalDiscount,
             cancelOrders: stats.cancelOrders,
             totalReturns: stats.totalReturns,
+            totalRefunds: stats.totalRefunds,
             totalCoupon: stats.totalCouponDiscount,
+            netTax : stats.totalTax,
+            totalRevokedCoupon : stats.totalRevokedCoupon, 
             netSale: stats.netSale,
             totalOrders,
             dateRange,

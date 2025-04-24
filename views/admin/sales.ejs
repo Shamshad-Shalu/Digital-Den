@@ -350,8 +350,8 @@
                             <select class="form-select filter-control" id="paymentFilter">
                                 <option value="All">All Payments</option>
                                 <option value="COD">Cash on Delivery</option>
-                                <option value="Online">Razorpay</option>
-                                <option value="wallet">Wallet</option>
+                                <option value="Online">Online>
+                                <option value="Wallet">Wallet</option>
                             </select>
                         </div>
 
@@ -415,13 +415,13 @@
                             <tr>
                                 <th>#</th>
                                 <th>Order ID</th>
-                                <th>Amount</th>
+                                <th>GrossAmount</th>
                                 <th>Discount</th>
                                 <th>Coupon</th>
                                 <th>Tax</th>
-                                <th>FinalAmount</th>
                                 <th>Return/Cancelled</th>
                                 <th>Revoked Coupon</th>
+                                <th>NetAmount</th>
                                 <th>Date</th>
                                 <th width="70">Payment Method</th>
                                 <th>Status</th>
@@ -491,22 +491,26 @@
 
                     if (data.sales?.length > 0) {
                         data.sales.forEach((sale, index) => {
+                            console.log(sale);
                             const row = `
-                    <tr class="fade-in">
-                      <td>${(data.page - 1) * data.limit + index + 1}</td>
-                      <td>${sale.orderId || 'Unknown'}</td>
-                      <td>₹${sale.subtotal.toFixed(2)}</td>
-                      <td class="text-danger">₹${(sale.discount || 0).toFixed(2)}</td>
-                      <td>₹${(sale.couponDiscount || 0).toFixed(2)}</td>
-                      <td class="ml-2" >₹${(sale.tax || 0).toFixed(2)}</td>
-                      <td class="fw-bold">₹${(sale.total || 0).toFixed(2)}</td>
-                      <td class="ml-2" >₹${(sale.refundAmount || 0).toFixed(2)}</td>    
-                      <td class="ml-2" >₹${(sale.revokedCoupon || 0).toFixed(2)}</td>
-                      <td><span class="text-muted">${sale.orderDate ? new Date(sale.orderDate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) : 'N/A'}</span></td>
-                      <td><span class="badge bg-warning text-dark">${sale.paymentMethod || 'Unknown'}</span></td>
-                      <td><span class="badge bg-${getStatusClass(sale.status)} ">${sale.status || 'Unknown'} </span></td>           
-                    </tr>
-                    `;
+                                <tr class="fade-in">
+                                    <td>${(data.page - 1) * data.limit + index + 1}</td>
+                                    <td>${sale.orderId || 'Unknown'}</td>
+                                    <td>₹${sale.grossAmount}</td>
+                                    <td class="text-danger">₹${(sale.discount)}</td>
+                                    <td>₹${sale.couponDiscount}</td>
+                                    <td class="ml-2" >₹${sale.tax }</td>
+                                    <td class="ml-2 text-danger">₹${ sale.refundAmount }</td>    
+                                    <td class="ml-2" >₹${sale.revokedCoupon }</td>
+                                    <td class="fw-bold">₹${sale.netAmount}</td>
+                                    <td><span class="text-muted">${sale.orderDate ? new Date(sale.orderDate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) : 'N/A'}</span></td>
+                                    <td><span class="badge ${sale.paymentMethod === "COD" ?  'bg-primary'  : sale.paymentMethod === "Online" ?  "bg-success"  : 'bg-secondary'}">
+                                        ${sale.paymentMethod || 'Unknown'}</span>
+                                    </td>
+                                    <td><span class="badge bg-${getStatusClass(sale.status)} ">${sale.status || 'Unknown'} </span></td>           
+                                </tr>
+                            `;
+
                             tableBody.insertAdjacentHTML('beforeend', row);
                         });
                         function getStatusClass(status) {
@@ -784,8 +788,8 @@
 
                     return await response.json();
                 }
-
-               
+        
+                // pdf 
                 function generatePDF(data) {
                     // Create jsPDF instance
                     const { jsPDF } = window.jspdf;
@@ -803,59 +807,63 @@
                     doc.text(`Report Period: ${dateRangeText}`, 148.5, 25, { align: 'center' });
                     
                     // filters
-                    const filterText = getFilterText();
+                    const filters =  getFilterText();
                     doc.setFontSize(10);
-                    doc.setFont('helvetica', 'italic');
-                    doc.text(`Filters Applied: ${filterText || 'None'}`, 148.5, 32, { align: 'center' });
-                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.text("Filters Applied:", 20, 40);
+
+                    doc.setFont('helvetica', 'normal');
+                    if (filters.length === 0) {
+                        doc.text("None", 20, 47);
+                    } else {
+                        filters.forEach((filter, index) => {
+                            doc.text(filter, 20, 47 + (index * 5));
+                        });
+                    }
+                    let tableStartY = 47;
+                    if (filters.length > 0) {
+                        tableStartY = 47 + (filters.length * 5) + 10; // Add extra 10mm padding after filters
+                    } else {
+                        tableStartY = 55; // If no filters, still add some spacing
+                    }
+
                     // sales details table
-                    const headers = [
-                        'Order ID',
-                        'Amount',
-                        'Discount',
-                        'Coupon',
-                        'Final Amount',
-                        'Return/Cancelled',
-                        'Revoked Coupon',
-                        'Date',
-                        'Status'
-                    ];
-                    const tableData = data.sales.map(sale => [
+                    const headers = [ '#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Tax', 'Return/cancelled', 'RevokedCoupon', "Net Amount",'Date', 'Payment Method', 'Status'];
+
+                    const tableData = data.sales.map((sale, index) => [
+                        index + 1,
                         sale.orderId || 'Unknown',
-                        formatCurrency(sale.subtotal),
-                        formatCurrency(sale.discount || 0),
-                        formatCurrency(sale.couponDiscount || 0),
-                        formatCurrency(sale.total || 0),
-                        formatCurrency(sale.refundAmount || 0),
-                        formatCurrency(sale.revokedCoupon || 0), 
+                        sale.grossAmount,
+                        sale.discount ,
+                        sale.couponDiscount ,
+                        sale.tax,
+                        sale.refundAmount,
+                        sale.revokedCoupon,
+                        sale.netAmount,
                         new Date(sale.orderDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }),
+                        sale.paymentMethod || 'Unknown',
                         sale.status || 'Unknown'
                     ]);
-                    
-                    // Calculate totals
-                    const sumSubtotal = data.sales.reduce((sum, sale) => sum + (sale.subtotal || 0), 0);
-                    const sumDiscount = data.sales.reduce((sum, sale) => sum + (sale.discount || 0), 0);
-                    const sumCoupon = data.sales.reduce((sum, sale) => sum + (sale.couponDiscount || 0), 0);
-                    const sumTotal = data.sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-                    const sumRefund = data.sales.reduce((sum, sale) => sum + (sale.refundAmount || 0), 0);
-                    const sumRevokedCoupon = data.sales.reduce((sum, sale) => sum + (sale.revokedCoupon || 0), 0);
-                    
+
                     // Add totals row
                     tableData.push([
-                        'Totals:',
-                        formatCurrency(sumSubtotal),
-                        formatCurrency(sumDiscount),
-                        formatCurrency(sumCoupon),
-                        formatCurrency(sumTotal),
-                        formatCurrency(sumRefund),
-                        formatCurrency(sumRevokedCoupon),
                         '',
-                        `Total Orders: ${data.totalOrders}`
+                        `Total Orders: ${data.totalOrders}`,
+                        formatCurrency(data.grossSale),
+                        formatCurrency(data.totalDiscount),
+                        formatCurrency(data.totalCoupon),
+                        formatCurrency(data.netTax),
+                        formatCurrency(data.totalRefunds),
+                        formatCurrency(data.totalRevokedCoupon),
+                        formatCurrency(data.netSale),
+                        '',
+                        '',
+                        '',
                     ]);
                     
                     // Render table
                     doc.autoTable({
-                        startY: 40,
+                        startY: tableStartY,
                         head: [headers],
                         body: tableData,
                         theme: 'grid',
@@ -866,27 +874,31 @@
                             fontSize: 9 // Slightly smaller for a compact look
                         },
                         styles: {
-                            fontSize: 8, // Reduced font size for better fit and readability
-                            cellPadding: 4, // Increased padding for better spacing
+                            fontSize: 7, // Reduced font size for better fit and readability
+                            cellPadding: 2, // Increased padding for better spacing
                             lineColor: [0, 0, 0],
                             lineWidth: 0.2
                         },
+
                         columnStyles: {
-                            0: { cellWidth: 40, halign: 'left' },   // Order ID (wider for long IDs)
-                            1: { cellWidth: 25, halign: 'right' },  // Amount (right-aligned)
-                            2: { cellWidth: 25, halign: 'right' },  // Discount (right-aligned)
-                            3: { cellWidth: 25, halign: 'right' },  // Coupon (right-aligned)
-                            4: { cellWidth: 25, halign: 'right' },  // Final Amount (right-aligned)
-                            5: { cellWidth: 30, halign: 'right' },  // Return/Cancelled (right-aligned)
-                            6: { cellWidth: 30, halign: 'right' },  // Revoked Coupon (right-aligned)
-                            7: { cellWidth: 25, halign: 'center' }, // Date (centered)
-                            8: { cellWidth: 25, halign: 'center' }  // Status (centered)
+                            0: { cellWidth: 7, halign: 'left' }, 
+                            1: { cellWidth: 25, halign: 'left' },  
+                            2: { cellWidth: 30, halign: 'right' },  
+                            3: { cellWidth: 20, halign: 'right' },  
+                            4: { cellWidth: 20, halign: 'right' },  
+                            5: { cellWidth: 25, halign: 'right' }, 
+                            6: { cellWidth: 25, halign: 'right' }, 
+                            7: { cellWidth: 25, halign: 'right' }, 
+                            8: { cellWidth: 25, halign: 'right' }, 
+                            9: { cellWidth: 30, halign: 'center' }, 
+                            10:{ cellWidth: 25, halign: 'center' }, 
+                            11: { cellWidth: 25, halign: 'center' },  
+                            12: { cellWidth: 30, halign: 'center' }  
                         },
-                        margin: { left: 14, right: 14 },
+                        margin: { left: 10, right: 10 },
                         didParseCell: (data) => {
                             if (data.row.index === tableData.length - 1) {
                                 data.cell.styles.fontStyle = 'bold';
-                                // Center the "Total Orders" value in the Status column
                                 if (data.column.index === 8) {
                                     data.cell.styles.halign = 'center';
                                 }
@@ -906,67 +918,65 @@
 
                     doc.save(`Sales_Report_${getFormattedDate()}.pdf`);
                 }
-               // Generate Excel report
+
+                //  Excel report
                 function generateExcel(data) {
-                    // Create a new workbook and worksheet
                     const workbook = XLSX.utils.book_new();
                     const worksheetData = [];
 
-                    // Add title
                     worksheetData.push(['Sales Report']);
                     
-                    // Add date range
-                    const dateRangeText = getDateRangeText(data); // Pass data to get earliest/latest dates
+                    //date range
+                    const dateRangeText = getDateRangeText(data); 
                     worksheetData.push(['Report Period:', dateRangeText, '', '', '', '', '', '', '', '', '']);
                     
-                    // Add filters
-                    const filterText = getFilterText();
-                    worksheetData.push(['Filters Applied:', filterText || 'None', '', '', '', '', '', '', '', '', '']);
+                    //filters
+                    const filters = getFilterText();
+                    worksheetData.push(['Filters Applied:', filters.length === 0 ? 'None' : '', '', '', '', '', '', '', '', '', '']);
                     
-                    // Add blank row for spacing
+                    if (filters.length > 0) {
+                        filters.forEach(filter => {
+                            worksheetData.push(['', filter, '', '', '', '', '', '', '', '', '']);
+                        });
+                    }
+
                     worksheetData.push(['']);
                     
                     // Add headers
-                    const headers = ['#', 'Order ID', 'Date', 'Payment Method', 'Amount', 'Discount', 'Coupon', 'Tax', 'Final Amount', 'Refund', 'Status'];
+                    const headers = ['#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Tax', 'Return/cancelled', 'RevokedCoupon', "Net Amount",'Date', 'Payment Method', 'Status'];
                     worksheetData.push(headers);
                     
                     // Add sales data
                     const salesData = data.sales.map((sale, index) => [
                         index + 1,
                         sale.orderId || 'Unknown',
+                        formatCurrency(sale.grossAmount),
+                        formatCurrency(sale.discount ),
+                        formatCurrency(sale.couponDiscount ),
+                        formatCurrency(sale.tax),
+                        formatCurrency(sale.refundAmount),
+                        formatCurrency(sale.revokedCoupon),
+                        formatCurrency(sale.netAmount),
                         new Date(sale.orderDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }),
                         sale.paymentMethod || 'Unknown',
-                        formatCurrency(sale.subtotal),
-                        formatCurrency(sale.discount || 0),
-                        formatCurrency(sale.couponDiscount || 0),
-                        formatCurrency(sale.tax || 0),
-                        formatCurrency(sale.total || 0),
-                        formatCurrency(sale.refundAmount || 0),
                         sale.status || 'Unknown'
                     ]);
                     
                     salesData.forEach(row => worksheetData.push(row));
                     
-                    // Add totals row
-                    const sumSubtotal = data.sales.reduce((sum, sale) => sum + (sale.subtotal || 0), 0);
-                    const sumDiscount = data.sales.reduce((sum, sale) => sum + (sale.discount || 0), 0);
-                    const sumCoupon = data.sales.reduce((sum, sale) => sum + (sale.couponDiscount || 0), 0);
-                    const sumTax = data.sales.reduce((sum, sale) => sum + (sale.tax || 0), 0);
-                    const sumTotal = data.sales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-                    const sumRefund = data.sales.reduce((sum, sale) => sum + (sale.refundAmount || 0), 0);
-                    
                     worksheetData.push(['']);
                     worksheetData.push([
-                        'Totals:',
                         '',
                         '',
+                        formatCurrency(data.grossSale),
+                        formatCurrency(data.totalDiscount),
+                        formatCurrency(data.totalCoupon),
+                        formatCurrency(data.netTax),
+                        formatCurrency(data.totalRefunds),
+                        formatCurrency(data.totalRevokedCoupon),
+                        formatCurrency(data.netSale),
                         '',
-                        formatCurrency(sumSubtotal),
-                        formatCurrency(sumDiscount),
-                        formatCurrency(sumCoupon),
-                        formatCurrency(sumTax),
-                        formatCurrency(sumTotal),
-                        formatCurrency(sumRefund),
+                        '',
                         `Total Orders: ${data.totalOrders}`
                     ]);
                     
@@ -975,25 +985,33 @@
                     
                     // Set column widths
                     worksheet['!cols'] = [
-                        { wch: 5 },  // #
-                        { wch: 20 }, // Order ID
-                        { wch: 15 }, // Date
-                        { wch: 15 }, // Payment Method
-                        { wch: 12 }, // Amount
-                        { wch: 12 }, // Discount
-                        { wch: 12 }, // Coupon
-                        { wch: 12 }, // Tax
-                        { wch: 12 }, // Final Amount
-                        { wch: 12 }, // Refund
-                        { wch: 15 }  // Status
+                        { wch: 5 },  
+                        { wch: 20 }, 
+                        { wch: 15 }, 
+                        { wch: 12 }, 
+                        { wch: 12 }, 
+                        { wch: 12 }, 
+                        { wch: 15 }, 
+                        { wch: 12 }, 
+                        { wch: 12 }, 
+                        { wch: 15 }, 
+                        { wch: 15 },
+                        { wch: 12 },
+                        { wch: 15 }   
                     ];
                     
-                    // Apply borders and styling
+                    const headerRowIndex = 3 + (filters.length > 0 ? filters.length : 0) + 1;
+                    // borders and styling
                     const range = XLSX.utils.decode_range(worksheet['!ref']);
                     for (let row = range.s.r; row <= range.e.r; row++) {
                         for (let col = range.s.c; col <= range.e.c; col++) {
                             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
                             if (!worksheet[cellAddress]) continue;
+
+                            const isTitle = row === 0;
+                            const isHeader = row === headerRowIndex;
+                            const isTotal = row === range.e.r;
+
                             worksheet[cellAddress].s = {
                                 border: {
                                     top: { style: 'thin' },
@@ -1001,10 +1019,12 @@
                                     left: { style: 'thin' },
                                     right: { style: 'thin' }
                                 },
-                                font: row === 0 ? { bold: true, sz: 16 } : // Title
-                                    row === 4 ? { bold: true } : // Headers
-                                    row === range.e.r ? { bold: true } : {}, // Totals
-                                alignment: { horizontal: 'left' }
+                                font: isTitle ? { bold: true, sz: 16 } : // Title
+                                    isHeader ? { bold: true } : // Headers
+                                    isTotal ? { bold: true } : {}, // Totals
+                                alignment: { 
+                                    horizontal: (col >= 2 && col <= 8 && (isHeader || row > headerRowIndex)) ? 'right' : 'left'
+                                }
                             };
                         }
                     }
@@ -1018,13 +1038,14 @@
                     // Generate the Excel file
                     XLSX.writeFile(workbook, `Sales_Report_${getFormattedDate()}.xlsx`);
                 }
-                // Helper function to get formatted date for filenames
+
+                // formatted date 
                 function getFormattedDate() {
                     const date = new Date();
                     return date.toISOString().split('T')[0];
                 }
                 
-                // Helper function to get date range text
+                // date range text
                 function getDateRangeText(data) {
                     const dateRange = document.getElementById('dateRangeSelect').value;
                     const startDate = document.getElementById('startDate').value;
@@ -1063,7 +1084,7 @@
                                 toDate = new Date(endDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
                             }
                             break;
-                        default: // 'all' or any other value
+                        default: 
                             fromDate = new Date(data.sales.reduce((min, sale) => Math.min(min, new Date(sale.orderDate).getTime()), Infinity)).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
                             toDate = new Date(data.sales.reduce((max, sale) => Math.max(max, new Date(sale.orderDate).getTime()), -Infinity)).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' });
                             break;
@@ -1071,8 +1092,8 @@
                     
                     return fromDate && toDate ? `${fromDate} - ${toDate}` : 'Unknown Range';
                 }
-                // Helper function to get filter text
-                function getFilterText() {
+                // filters
+                function  getFilterText() {
                     const filters = [];
                     
                     const status = document.getElementById('statusFilter').value;
@@ -1084,29 +1105,29 @@
                     const minPrice = document.getElementById('minPrice').value;
                     const maxPrice = document.getElementById('maxPrice').value;
                     if (minPrice && maxPrice) {
-                        filters.push(`Price Range: ₹${Number(minPrice).toLocaleString('en-IN')} - ₹${Number(maxPrice).toLocaleString('en-IN')}`);
+                        filters.push(`Price Range: ${Number(minPrice).toLocaleString('en-IN')} - ${Number(maxPrice).toLocaleString('en-IN')}`);
                     } else if (minPrice) {
-                        filters.push(`Min Price: ₹${Number(minPrice).toLocaleString('en-IN')}`);
+                        filters.push(`Min Price: ${Number(minPrice).toLocaleString('en-IN')}`);
                     } else if (maxPrice) {
-                        filters.push(`Max Price: ₹${Number(maxPrice).toLocaleString('en-IN')}`);
+                        filters.push(`Max Price: ${Number(maxPrice).toLocaleString('en-IN')}`);
                     }
                     
                     const search = document.getElementById('searchInput').value;
                     if (search) filters.push(`Search: "${search}"`);
                     
-                    return filters.join(' | ');
+                    return filters;
                 }
-
+           
             })
 
             //  format currency 
             function formatCurrency(value) {
                 return 'Rs.' + Number(value).toLocaleString('en-IN', {
-                    minimumFractionDigits: 2, // show 2 decimal 
-                    maximumFractionDigits: 2  // no more than 2 decimal 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
                 });
             }
-       
+
         </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>

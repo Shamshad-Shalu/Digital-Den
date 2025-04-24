@@ -137,12 +137,18 @@ function genarateOtp(){
   return  Math.floor(100000 + Math.random() * 900000).toString();
 } 
 
-// Generates a custom ID  for transactions 
-function generateCustomId(TNX = "ID") {
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const random = Math.random().toString(36).substring(2, 10).toUpperCase();
-    return `${TNX}-${date}-${random}`;
-}
+const generateCustomId = (function () {
+    const counters = {}; 
+  
+    return function(prefix = "TNX") {
+      if (!counters[prefix]) {
+        counters[prefix] = 0;
+      }
+  
+      const id = `${prefix}-${String(counters[prefix]++).padStart(8, '0')}`;
+      return id;
+    };
+})();
 
 async function getSpecialOffer(product) {
     const now = new Date();
