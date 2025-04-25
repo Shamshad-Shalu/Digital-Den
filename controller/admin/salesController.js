@@ -141,6 +141,8 @@ const getSalePage = async (req, res) => {
             netSale: 0,
         };  
 
+        
+
         const totalOrders = await Order.countDocuments(query);
 
         
@@ -342,6 +344,7 @@ const exportSales = async (req, res) => {
             totalTax : 0,
             netSale: 0,
         }; 
+
 
         const totalOrders = await Order.countDocuments(query);
     

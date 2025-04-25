@@ -24,7 +24,7 @@ router.use(adminAuth);
 
 //customer-routes
 router.get("/users",customerController.customerInfo);
-router.get("/user/wallet/:userId", customerController.customerWalletInfo);
+router.get("/users/wallet/:userId", customerController.customerWalletInfo);
 router.patch("/users/toggle/:id",customerController.toggleUserStatus);
 
 //category-routes 

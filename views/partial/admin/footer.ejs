@@ -55,20 +55,16 @@
     // Set active menu item based on current URL
     function setActiveMenuItem() {
         const currentPath = window.location.pathname;
-          
-        const pagePath = currentPath.replace('/admin/', '');
-        
+
         menuItems.forEach(item => {
-            const itemPage = item.getAttribute('data-page');
-            if (itemPage === pagePath) {
-                // Remove active class from all menu items
+            const itemPage = item.getAttribute('data-page'); 
+            const itemPath = `/admin/${itemPage}`;
+            if (currentPath.startsWith(itemPath)) {
                 menuItems.forEach(i => i.classList.remove('active'));
-                // Add active class to current page's menu item
                 item.classList.add('active');
             }
         });
     }
-    
 
     // Call this function when the page loads
     document.addEventListener('DOMContentLoaded', function() {

@@ -282,25 +282,6 @@ function validateCancelOrder(data) {
 
 }
 
-
-// Validation function for return requests
-const validateReturnRequest = (data) => {
-    let errors = {};
-
-    // Validate return reason (mandatory)
-    if (!data.reason) {
-        errors.reason = 'Return reason is required';
-    } else if (data.reason.length < 10) {
-        errors.reason = 'Return reason must be at least 10 characters long';
-    } else if (data.reason.length > 1000) {
-        errors.reason = 'Return reason cannot exceed 1000 characters';
-    } else if (!/[a-zA-Z0-9]/.test(data.reason)) {
-        errors.reason = 'Return reason must contain actual text content';
-    }
-
-    return Object.keys(errors).length > 0 ? errors : null;
-};
-
 // user-profile 
 async function validateUserProfile(user) {
     let errors = {};
@@ -522,7 +503,6 @@ module.exports = {
     validateProduct,
     validateAddress ,
     validateCancelOrder,
-    validateReturnRequest,
     validatePassword,
     validateEmail,
     validateCoupon,

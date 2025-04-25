@@ -1,4 +1,3 @@
-// models/ReturnRequest.js
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
@@ -14,10 +13,11 @@ const returnRequestSchema = new Schema(
       required: false,
     }],
     reason: {
-      type: String,
-      required: true,
-      trim: true,
+      enum:['changed_mind', 'wrong_item', 'Other']
     },
+    comments:{
+      type:String,
+    }, 
     requestedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -41,3 +41,5 @@ const returnRequestSchema = new Schema(
 );
 
 module.exports = mongoose.model("ReturnRequest", returnRequestSchema);
+
+

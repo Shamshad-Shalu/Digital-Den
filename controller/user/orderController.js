@@ -97,7 +97,7 @@ const getOrders = async (req, res) => {
         const allOrders = await Order.find({ userId: userData._id });
         const summary = {
             totalOrders: allOrders.length,
-            activeOrders: allOrders.filter(order => ['Pending', 'Processing', 'Shipped'].includes(order.status)).length,
+            activeOrders: allOrders.filter(order => ['Pending', 'Processing', 'Shipped',"Out for Delivery"].includes(order.status)).length,
             totalSpend: allOrders.reduce((sum, order) => sum + order.finalAmount, 0),
         };
 
@@ -173,7 +173,7 @@ const cancelOrder = async (req , res) => {
     
         const {userData } = res.locals;
         const { orderId } = req.params;
-        const { reason,comments } = req.body;
+        const { reason , comments } = req.body;
     
         // Validate request data
         const errors = validateCancelOrder({ reason, comments });
@@ -201,7 +201,7 @@ const cancelOrder = async (req , res) => {
         }
 
         //checking
-        if (['Delivered', 'Cancelled', 'Returned'].includes(order.status)) {
+        if (['Delivered', 'Cancelled', 'Returned' ].includes(order.status)) {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
@@ -234,7 +234,6 @@ const cancelOrder = async (req , res) => {
                 wallet.lastUpdated = Date.now();
                 await wallet.save();
                 
-                order.refundAmount =  refundAmount;
                 order.paymentStatus = 'Refunded';
             }
         }
@@ -249,9 +248,10 @@ const cancelOrder = async (req , res) => {
 
         order.isCanceled = true;
         order.revokedCoupon = order.couponDiscount;
+        order.refundAmount =  order.finalAmount;
+        order.returnTax  = order.tax;
         order.status = 'Cancelled'; 
         
-        // If a coupon was applied, remove user 
         if (order.appliedCoupon) {
             await Coupon.updateOne(
                 { _id: order.appliedCoupon._id },
@@ -288,13 +288,15 @@ const returnOrder = async (req, res) => {
         }
 
         const { orderId } = req.params;
-        const { reason } = req.body;
-
-        const errors = validateReturnRequest({ reason });
+        const { reason , comments } = req.body;
+    
+        // Validate request data
+        const errors = validateCancelOrder({ reason, comments });
         if (errors) {
             return res.status(400).json({ success: false, errors });
         }
 
+        
         const user = await User.findById(userData);
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
@@ -360,13 +362,10 @@ const returnItem = async (req, res) => {
     try {
         const { userData, isUserBlocked } = res.locals;
         const { orderId, itemId } = req.params;
-        const { reason } = req.body;
-
-        if (isUserBlocked) {
-            return res.status(403).json({ success: false, message: 'Account is blocked' });
-        }
-
-        const errors = validateReturnRequest({ reason });
+        const { reason , comments } = req.body;
+    
+        // Validate request data
+        const errors = validateCancelOrder({ reason, comments });
         if (errors) {
             return res.status(400).json({ success: false, errors });
         }

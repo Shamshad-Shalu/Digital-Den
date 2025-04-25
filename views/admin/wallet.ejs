@@ -1469,7 +1469,7 @@
         }).toString();
 
         try {
-            const response = await fetch(`/admin/user/wallet/${userId}?${queryParams}`,{
+            const response = await fetch(`/admin/users/wallet/${userId}?${queryParams}`,{
                 headers:{'X-Requested-With': 'XMLHttpRequest'},
             });
 
@@ -1479,7 +1479,7 @@
                     title: 'Unauthorized',
                     text: 'Please log in to continue',
                 }).then(() => {
-                    window.location.href = '/user/signin';
+                    window.location.href = '/admin/login';
                 });
                 return;
             }

@@ -137,18 +137,19 @@ function genarateOtp(){
   return  Math.floor(100000 + Math.random() * 900000).toString();
 } 
 
-const generateCustomId = (function () {
-    const counters = {}; 
-  
-    return function(prefix = "TNX") {
-      if (!counters[prefix]) {
-        counters[prefix] = 0;
-      }
-  
-      const id = `${prefix}-${String(counters[prefix]++).padStart(8, '0')}`;
-      return id;
-    };
-})();
+const generateCustomId = (TNX = "ID") => {
+    const timestamp = Date.now().toString().slice(-6); 
+    const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+    return `${TNX}-${timestamp}${random}`; 
+};
+
+// // Generates a custom ID  for transactions 
+// function generateCustomId(TNX = "ID") {
+//     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+//     const random = Math.random().toString(36).substring(2, 10).toUpperCase();
+//     return `${TNX}-${date}-${random}`;
+// }
+
 
 async function getSpecialOffer(product) {
     const now = new Date();

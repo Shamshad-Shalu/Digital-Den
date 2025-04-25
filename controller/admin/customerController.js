@@ -87,7 +87,6 @@ const toggleUserStatus = async (req, res )=>{
 const customerWalletInfo = async (req, res) => {
     try {
         const {userId} = req.params;
-        console.log("userId:",userId);
         const user = await User.findById(userId);
         if (!user) {
             return res.status(403).json({
