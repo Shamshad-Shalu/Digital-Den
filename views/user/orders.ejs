@@ -265,12 +265,16 @@
         </div>
     </div>
 </div>
+<input type="hidden"  id="currentPage" value="<%= pagination.currentPage %>">
+<input type="hidden"  id="paginationLimit" value="<%= pagination.limit %>">
 
 <script>
+     // Store orders data for invoice modal
+        let ordersData = <%- JSON.stringify(orders) %>; 
     document.addEventListener("DOMContentLoaded", () => {
         // State to keep track of current filters, sort, search, and page
-        let currentPage = <%= pagination.currentPage %>;
-        let currentLimit = <%= pagination.limit %>;
+        let currentPage = document.getElementById("currentPage").value ;
+        let currentLimit = document.getElementById("paginationLimit").value ;
         let currentFilter = '<%= filter %>';
         let currentSort = '<%= sort %>';
         let currentSearch = '<%= search || "" %>';
@@ -421,12 +425,18 @@
                                         <div class="item-name">${item.product.productName}</div>
                                         <div class="item-price">Qty: ${item.quantity} × ₹${item.price} = ₹${item.quantity * item.price}</div>
                                     </div>
-                                    ${order.status === 'Delivered' ? `
+                                    ${((order.status === 'Delivered' ||  order.status === 'Partially Returned' ||  order.status === 'Return Request') && (item.returnStatus ===  'Not Returned' ))? `
                                         <div class="item-actions">
                                             <button class="btn btn-sm btn-outline" data-bs-toggle="modal" data-bs-target="#returnItemModal" data-item-id="${item._id}">
                                                 <i class="bi bi-arrow-return-left"></i>Return
                                             </button>
                                         </div>
+                                    ` : ''}
+                                     ${item.returnStatus !=  'Not Returned' ? `
+                                         <span class="badge badge-${item.returnStatus  === 'Return Requested' ? 'warning' : 'danger'}">
+                                           <i class="bi bi-${ item.returnStatus === 'Return Requested' ? 'arrow-counterclockwise' : (item.returnStatus === 'Cancelled' && order.paymentStatus !== 'Refunded')? 'x-circle' : 'box-arrow-in-left' }"></i>
+                                            ${item.returnStatus } 
+                                        </span>
                                     ` : ''}
                                 </div>
                             `).join('')}
@@ -864,8 +874,7 @@
             }
         }
 
-        // Store orders data for invoice modal
-        let ordersData = <%- JSON.stringify(orders) %>;
+       
 
         // Form error handling functions
         function displayFormErrors(form, errors) {
@@ -888,9 +897,6 @@
             form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
         }
-
-       
-
 
     });
 </script>

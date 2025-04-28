@@ -97,7 +97,7 @@ const addOffer = async (req, res) => {
     try {
         const {
           name,description,type,discount,startDate,endDate,appliedOn,   
-          brands = [], products = [], categories : [], allProducts = false
+          brands , products , categories , allProducts = false
         } = req.body;
 
         const offerData = {
@@ -138,7 +138,7 @@ const editOffer = async (req , res)=> {
       const { id } = req.params;
       const { 
         name,description,type,discount,startDate,endDate,appliedOn,   
-        brands = [], products = [], allProducts = false ,categories = []
+        brands , products , allProducts = false ,categories
       } = req.body;
 
       const offerData = {

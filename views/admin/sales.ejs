@@ -418,9 +418,9 @@
                                 <th>GrossAmount</th>
                                 <th>Discount</th>
                                 <th>Coupon</th>
-                                <th>Tax</th>
                                 <th>Return/Cancelled</th>
                                 <th>Revoked Coupon</th>
+                                <th>Tax</th>
                                 <th>NetAmount</th>
                                 <th>Date</th>
                                 <th width="70">Payment Method</th>
@@ -499,9 +499,9 @@
                                     <td>₹${sale.grossAmount}</td>
                                     <td class="text-danger">₹${(sale.discount)}</td>
                                     <td>₹${sale.couponDiscount}</td>
-                                    <td class="ml-2" >₹${sale.tax }</td>
                                     <td class="ml-2 text-danger">₹${ sale.refundAmount }</td>    
                                     <td class="ml-2" >₹${sale.revokedCoupon }</td>
+                                    <td class="ml-2" >₹${sale.netTax }</td>
                                     <td class="fw-bold">₹${sale.netAmount}</td>
                                     <td><span class="text-muted">${sale.orderDate ? new Date(sale.orderDate).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" }) : 'N/A'}</span></td>
                                     <td><span class="badge ${sale.paymentMethod === "COD" ?  'bg-primary'  : sale.paymentMethod === "Online" ?  "bg-success"  : 'bg-secondary'}">
@@ -828,7 +828,7 @@
                     }
 
                     // sales details table
-                    const headers = [ '#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Tax', 'Return/cancelled', 'RevokedCoupon', "Net Amount",'Date', 'Payment Method', 'Status'];
+                    const headers = [ '#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Return/cancelled', 'RevokedCoupon', 'Tax', "Net Amount",'Date', 'Payment Method', 'Status'];
 
                     const tableData = data.sales.map((sale, index) => [
                         index + 1,
@@ -836,9 +836,9 @@
                         sale.grossAmount,
                         sale.discount ,
                         sale.couponDiscount ,
-                        sale.tax,
                         sale.refundAmount,
                         sale.revokedCoupon,
+                        sale.netTax,
                         sale.netAmount,
                         new Date(sale.orderDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }),
                         sale.paymentMethod || 'Unknown',
@@ -852,9 +852,9 @@
                         formatCurrency(data.grossSale),
                         formatCurrency(data.totalDiscount),
                         formatCurrency(data.totalCoupon),
-                        formatCurrency(data.netTax),
                         formatCurrency(data.totalRefunds),
                         formatCurrency(data.totalRevokedCoupon),
+                        formatCurrency(data.netTax),
                         formatCurrency(data.netSale),
                         '',
                         '',
@@ -943,7 +943,7 @@
                     worksheetData.push(['']);
                     
                     // Add headers
-                    const headers = ['#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Tax', 'Return/cancelled', 'RevokedCoupon', "Net Amount",'Date', 'Payment Method', 'Status'];
+                    const headers = ['#', 'Order ID','Gross Amount', 'Discount', 'Coupon', 'Return/cancelled', 'RevokedCoupon', 'Tax', "Net Amount",'Date', 'Payment Method', 'Status'];
                     worksheetData.push(headers);
                     
                     // Add sales data
@@ -953,9 +953,9 @@
                         formatCurrency(sale.grossAmount),
                         formatCurrency(sale.discount ),
                         formatCurrency(sale.couponDiscount ),
-                        formatCurrency(sale.tax),
                         formatCurrency(sale.refundAmount),
                         formatCurrency(sale.revokedCoupon),
+                        formatCurrency(sale.netTax),
                         formatCurrency(sale.netAmount),
                         new Date(sale.orderDate).toLocaleDateString('en-GB', { timeZone: 'Asia/Kolkata' }),
                         sale.paymentMethod || 'Unknown',
@@ -971,9 +971,9 @@
                         formatCurrency(data.grossSale),
                         formatCurrency(data.totalDiscount),
                         formatCurrency(data.totalCoupon),
-                        formatCurrency(data.netTax),
                         formatCurrency(data.totalRefunds),
                         formatCurrency(data.totalRevokedCoupon),
+                        formatCurrency(data.netTax),
                         formatCurrency(data.netSale),
                         '',
                         '',

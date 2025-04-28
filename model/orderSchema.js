@@ -24,19 +24,20 @@ const orderSchema = new Schema({
             required:true
         },
         price:{
-            type:Number,
-            required: true
+            type:Number,    
+            required: true 
         },
-        returnStatus: {
+        returnStatus: { 
             type: String,
             enum: ["Not Returned", "Return Requested", "Returned","Cancelled"],
             default: "Not Returned",
         },
-        totalAmount:{
+        totalAmount:{             
             type:Number,
             required:true
         },
-        returnReason: { type: String, trim: true }
+        returnReason: { type: String, trim: true },
+        returnNote: { type: String, trim: true }
     }],
     totalPrice:{
         type:Number,
@@ -63,7 +64,7 @@ const orderSchema = new Schema({
         type: Number, 
         default: 0
     },
-    finalAmount:{
+    finalAmount:{                       
         type:Number,
         required:true
     },
@@ -99,7 +100,7 @@ const orderSchema = new Schema({
         default:"Pending"   
     },
     paymentStatus:{
-        type:String,
+        type:String, 
         required:true,
         enum:["Pending","Paid","Failed", "Refunded"],
         default:"Pending"  
@@ -134,8 +135,8 @@ const orderSchema = new Schema({
     returnTax:{
         type: Number,
         default: 0
-    }
+    }  
 },
-{timestamps:true});
+{timestamps:true});    
 
 module.exports = mongoose.model("Order",orderSchema);

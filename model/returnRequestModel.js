@@ -30,7 +30,7 @@ const returnRequestSchema = new Schema(
     },
     refundAmount: {
         type: Number,
-        default: 0
+        default: 0 
     },
     returnedAt: {
       type: Date,

@@ -25,6 +25,7 @@ const getAllOrders = async (req, res) => {
         username: { $regex: search.trim(), $options: "i" },
       });
       const userIds = users.map((user) => user._id);
+      
       query.$or = [
         { orderId: { $regex: search.trim(), $options: "i" } },
         { userId: { $in: userIds } },
@@ -71,8 +72,8 @@ const getAllOrders = async (req, res) => {
     const totalOrders = await Order.countDocuments(query);
     const orders = await Order.find(query)
       .populate("userId", "username email")
-      .sort({ updatedAt: -1 })
-      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 })   
+      .skip((page - 1) * limit)   
       .limit(limit);
 
     const ordersWithDetails = orders.map((order) => ({
@@ -149,34 +150,33 @@ const updateOrderStatus = async (req, res) => {
         canceledBy: req.user?._id,
         canceledAt: new Date(),
       };
-      order.isCanceled = true;
 
       if (order.paymentStatus === "Paid") {
-        let wallet = await Wallet.findOne({ userId: order.userId });
-        if (!wallet) {
-          wallet = new Wallet({
-            userId: order.userId,
-            balance: 0,
+          let wallet = await Wallet.findOne({ userId: order.userId });
+          if (!wallet) {
+            wallet = new Wallet({
+              userId: order.userId,
+              balance: 0,
+            });
+            await wallet.save();
+          }
+
+          const refundAmount = order.finalAmount;
+          wallet.balance += refundAmount;
+
+          wallet.transactions.push({
+            transactionId: generateCustomId("RFD"),
+            amount: refundAmount,
+            type: "Credit",
+            status: "Completed",
+            method: "Refund",
+            description: `Refund for cancelled order #${order.orderId}`,
+            orderId: order._id,
+            date: Date.now(),
           });
+          wallet.lastUpdated = new Date();
           await wallet.save();
-        }
-
-        const refundAmount = order.finalAmount;
-        wallet.balance += refundAmount;
-
-        wallet.transactions.push({
-          transactionId: generateCustomId("RFD"),
-          amount: refundAmount,
-          type: "Credit",
-          status: "Completed",
-          method: "Refund",
-          description: `Refund for cancelled order #${order.orderId}`,
-          orderId: order._id,
-          date: Date.now(),
-        });
-        wallet.lastUpdated = new Date();
-        await wallet.save();
-        order.paymentStatus = "Refunded";
+          order.paymentStatus = "Refunded";
       }
 
       order.isCanceled = true;
@@ -191,20 +191,19 @@ const updateOrderStatus = async (req, res) => {
           { $pull: { usersUsed: order.userId } }
         );
       }
-    }
- 
-    if (newStatus === "Cancelled" && order.status !== "Returned") {
+
+
       for (const item of order.orderedItems) {
         item.returnStatus = "Cancelled";
-
+        item.returnReason =  "Admin cancellation";
+        
         const product = await Product.findOne({ _id: item.product._id });
-        console.log("product:", product);
-
         if (product) {
           product.quantity += item.quantity;
           await product.save();
         }
       }
+
     }
 
     order.status = newStatus;
@@ -256,143 +255,136 @@ const processReturnRequest = async (req, res) => {
     const { returnId } = req.params;
     const { returnStatus } = req.body;
 
-    const returnRequest = await ReturnRequest.findOne({
-      orderId: returnId,
-    }).populate({
+    // Fetch return request
+    const returnRequest = await ReturnRequest.findOne({ orderId: returnId ,status:"Pending"}).populate({
       path: "orderId",
       populate: [
         { path: "userId", select: "email username" },
         { path: "orderedItems.product", select: "productName quantity" },
         { path: "appliedCoupon" },
-      ],
-    });
+      ], 
+    }); 
 
-    if (!returnRequest)
-      return res
-        .status(404)
-        .json({ success: false, message: "Return request not found" });
-
+    if (!returnRequest) {
+      return res.status(404).json({ success: false, message: "Return request not found" });
+    };
     const order = returnRequest.orderId;
 
-    // Update return request status
     returnRequest.status =
-      returnStatus === "approved"
-        ? "Approved"
-        : returnStatus === "rejected"
-        ? "Rejected"
-        : "Pending";
+      returnStatus === "approved" ? "Approved" :
+      returnStatus === "rejected" ? "Rejected" : "Pending";
     await returnRequest.save();
 
+    // refund and remaining items
     const refundItems = order.orderedItems.filter(
-      (item) =>
-        returnRequest.itemIds.length === 0 ||
-        returnRequest.itemIds.includes(item._id.toString())
-    );
-    // Subtotal after this return
+      (item) => returnRequest.itemIds.length === 0 || returnRequest.itemIds.includes(item._id.toString())
+    ); 
+
     const remainingItems = order.orderedItems.filter(
       (item) => !returnRequest.itemIds.includes(item._id.toString())
     );
 
-    const totalOrderItemAmount = order.orderedItems.reduce(
-      (sum, item) => sum + item.totalAmount,
-      0
-    );
-    const itemsTotal = refundItems.reduce(
-      (sum, item) => sum + item.totalAmount,
-      0
-    );
+    const totalAmount = order.totalPrice - order.discount; 
+    const refundItemAmount = refundItems.reduce((sum, item) => sum + item.totalAmount, 0); 
+    const remainingTotal = remainingItems
+      .filter((item) => item.returnStatus === "Not Returned")
+      .reduce((sum, item) => sum + item.totalAmount, 0); 
 
+    let refundAmount = 0;
+    let returnTax = 0;
+    const appliedCoupon = order.appliedCoupon;
+
+    let shipping = (totalAmount >= 500 && remainingTotal < 500 && remainingTotal > 0 ) ? 50 : 0 ;
+   
+    let coupon  = order.couponDiscount;
+
+    const remainingItemcoupon = remainingTotal * (coupon / totalAmount);
+    const remainingItemTax = (remainingTotal - remainingItemcoupon ) * 0.18;
+    const refundItemcoupon = refundItemAmount * (coupon / totalAmount);
+    const refundItemTax = (refundItemAmount - ( refundItemAmount * coupon / totalAmount))* 0.18;
+
+    // Calculate tax refund
+    let remainingTax = 0;    
+    let couponAdjustment = 0; 
+
+    if (appliedCoupon && remainingTotal < appliedCoupon.minPurchase) {
+        remainingTax = remainingTotal * 0.18; 
+        couponAdjustment = (remainingItemcoupon + remainingItemcoupon * 0.18);
+    } else {
+        remainingTax =  remainingItemTax
+    };
+    
+    returnTax = order.tax - remainingTax;  
+
+    const totalRemainingTotal = remainingTotal - remainingItemcoupon + remainingTax + couponAdjustment;
+    refundAmount =  order.finalAmount - ( totalRemainingTotal + shipping + order.refundAmount ) 
+
+    // Update order 
     if (returnStatus === "approved") {
-      // Find or create the user's wallet
-      let wallet = await Wallet.findOne({ userId: order.userId._id });
+        const wallet = await Wallet.findOneAndUpdate(
+          { userId: order.userId._id },
+          {
+            $setOnInsert: {
+              userId: order.userId,
+            },
+            $inc: { balance: refundAmount },
+            $push: {
+              transactions: {
+                transactionId: generateCustomId("RFD"),
+                amount: refundAmount,
+                type: "Credit",
+                status: "Completed",
+                method: "Refund",
+                description: `Refund for order #${order.orderId}`,
+                orderId: order._id,
+                date: Date.now(),
+              },
+            },
+            $set: { lastUpdated: new Date() },
+          },
+          { upsert: true, new: true }
+        );
 
-      if (!wallet) {
-        wallet = new Wallet({
-          userId: order.userId,
-          balance: 0,
-        });
-        await wallet.save();
-      }
+         for (const item of refundItems) {
+            item.returnStatus = "Returned";
+            const product = await Product.findOne({_id:item.product._id});
+            product.quantity += item.quantity;
+            await product.save();
+        };
 
-      let refundAmount = 0;
-      let coupon = 0;
-      const appliedCoupon = order.appliedCoupon;
 
-      const remainingTotal = remainingItems.reduce(
-        (sum, item) => sum + item.totalAmount,
-        0
-      );
+        // Update order fields
+        order.refundAmount += refundAmount;
+        order.returnTax = returnTax;
+        order.revokedCoupon = coupon;
+        order.paymentStatus = "Refunded";
+        order.status = remainingTotal === 0 ? "Returned" : "Partially Returned";
 
-      if (appliedCoupon && remainingTotal < appliedCoupon.minPurchase) {
-        coupon = order.couponDiscount;
-      }
-
-      let shipping = 0;
-      if (totalOrderItemAmount >= 500 && remainingTotal < 500) {
-        shipping = 50;
-      }
-
-      const tax = (itemsTotal / (totalOrderItemAmount - coupon)) * order.tax;
-      refundAmount = itemsTotal + tax - coupon - shipping;
-
-      refundAmount = Math.round(refundAmount);
-
-      returnRequest.refundAmount = refundAmount;
-      await returnRequest.save();
-
-      // wallet update
-      wallet.transactions.push({
-        transactionId: generateCustomId("RFD"),
-        amount: refundAmount,
-        type: "Credit",
-        status: "Completed",
-        method: "Refund",
-        description: `Refund for cancelled order #${order.orderId}`,
-        orderId: order._id,
-        date: Date.now(),
-      });
-      wallet.lastUpdated = new Date();
-      await wallet.save();
-
-      // product  update
-      for (const item of refundItems) {
-        const product = await Product.findById(item.product._id);
-        if (product) {
-          product.quantity += item.quantity;
-          await product.save();
-        }
-        item.returnStatus = "Returned";
-      }
-
-      order.refundAmount = refundAmount;
-      order.revokedCoupon = coupon;
-      // Update status
-      order.paymentStatus = "Refunded";
-      order.status = "Returned";
     } else if (returnStatus === "rejected") {
-      order.status = "Delivered";
-      for (const item of refundItems) {
-        item.returnStatus = "Not Returned";
-      }
+        refundItems.forEach(item => item.returnStatus = "Not Returned");
+        const alreadyReturned = order.orderedItems.some(item => item.returnStatus === "Returned");
+        if (alreadyReturned) {
+            order.status = "Partially Returned";
+        } else {
+            order.status = "Delivered";
+        }
     }
+
     await order.save();
 
+     // Send email notification 
     if (returnStatus === "approved" || returnStatus === "rejected") {
-      // Send email notification
       await sendstatusUpdateMail(returnStatus, order);
     }
 
-    res.json({
-      success: true,
-      message: `Return request ${returnStatus} successfully`,
-    });
+    res.json({success: true,message: `Return request ${returnStatus} successfully`,});
+    
   } catch (error) {
     console.error("Error processing return request:", error);
-    res
-      .status(500)
-      .json({ success: false, message: `Server error: ${error.message}` });
+    res.status(500).json({ success: false, message: `Server error: ${error.message}` });
   }
 };
+
 
 module.exports = {
   getAllOrders,

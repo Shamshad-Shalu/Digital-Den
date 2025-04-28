@@ -25,6 +25,102 @@
         border-left-width: 4px !important;
     }
 
+    /* Chart Filter Buttons */
+    .chart-filter {
+        display: flex;
+        gap: 5px;
+    }
+
+    .chart-filter .filter-btn {
+        padding: 0.25rem 0.75rem;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .chart-filter .filter-btn.active {
+        background-color: #6366f1;
+        color: white;
+        border-color: #6366f1;
+    }
+
+    /* Top List Styling */
+    .top-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .top-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .top-list li:last-child {
+        border-bottom: none;
+    }
+
+    .top-list .info {
+        display: flex;
+        align-items: center;
+    }
+
+    .top-list .info h6 {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .top-list .info p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+
+    .top-list .value {
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    /* Badge colors */
+    .bg-purple {
+        background-color: #6f42c1;
+        color: white;
+    }
+
+    .bg-amber {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    /* Chart container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+
+    /* No data overlay for charts */
+    .no-data-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 10;
+        font-size: 1rem;
+        color: #6c757d;
+    }
+
     /* Responsive styles */
     @media (max-width: 768px) {
         .stats-card .card-body {
@@ -34,6 +130,10 @@
         .chart-filter button {
             font-size: 0.8rem;
             padding: 0.3rem 0.6rem;
+        }
+        
+        .chart-container {
+            height: 250px;
         }
     }
 </style>
@@ -117,7 +217,10 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <canvas id="salesChart" height="300"></canvas>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                        <div class="no-data-overlay d-none">No data available for this period</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -125,7 +228,10 @@
             <div class="card">
                 <div class="card-header">Revenue by Category</div>
                 <div class="card-body">
-                    <canvas id="categoryChart" height="300"></canvas>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                        <div class="no-data-overlay d-none">No category data available</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,6 +245,7 @@
                 <div class="card-body">
                     <ul class="top-list" id="bestProducts">
                         <!-- Dynamically populated -->
+                        <li class="text-center text-muted py-4">Loading...</li>
                     </ul>
                 </div>
             </div>
@@ -149,6 +256,7 @@
                 <div class="card-body">
                     <ul class="top-list" id="bestCategories">
                         <!-- Dynamically populated -->
+                        <li class="text-center text-muted py-4">Loading...</li>
                     </ul>
                 </div>
             </div>
@@ -159,6 +267,7 @@
                 <div class="card-body">
                     <ul class="top-list" id="bestBrands">
                         <!-- Dynamically populated -->
+                        <li class="text-center text-muted py-4">Loading...</li>
                     </ul>
                 </div>
             </div>
@@ -189,6 +298,9 @@
                             </thead>
                             <tbody id="recentOrders">
                                 <!-- Dynamically populated -->
+                                <tr>
+                                    <td colspan="5" class="text-center py-3">Loading recent orders...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -202,15 +314,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-
 <script>
     let salesChart, categoryChart;
+    let currentPeriod = "month";
+
     async function fetchDashboardData(period = "month") {
+        currentPeriod = period;
         const queryParams = new URLSearchParams({
             period
         }).toString();
 
         try {
+            // Show loading state
+            document.getElementById("bestProducts").innerHTML = '<li class="text-center text-muted py-4">Loading...</li>';
+            document.getElementById("bestCategories").innerHTML = '<li class="text-center text-muted py-4">Loading...</li>';
+            document.getElementById("bestBrands").innerHTML = '<li class="text-center text-muted py-4">Loading...</li>';
+            document.getElementById("recentOrders").innerHTML = '<tr><td colspan="5" class="text-center py-3">Loading recent orders...</td></tr>';
+
             const response = await fetch(`/admin/dashboard?${queryParams}`, {
                 headers: { "X-Requested-With": "XMLHttpRequest" },
             });
@@ -239,30 +359,126 @@
             document.getElementById("totalProduct").innerHTML = data.totalProducts;
 
             // Update Sales Chart
-            salesChart.data.labels = data.salesChart.labels;
-            salesChart.data.datasets[0].data = data.salesChart.data;
-            salesChart.options.scales.x.title.text = `Sales by ${period.charAt(0).toUpperCase() + period.slice(1)}`;
-            salesChart.options.scales.x.ticks.callback = function(value, index, values) {
-                const label = this.getLabelForValue(value);
-                if (period === "day") {
-                    return label.split(" ")[1];
-                } else if (period === "week" || period === "month") {
-                    return label.split("-")[2];
-                }
-                return label; 
-            };
-            salesChart.update();
+            updateSalesChart(data.salesChart.labels, data.salesChart.data, period);
 
             // Update Category Chart
-            categoryChart.data.labels = data.categoryChart.labels;
-            categoryChart.data.datasets[0].data = data.categoryChart.data;
-            categoryChart.update();
+            updateCategoryChart(data.categoryChart.labels, data.categoryChart.data);
 
-            //  Best Selling Products
-            const bestProducts = document.getElementById("bestProducts");
-            bestProducts.innerHTML = data.bestProducts
-                .map(
-                    (product) => `
+            // Best Selling Products
+            updateBestProducts(data.bestProducts);
+
+            // Best Selling Categories
+            updateBestCategories(data.bestCategories);
+
+            // Update Best Selling Brands
+            updateBestBrands(data.bestBrands);
+
+            // Recent Orders
+            updateRecentOrders(data.recentOrders);
+
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+            Swal.fire({ 
+                icon: "error", 
+                title: "Error", 
+                text: error.message || "Failed to load dashboard data" 
+            });
+
+            // Show error state in the lists
+            const errorMessage = '<li class="text-center text-danger py-3">Failed to load data</li>';
+            document.getElementById("bestProducts").innerHTML = errorMessage;
+            document.getElementById("bestCategories").innerHTML = errorMessage;
+            document.getElementById("bestBrands").innerHTML = errorMessage;
+            document.getElementById("recentOrders").innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Failed to load recent orders</td></tr>';
+        }
+    }
+
+    function updateSalesChart(labels, data, period) {
+        const noDataOverlay = document.querySelector('#salesChart').closest('.chart-container').querySelector('.no-data-overlay');
+        
+        if (!labels.length || !data.length) {
+            noDataOverlay.classList.remove('d-none');
+            return;
+        }
+        
+        noDataOverlay.classList.add('d-none');
+        
+        // Format x-axis labels based on period
+        const formattedLabels = labels.map(label => {
+            if (period === 'day') {
+                // If format is "YYYY-MM-DD HH:00", extract the hour
+                const parts = label.split(' ');
+                if (parts.length > 1) {
+                    return parts[1].split(':')[0] + ':00';
+                }
+                return label;
+            } else if (period === 'week' || period === 'month') {
+                // If format is "YYYY-MM-DD", extract the day
+                const parts = label.split('-');
+                if (parts.length > 2) {
+                    return parts[2];
+                }
+                return label;
+            } else if (period === 'year') {
+                // If format is "YYYY-MM", extract month name
+                const parts = label.split('-');
+                if (parts.length > 1) {
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    const monthIndex = parseInt(parts[1]) - 1;
+                    return monthNames[monthIndex];
+                }
+                return label;
+            }
+            return label;
+        });
+
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = data;
+        
+        // Update axis title based on period
+        let xAxisTitle = 'Time Period';
+        switch(period) {
+            case 'day': xAxisTitle = 'Hours'; break;
+            case 'week': xAxisTitle = 'Days'; break;
+            case 'month': xAxisTitle = 'Days of Month'; break;
+            case 'year': xAxisTitle = 'Months'; break;
+        }
+        
+        salesChart.options.scales.x.title.text = xAxisTitle;
+        
+        // Custom tick formatter based on period
+        salesChart.options.scales.x.ticks.callback = function(value, index, ticks) {
+            return formattedLabels[index];
+        };
+        
+        salesChart.update();
+    }
+
+    function updateCategoryChart(labels, data) {
+        const noDataOverlay = document.querySelector('#categoryChart').closest('.chart-container').querySelector('.no-data-overlay');
+        
+        if (!labels.length || !data.length) {
+            noDataOverlay.classList.remove('d-none');
+            return;
+        }
+        
+        noDataOverlay.classList.add('d-none');
+        
+        categoryChart.data.labels = labels;
+        categoryChart.data.datasets[0].data = data;
+        categoryChart.update();
+    }
+
+    function updateBestProducts(products) {
+        const bestProducts = document.getElementById("bestProducts");
+        
+        if (!products || !products.length) {
+            bestProducts.innerHTML = '<li class="text-center text-muted py-3">No product data available</li>';
+            return;
+        }
+        
+        bestProducts.innerHTML = products
+            .map((product, index) => `
                 <li>
                     <div class="info">
                         <div>
@@ -274,15 +490,24 @@
                         <span>${product.units || 0} units</span>
                     </div>
                 </li>
-            `
-                )
-                .join("");
+            `)
+            .join("");
+            
+        if (products.length === 0) {
+            bestProducts.innerHTML = '<li class="text-center text-muted py-3">No product data available</li>';
+        }
+    }
 
-            // Best Selling Categories
-            const bestCategories = document.getElementById("bestCategories");
-            bestCategories.innerHTML = data.bestCategories
-                .map(
-                    (category) => `
+    function updateBestCategories(categories) {
+        const bestCategories = document.getElementById("bestCategories");
+        
+        if (!categories || !categories.length) {
+            bestCategories.innerHTML = '<li class="text-center text-muted py-3">No category data available</li>';
+            return;
+        }
+        
+        bestCategories.innerHTML = categories
+            .map(category => `
                 <li>
                     <div class="info">
                         <div>
@@ -297,15 +522,24 @@
                         })}</span>
                     </div>
                 </li>
-            `
-                )
-                .join("");
+            `)
+            .join("");
+            
+        if (categories.length === 0) {
+            bestCategories.innerHTML = '<li class="text-center text-muted py-3">No category data available</li>';
+        }
+    }
 
-            // Update Best Selling Brands
-            const bestBrands = document.getElementById("bestBrands");
-            bestBrands.innerHTML = data.bestBrands
-                .map(
-                    (brand) => `
+    function updateBestBrands(brands) {
+        const bestBrands = document.getElementById("bestBrands");
+        
+        if (!brands || !brands.length) {
+            bestBrands.innerHTML = '<li class="text-center text-muted py-3">No brand data available</li>';
+            return;
+        }
+        
+        bestBrands.innerHTML = brands
+            .map(brand => `
                 <li>
                     <div class="info">
                         <div>
@@ -320,49 +554,67 @@
                         })}</span>
                     </div>
                 </li>
-            `
-                )
-                .join("");
+            `)
+            .join("");
+            
+        if (brands.length === 0) {
+            bestBrands.innerHTML = '<li class="text-center text-muted py-3">No brand data available</li>';
+        }
+    }
 
-            //  Recent Orders
-            const recentOrders = document.getElementById("recentOrders");
-            recentOrders.innerHTML = data.recentOrders
-                .map(order => 
-                    `
-                        <tr>
-                            <td>${order.orderId || "N/A"}</td>
-                            <td>${order.customer || "N/A"}</td>
-                            <td>${new Date(order.date || Date.now()).toLocaleDateString("en-US", { month: "short",  day: "2-digit",year: "numeric",})}
-                            </td>
-                            <td>₹${Number(order.amount || 0).toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                            })}</td>
-                            <td><span class="badge ${getStatusClass(order.status)}">${
-                                order.status || "N/A"
-                            }</span></td>
-                        </tr>
-                    `
-                )
-                .join("");
+    function updateRecentOrders(orders) {
+        const recentOrders = document.getElementById("recentOrders");
+        
+        if (!orders || !orders.length) {
+            recentOrders.innerHTML = '<tr><td colspan="5" class="text-center py-3">No recent orders</td></tr>';
+            return;
+        }
+        
+        recentOrders.innerHTML = orders
+            .map(order => `
+                <tr>
+                    <td>${order.orderId || "N/A"}</td>
+                    <td>${order.customer || "N/A"}</td>
+                    <td>${formatDate(order.date)}</td>
+                    <td>₹${Number(order.amount || 0).toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}</td>
+                    <td><span class="badge ${getStatusClass(order.status)}">${
+                        order.status || "N/A"
+                    }</span></td>
+                </tr>
+            `)
+            .join("");
+            
+        if (orders.length === 0) {
+            recentOrders.innerHTML = '<tr><td colspan="5" class="text-center py-3">No recent orders</td></tr>';
+        }
+    }
 
-            function getStatusClass(status) {
-                console.log("statuses:",status);
-                switch (status) {
-                    case 'Pending': return 'bg-warning';
-                    case 'Processing': return 'bg-primary';
-                    case 'Shipped': return 'bg-info';
-                    case 'Out for Delivery': return 'bg-purple';
-                    case 'Delivered': return 'bg-success';
-                    case 'Cancelled': return 'bg-danger';
-                    case 'Returned': return 'bg-secondary';
-                    case 'Return Request': return 'bg-amber';
-                    default: return 'bg-light';
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching dashboard data:", error);
-            Swal.fire({ icon: "error", title: "Error", text: error.message || "Failed to load dashboard data" });
+    function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "Invalid Date";
+        
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric"
+        });
+    }
+
+    function getStatusClass(status) {
+        switch (status) {
+            case 'Pending': return 'bg-warning';
+            case 'Processing': return 'bg-primary';
+            case 'Shipped': return 'bg-info';
+            case 'Out for Delivery': return 'bg-purple';
+            case 'Delivered': return 'bg-success';
+            case 'Cancelled': return 'bg-danger';
+            case 'Returned': return 'bg-secondary';
+            case 'Return Request': return 'bg-amber';
+            default: return 'bg-light text-dark';
         }
     }
 
@@ -384,6 +636,8 @@
                         pointBackgroundColor: "#fff",
                         pointBorderColor: "#6366f1",
                         pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     },
                 ],
             },
@@ -397,22 +651,46 @@
                         title: {
                             display: true,
                             text: "Revenue (₹)",
+                            font: {
+                                size: 12
+                            }
                         },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString('en-IN');
+                            }
+                        }
                     },
                     x: {
                         grid: { display: false },
                         title: {
                             display: true,
-                            text: "Sales by Month",
+                            text: "Days of Month",
+                            font: {
+                                size: 12
+                            }
                         },
                         ticks: {
-                            callback: function(value, index, values) {
-                                return this.getLabelForValue(value);
-                            },
-                        },
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 12
+                        }
                     },
                 },
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                }
             },
         });
 
@@ -424,7 +702,12 @@
                 datasets: [
                     {
                         data: [],
-                        backgroundColor: ["#6366f1", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"],
+                        backgroundColor: [
+                            "#6366f1", "#10b981", "#3b82f6", 
+                            "#f59e0b", "#ef4444", "#8b5cf6",
+                            "#ec4899", "#14b8a6", "#f43f5e",
+                            "#64748b"
+                        ],
                         borderWidth: 0,
                         hoverOffset: 5,
                     },
@@ -433,9 +716,38 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: "70%",
-                plugins: { legend: { position: "bottom" } },
+                cutout: "65%",
+                plugins: { 
+                    legend: { 
+                        position: "bottom",
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ₹${value.toLocaleString('en-IN')} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
             },
+        });
+
+        // Make charts responsive
+        window.addEventListener('resize', function() {
+            salesChart.resize();
+            categoryChart.resize();
         });
 
         // Filter Buttons
@@ -448,6 +760,7 @@
             });
         });
 
+        // Initial data fetch
         fetchDashboardData("month");
     });
 </script>

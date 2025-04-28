@@ -346,9 +346,9 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
     }
 
     const netTotal = subtotal - totalDiscount - couponDiscount;
-    const tax = netTotal * 0.18;
     const shipping =  !netTotal ? 0 : ( netTotal > 500 ? 0 : 50);
-    const totalAmount = netTotal + tax + shipping;
+    const tax = (netTotal + shipping) * 0.18 
+    const totalAmount = netTotal + tax + shipping ;  // 9 for tax on shipping 18%
 
     console.log({
         subtotal,
@@ -646,6 +646,7 @@ const applyCoupon = async (req, res) => {
         const subtotal = cart.items
             .filter(item => !item.discontinuedAt && item.productId.status !== 'Out of stock')
             .reduce((acc, item) => acc + (item.totalPrice - item.totalDiscount) , 0);
+            console.log("subtotal:",subtotal);
 
         if (subtotal < coupon.minPurchase) {
             return res.json({ success: false, message: `Minimum purchase ₹${coupon.minPurchase} required` });

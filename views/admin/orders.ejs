@@ -115,6 +115,7 @@
                             <th>Customer</th>
                             <th>Items</th>
                             <th>Total</th>
+                            <th>paymentMethod</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -213,23 +214,22 @@
         'Out for Delivery': ['Delivered'],
         'Delivered': ['Return Request'],
         'Return Request': ['Delivered', 'Returned',"Partially Returned"],
-        "Partially Returned" :  ["Partially Returned", 'Returned'],
         'Returned': [],
         'Cancelled': [],
     };
 
     function getStatusColorClass(status) {
         switch (status) {
-            case 'Pending': return 'bg-warning';
-            case 'Processing': return 'bg-primary';
-            case 'Shipped': return 'bg-info';
-            case 'Out for Delivery': return 'bg-purple';
-            case 'Delivered': return 'bg-success';
-            case 'Cancelled': return 'bg-danger';
-            case 'Returned': return 'bg-secondary';
-            case 'Return Request': return 'bg-secondary';
-            case 'Return Request': return 'bg-warning';
-            default: return 'bg-light';
+            case 'Pending': return 'bg-warning';     
+            case 'Processing': return 'bg-primary';    
+            case 'Shipped': return 'bg-info';             
+            case 'Out for Delivery': return 'bg-purple';  
+            case 'Delivered': return 'bg-success';         
+            case 'Cancelled': return 'bg-danger';       
+            case 'Returned': return 'bg-dark';            
+            case 'Partially Returned': return 'bg-secondary'; 
+            case 'Return Request': return 'bg-warning';  
+            default: return 'bg-light'; 
         }
     }
 
@@ -288,9 +288,12 @@
                             </td>
                             <td>${order.orderedItems.length} items</td>
                             <td><span class="fw-bold">₹${order.finalAmount.toLocaleString('en-IN')}</span></td>
+                            <td width = "70" >
+                                <span class="badge ${ order.paymentMethod === 'COD' ? 'bg-warning' : order.paymentMethod === 'Online' ? 'bg-success' :'bg-info'}">${order.paymentMethod}</span>
+                            </td>
                             <td>
                                 <button  class="btn btn-sm status-btn ${getStatusColorClass(order.status)} text-white"
-                                   ${order.status === "Returned" || order.status === "Cancelled" || order.status === "Delivered" || order.status === "Return Request"  ? 'disabled' : ''}
+                                   ${order.status === "Returned" || order.status === "Cancelled" || order.status === "Delivered" || order.status === "Return Request"  || order.status === "Partially Returned" ? 'disabled' : ''}
                                     data-bs-toggle="modal" data-bs-target="#statusModal"
                                     data-status="${order.status}" data-id="${order.orderId}">
                                     <span class="status-text">${order.status}</span>
@@ -399,8 +402,8 @@
             
             // Reset styles and attributes
             statusOptions.forEach(option => {
-                option.disabled = true; // Disable by default
-                option.setAttribute('data-enabled', 'false'); // Custom attribute for styling
+                option.disabled = true; 
+                option.setAttribute('data-enabled', 'false'); 
             });
 
             // Enable only the valid transitions
@@ -459,7 +462,7 @@
             btn.addEventListener('click', async () => {
                 const orderId = btn.getAttribute('data-order-id');
                 currentReturnId = btn.getAttribute('data-return-id');
-                console.log("orderId :"+orderId );
+                console.log("orderId :"+ orderId );
                 console.log("currenreturnId :",currentReturnId)
                 try {
                     const response = await fetch(`/admin/orders/details/${orderId}`);
@@ -620,8 +623,6 @@
                 Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'Server error' });
             }
         });
-
-
     }
 
     async function handleViewOrder() {

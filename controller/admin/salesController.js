@@ -166,10 +166,11 @@ const getSalePage = async (req, res) => {
             revokedCoupon: sale.revokedCoupon.toFixed(2) || 0,
             refundAmount: sale.refundAmount.toFixed(2) || 0,    
             tax: sale.tax.toFixed(2),
+            netTax: (sale.tax - sale.returnTax).toFixed(2),
             netAmount: (sale.finalAmount - sale.refundAmount).toFixed(2) , 
             status: sale.status
-        }));     
-
+        }));      
+ 
         if (req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest") {
             return res.json({
                 sales: salesData,
@@ -244,7 +245,7 @@ const exportSales = async (req, res) => {
             query.finalAmount = {}; 
             if (minPrice) query.finalAmount.$gte = Number(minPrice);
             if (maxPrice) query.finalAmount.$lte = Number(maxPrice);
-        }
+        }      
      
         if (dateRange !== 'All') {
             const now = new Date();
@@ -295,8 +296,8 @@ const exportSales = async (req, res) => {
 
         const statsCalculations = await Order.aggregate([
             { $match: query }, 
-            {
-              $group: {
+            { 
+              $group: { 
                 _id: null,
                 grossSales : { $sum: "$finalAmount" }, 
                 totalDiscount: { $sum: "$discount" },
@@ -365,11 +366,12 @@ const exportSales = async (req, res) => {
             revokedCoupon: sale.revokedCoupon.toFixed(2) || 0,
             refundAmount: sale.refundAmount.toFixed(2) || 0,    
             tax: sale.tax.toFixed(2),
+            netTax: (sale.tax - sale.returnTax).toFixed(2),
             netAmount: (sale.finalAmount - sale.refundAmount).toFixed(2) , 
             status: sale.status
         }));
 
-        res.json({
+        res.json({ 
             sales: salesData,
             grossSale: stats.grossSales,
             totalDiscount: stats.totalDiscount,
@@ -391,31 +393,376 @@ const exportSales = async (req, res) => {
     }
 };
 
+// const getDashboardPage = async (req, res) => {
+//     try {
+//         const { period = 'month' } = req.query;
+
+//         let query = {};
+//         const now = new Date();
+
+//         switch (period) {
+//             case 'day':
+//                 query.createdAt = {
+//                     $gte: new Date(now.setHours(0, 0, 0, 0)),
+//                     $lte: new Date(now.setHours(23, 59, 59, 999))
+//                 };
+//                  break;
+//             case 'week':
+//                 const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+//                  query.createdAt = { $gte: new Date(weekStart.setHours(0, 0, 0, 0)) };
+//                 break;
+//             case 'month':
+//                 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+//              query.createdAt = { $gte: new Date(monthStart.setHours(0, 0, 0, 0)) };
+//                 break;
+//             case 'year':
+//                 const yearStart = new Date(now.getFullYear(), 0, 1);
+//                  query.createdAt = { $gte: new Date(yearStart.setHours(0, 0, 0, 0)) };
+//                 break;
+//         }
+
+//         // Stats Calculations
+//         const statsCalculations = await Order.aggregate([
+//             { $match: query },
+//             {
+//                 $group: {
+//                     _id: null,
+//                     netSale: {
+//                         $sum: {
+//                             $cond: [
+//                                 { $in: ["$status", ["Cancelled", "Returned"]] },
+//                                 0,
+//                                 "$finalAmount"
+//                             ]
+//                         }
+//                     },
+//                     totalOrders: { $sum: 1 }
+//                 }
+//             }
+//         ]);
+
+//         let stats = statsCalculations.length > 0 ? statsCalculations[0] : {
+//             netSale: 0,
+//             totalOrders: 0
+//         };
+
+//         // Total Customers & products
+//         const totalCustomers = await User.countDocuments({ isAdmin: false, isBlocked: false });
+//         const totalProducts = await Product.countDocuments({ isListed: true, isDeleted: false });
+
+//         // Sales Chart Data 
+//         let dateFormat;
+//         let limit;
+//         switch (period) {
+//             case 'day':
+//                 dateFormat = "%Y-%m-%d %H:00"; // hour for daily view
+//                 limit = 24; // 24 hours
+//                 break;
+//             case 'week':
+//                 dateFormat = "%Y-%m-%d"; //  day for weekly view
+//                 limit = 7; // 7 days 
+//                 break;
+//             case 'month':
+//                 dateFormat = "%Y-%m-%d"; //day for monthly view
+//                 limit = 31; // month
+//                 break;
+//             case 'year':
+//                 dateFormat = "%Y-%m"; //month for yearly view
+//                 limit = 12; 
+//                 break;
+//             default:
+//                 dateFormat = "%Y-%m";
+//                 limit = 12;
+//         }
+
+//         const salesChartData = await Order.aggregate([
+//             { $match: query },
+//             {
+//                 $group: {
+//                     _id: {
+//                         $dateToString: { format: dateFormat, date: "$createdAt" }
+//                     },
+//                     total: { $sum: "$finalAmount" }
+//                 }
+//             },
+//             { $sort: { "_id": 1 } },
+//             { $limit: limit }
+//         ]);
+
+//         const salesChart = {
+//             labels: salesChartData.map(d => d._id),
+//             data: salesChartData.map(d => d.total)
+//         };
+
+//         // Category Chart Data
+//         const categoryChartData = await Order.aggregate([
+//             { $match: query },
+//             { $unwind: "$orderedItems" },
+//             {
+//                 $lookup: {
+//                     from: "products",
+//                     localField: "orderedItems.product",
+//                     foreignField: "_id",
+//                     as: "productDetails"
+//                 }
+//             },
+//             { $unwind: "$productDetails" },
+//             {
+//                 $lookup: {
+//                     from: "categories",
+//                     localField: "productDetails.category",
+//                     foreignField: "_id",
+//                     as: "categoryDetails"
+//                 }
+//             },
+//             { $unwind: "$categoryDetails" },
+//             {
+//                 $group: {
+//                     _id: "$categoryDetails.name",
+//                     total: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } }
+//                 }
+//             },
+//             { $sort: { total: -1 } },
+//             { $limit: 5 }
+//         ]);
+
+//         const categoryChart = {
+//             labels: categoryChartData.map(d => d._id),
+//             data: categoryChartData.map(d => d.total)
+//         };
+
+//         //Top 10 Best Selling Products 
+//         const bestProducts = await Order.aggregate([
+//             { $match: query },
+//             { $unwind: "$orderedItems" },
+//             {
+//                 $lookup: {
+//                     from: "products",
+//                     localField: "orderedItems.product",
+//                     foreignField: "_id",
+//                     as: "productDetails"
+//                 }
+//             },
+//             { $unwind: "$productDetails" },
+//             {
+//                 $lookup: {
+//                     from: "categories",
+//                     localField: "productDetails.category",
+//                     foreignField: "_id",
+//                     as: "categoryDetails"
+//                 }
+//             },
+//             { $unwind: "$categoryDetails" },
+//             {
+//                 $group: {
+//                     _id: "$orderedItems.product",
+//                     name: { $first: "$productDetails.productName" },
+//                     categoryName: { $first: "$categoryDetails.name" },
+//                     units: { $sum: "$orderedItems.quantity" }
+//                 }
+//             },
+//             { $sort: { units: -1 } },
+//             { $limit: 10 }
+//         ]);
+
+//         // Best Selling Categories (Top 10)
+//         const bestCategories = await Order.aggregate([
+//             { $match: query },
+//             { $unwind: "$orderedItems" },
+//             {
+//                 $lookup: {
+//                     from: "products",
+//                     localField: "orderedItems.product",
+//                     foreignField: "_id",
+//                     as: "productDetails"
+//                 }
+//             },
+//             { $unwind: "$productDetails" },
+//             {
+//                 $lookup: {
+//                     from: "categories",
+//                     localField: "productDetails.category",
+//                     foreignField: "_id",
+//                     as: "categoryDetails"
+//                 }
+//             },
+//             { $unwind: "$categoryDetails" },
+//             {
+//                 $group: {
+//                     _id: "$categoryDetails._id",
+//                     name: { $first: "$categoryDetails.name" },
+//                     revenue: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } },
+//                     products: { $addToSet: "$orderedItems.product" }
+//                 }
+//             },
+//             { $sort: { revenue: -1 } },
+//             { $limit: 10 }
+//         ]);
+
+//         // Best Selling Brands (Top 10)
+//         const bestBrands = await Order.aggregate([
+//             { $match: query },
+//             { $unwind: "$orderedItems" },
+//             {
+//                 $lookup: {
+//                     from: "products",
+//                     localField: "orderedItems.product",
+//                     foreignField: "_id",
+//                     as: "productDetails"
+//                 }
+//             },
+//             { $unwind: "$productDetails" },
+//             {
+//                 $lookup: {
+//                     from: "brands",
+//                     localField: "productDetails.brand",
+//                     foreignField: "_id",
+//                     as: "brandDetails"
+//                 }
+//             },
+//             { $unwind: "$brandDetails" },
+//             {
+//                 $lookup: {
+//                     from: "categories",
+//                     localField: "productDetails.category",
+//                     foreignField: "_id",
+//                     as: "categoryDetails"
+//                 }
+//             },
+//             { $unwind: "$categoryDetails" },
+//             {
+//                 $group: {
+//                     _id: "$brandDetails._id",
+//                     name: { $first: "$brandDetails.brandName" },
+//                     categoryName: {$first: "$categoryDetails.name"},
+//                     revenue: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } }
+//                 }
+//             },
+//             { $sort: { revenue: -1 } },
+//             { $limit: 10 }
+//         ]);
+
+//         // Recent Orders
+//         const recentOrders = await Order.find(query)
+//             .sort({ createdAt: -1 })
+//             .limit(5)
+//             .lean()
+//             .populate('userId', 'username');
+
+//         const recentOrdersData = recentOrders.map(order => ({
+//             orderId: order.orderId,
+//             customer: order.userId ? order.userId.username : 'Unknown',
+//             date: order.createdAt,
+//             amount: order.finalAmount,
+//             status: order.status
+//         }));
+
+//         if (req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest") {
+//             return res.json({
+//                 netSale: stats.netSale,
+//                 totalOrders: stats.totalOrders,
+//                 totalCustomers,
+//                 totalProducts,
+//                 salesChart,
+//                 categoryChart,
+//                 bestProducts: bestProducts.map(p => ({
+//                     name: p.name,
+//                     categoryName: p.categoryName,
+//                     units: p.units
+//                 })),
+//                 bestCategories: bestCategories.map(c => ({
+//                     name: c.name,
+//                     revenue: c.revenue,
+//                     products: c.products.length
+//                 })),
+//                 bestBrands: bestBrands.map(b => ({
+//                     name: b.name,
+//                     categoryName: b.categoryName,
+//                     revenue: b.revenue
+//                 })),
+//                 recentOrders: recentOrdersData
+//             });
+//         }
+
+//         res.render("admin/dashboard", {
+//             netSale: stats.netSale,
+//             totalOrders: stats.totalOrders,
+//             totalCustomers,
+//             totalProducts,
+//             salesChart,
+//             categoryChart,
+//             bestProducts: bestProducts.map(p => ({
+//                 name: p.name, 
+//                 categoryName: p.categoryName,
+//                 units: p.units
+//             })),
+//             bestCategories: bestCategories.map(c => ({
+//                 name: c.name,
+//                 revenue: c.revenue,
+//                 products: c.products.length
+//             })),
+//             bestBrands: bestBrands.map(b => ({
+//                 name: b.name,
+//                 categoryName: b.categoryName,
+//                 revenue: b.revenue
+//             })),
+//             recentOrders: recentOrdersData
+//         });
+//     } catch (error) {
+//         console.error('Error fetching dashboard data:', error);
+//         res.status(500).json({ message: 'Server error', error: error.message });
+//     }
+// };
+
+ 
 const getDashboardPage = async (req, res) => {
     try {
         const { period = 'month' } = req.query;
 
-        let query = {};
+        // Date handling for different periods
         const now = new Date();
+        let query = {};
 
         switch (period) {
             case 'day':
+                // Current day (midnight to end of day)
+                const startOfDay = new Date(now);
+                startOfDay.setHours(0, 0, 0, 0);
+                const endOfDay = new Date(now);
+                endOfDay.setHours(23, 59, 59, 999);
+                
                 query.createdAt = {
-                    $gte: new Date(now.setHours(0, 0, 0, 0)),
-                    $lte: new Date(now.setHours(23, 59, 59, 999))
+                    $gte: startOfDay,
+                    $lte: endOfDay
                 };
-                 break;
+                break;
             case 'week':
-                const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-                 query.createdAt = { $gte: new Date(weekStart.setHours(0, 0, 0, 0)) };
+                // Current week (Sunday to current time)
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay()); // Go back to Sunday
+                startOfWeek.setHours(0, 0, 0, 0);
+                
+                query.createdAt = { 
+                    $gte: startOfWeek
+                };
                 break;
             case 'month':
-                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-             query.createdAt = { $gte: new Date(monthStart.setHours(0, 0, 0, 0)) };
+                // Current month (1st to current time)
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                startOfMonth.setHours(0, 0, 0, 0);
+                
+                query.createdAt = { 
+                    $gte: startOfMonth
+                };
                 break;
             case 'year':
-                const yearStart = new Date(now.getFullYear(), 0, 1);
-                 query.createdAt = { $gte: new Date(yearStart.setHours(0, 0, 0, 0)) };
+                // Current year (Jan 1st to current time)
+                const startOfYear = new Date(now.getFullYear(), 0, 1);
+                startOfYear.setHours(0, 0, 0, 0);
+                
+                query.createdAt = { 
+                    $gte: startOfYear
+                };
                 break;
         }
 
@@ -593,6 +940,14 @@ const getDashboardPage = async (req, res) => {
                     products: { $addToSet: "$orderedItems.product" }
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    revenue: 1,
+                    products: { $size: "$products" }
+                }
+            },
             { $sort: { revenue: -1 } },
             { $limit: 10 }
         ]);
@@ -632,7 +987,7 @@ const getDashboardPage = async (req, res) => {
                 $group: {
                     _id: "$brandDetails._id",
                     name: { $first: "$brandDetails.brandName" },
-                    categoryName: {$first: "$categoryDetails.name"},
+                    categoryName: { $first: "$categoryDetails.name" },
                     revenue: { $sum: { $multiply: ["$orderedItems.quantity", "$orderedItems.price"] } }
                 }
             },
@@ -655,6 +1010,7 @@ const getDashboardPage = async (req, res) => {
             status: order.status
         }));
 
+        // Return JSON response for AJAX requests
         if (req.xhr || req.headers["x-requested-with"] === "XMLHttpRequest") {
             return res.json({
                 netSale: stats.netSale,
@@ -671,7 +1027,7 @@ const getDashboardPage = async (req, res) => {
                 bestCategories: bestCategories.map(c => ({
                     name: c.name,
                     revenue: c.revenue,
-                    products: c.products.length
+                    products: c.products
                 })),
                 bestBrands: bestBrands.map(b => ({
                     name: b.name,
@@ -682,6 +1038,7 @@ const getDashboardPage = async (req, res) => {
             });
         }
 
+        // Render the dashboard page for regular requests
         res.render("admin/dashboard", {
             netSale: stats.netSale,
             totalOrders: stats.totalOrders,
@@ -697,7 +1054,7 @@ const getDashboardPage = async (req, res) => {
             bestCategories: bestCategories.map(c => ({
                 name: c.name,
                 revenue: c.revenue,
-                products: c.products.length
+                products: c.products
             })),
             bestBrands: bestBrands.map(b => ({
                 name: b.name,
@@ -711,7 +1068,6 @@ const getDashboardPage = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
- 
  
 module.exports = {
 getSalePage,

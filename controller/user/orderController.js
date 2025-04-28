@@ -4,9 +4,8 @@ const ReturnRequest = require("../../model/returnRequestModel");
 const Wallet = require("../../model/walletSchema");
 const Coupon = require("../../model/couponSchema");
 const Product = require("../../model/productSchema");
-const {validateCancelOrder ,validateReturnRequest} = require("../../utils/validation");
+const {validateCancelOrder } = require("../../utils/validation");
 const  { generateCustomId }= require("../../utils/helper"); 
-
 
 const getorderSuccessPage = async (req, res) => {
     const { userData } = res.locals;
@@ -201,7 +200,7 @@ const cancelOrder = async (req , res) => {
         }
 
         //checking
-        if (['Delivered', 'Cancelled', 'Returned' ].includes(order.status)) {
+        if (['Delivered', 'Cancelled', 'Returned',"Partially Returned" ].includes(order.status)) {
             return res.status(400).json({ success: false, message: 'Cannot cancel this order' });
         }
 
@@ -311,7 +310,7 @@ const returnOrder = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
         }
 
-        if (order.status !== 'Delivered') {
+        if (!['Delivered','Partially Returned'].includes(order.status)) {
             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
         }
 
@@ -323,34 +322,23 @@ const returnOrder = async (req, res) => {
             orderId: order._id,
             itemIds: order.orderedItems.map(item => item._id.toString()), 
             reason,
+            comments,
             requestedBy: user._id,
-            status: user.isAdmin ? 'Approved' : 'Pending',
+            status: 'Pending',
         });
         await returnRequest.save();
-        console.log("Saved returnRequest _id:", returnRequest._id);
 
-        if (returnRequest.status === 'Approved') {
-            for (const item of order.orderedItems) {
-                const product = item.product;
-                product.quantity += item.quantity;
-                await product.save();
-                item.returnStatus = 'Returned';
-                item.returnReason = reason; 
-            }
-            order.status = 'Returned';
-            await order.save();
-        } else {
-            for (const item of order.orderedItems) {
-                item.returnStatus = 'Return Requested';
-                item.returnReason = reason; 
-            }
-            order.status = 'Return Request';
-            await order.save();
-        }
+        order.orderedItems.forEach((item => {
+            item.returnStatus = 'Return Requested';
+        }))
+
+        order.status = 'Return Request';
+
+        await order.save();
 
         res.json({
             success: true,
-            message: returnRequest.status === 'Approved' ? 'Order returned successfully' : 'Return request submitted for review',
+            message: 'Return request submitted for review',
         });
     } catch (error) {
         console.error('Return order error:', error);
@@ -360,7 +348,7 @@ const returnOrder = async (req, res) => {
 
 const returnItem = async (req, res) => {
     try {
-        const { userData, isUserBlocked } = res.locals;
+        const { userData  } = res.locals;
         const { orderId, itemId } = req.params;
         const { reason , comments } = req.body;
     
@@ -387,7 +375,7 @@ const returnItem = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized to cancel this order' });
         }
 
-        if (order.status !== 'Delivered') {
+        if (!['Delivered','Partially Returned'].includes(order.status)) {
             return res.status(400).json({ success: false, message: 'Only delivered orders can be returned' });
         }
 
@@ -404,42 +392,27 @@ const returnItem = async (req, res) => {
             orderId: order._id,
             itemIds: [itemId], 
             reason,
+            comments,
             requestedBy: user._id,
-            status: user.isAdmin ? 'Approved' : 'Pending',
+            status : 'Pending',
         });
+
         await returnRequest.save();
 
-        if (returnRequest.status === 'Approved') {
-            const product = item.product;
-            product.quantity += item.quantity;
-            await product.save();
-
-            item.returnStatus = 'Returned';
-            item.returnReason = reason; 
-
-            const allItemsReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
-            if (allItemsReturned) {
-                order.status = 'Returned';
-            }
-        } else {
-            item.returnStatus = 'Return Requested';
-            item.returnReason = reason; 
-            if (order.status !== 'Return Request') {
-                order.status = 'Return Request';
-            }
-        }
+        item.returnStatus = 'Return Requested';
+        order.status = 'Return Request';
+        
         await order.save();
-
         res.json({
             success: true,
-            message: returnRequest.status === 'Approved' ? 'Item returned successfully' : 'Return request submitted for review',
+            message:  'Return request submitted successfully',
         });
+
     } catch (error) {
         console.error('Return order error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
-
 
 module.exports = {
     getorderSuccessPage,
