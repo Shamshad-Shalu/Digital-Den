@@ -76,8 +76,9 @@ router.post("/checkout",cartController. proceedToCheckout);
 // order- section 
 router.post("/order/place",cartController.placeOrder);
 router.post('/order/create-razorpay-order', cartController.createRazorpayOrder);
-router.post("/order/payment-failure", cartController.handleOrderPaymentFailure);
 router.get("/order-success",orderController.getorderSuccessPage);
+router.get('/order-failure', cartController.getOrderFailurePage);
+router.post('/order/retry-payment', cartController.retryPayment);
 router.get("/orders",orderController.getOrders);
 router.get('/order/track/:orderId', orderController.trackOrder);
 router.post('/order/cancel/:orderId', orderController.cancelOrder);

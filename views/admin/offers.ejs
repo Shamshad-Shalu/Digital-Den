@@ -481,7 +481,7 @@
         const appliedOn = document.getElementById('appliedOnFilter').value;
         const start = document.getElementById('startDate').querySelector('input').value;
         const end = document.getElementById('endDate').querySelector('input').value;
-        
+
         const queryParams = new URLSearchParams({
             page,
             search,
@@ -639,6 +639,22 @@
                     });
                 });
             }
+
+
+             // Update URL without reloading
+            const newUrl = new URL(window.location);
+                newUrl.searchParams.set('page', page);
+                newUrl.searchParams.set('type', type);
+                newUrl.searchParams.set('status', status);
+                newUrl.searchParams.set('appliedOn', appliedOn);
+                newUrl.searchParams.set('start', start);
+                newUrl.searchParams.set('end', end);
+                if (search) {
+                    newUrl.searchParams.set('search', search);
+                } else {
+                    newUrl.searchParams.delete('search');
+                }
+                window.history.pushState({}, '', newUrl);
 
         } catch (error) {
             console.error('Error fetching offer:', error);

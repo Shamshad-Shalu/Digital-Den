@@ -274,10 +274,7 @@
                 <!-- Order Details -->
                 <div class="order-details animate-in" style="animation-delay: 0.2s;">
                     <h5 class="fw-bold">Order Information</h5>
-                    <!-- <div class="detail-row">
-                        <span class="detail-label">Order Number:</span>
-                        <span class="detail-value">N/A (Payment Failed)</span>
-                    </div> -->
+              
                     <div class="detail-row">
                         <span class="detail-label">Date:</span>
                         <span class="detail-value"><%= currentDate %></span>
@@ -327,7 +324,7 @@
                         </div>
                         <div class="payment-option-item d-flex align-items-center">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"  <%= totalAmount < 1000 ? 'disabled' : '' %>>
                             </div>
                             <label class="ms-2 flex-grow-1 text-start" for="cod">
                                 <div class="fw-medium">Cash on Delivery (COD)</div>
@@ -392,6 +389,11 @@
 
             if (!totalAmount || !addressId) {
                 Swal.fire('Error', 'Missing order details. Please try again from the checkout page.', 'error');
+                return;
+            }
+
+            if (selectedPayment.value === "COD" &&  totalAmount < 1000) {
+                Swal.fire('Error', 'Minimum 1000 is Required for cash on delivery ', 'error');
                 return;
             }
 

@@ -79,7 +79,6 @@ const orderSchema = new Schema({
             pincode: { type: String, required: true },
             phone: { type: String, required: true },
             altPhone: { type: String },
-            isDefault: { type: Boolean, default: false },
         },
         required: true,
     },

@@ -124,18 +124,19 @@ const updateOrderStatus = async (req, res) => {
     }
     
     const validTransitions = {
-      Pending: ["Processing", "Cancelled"],
-      Processing: ["Shipped", "Cancelled"],
-      Shipped: ["Out for Delivery", "Cancelled"],
-      "Out for Delivery": ["Delivered"],
-      Delivered: ["Return Request"],
-      "Return Request": ["Delivered", "Returned"],
-      Returned: [],
-      Cancelled: [],
+      "Pending": ["Processing", "Cancelled"],
+      "Processing": ["Shipped", "Cancelled"],
+      "Shipped": ["Out for Delivery", "Cancelled"],
+      "Out for Delivery": ["Delivered", "Cancelled"],
+      "Delivered": ["Return Request"],
+      "Returned": [],
+      "Cancelled": [],
     };
 
     const currentStatus = order.status.trim();
     const newStatus = status.trim();
+
+    console.log("current status:",currentStatus , "newstatus",newStatus);
 
     if (!validTransitions[currentStatus]?.includes(newStatus)) {
       return res.status(400).json({
@@ -219,6 +220,66 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// const updateOrderStatus = async (req, res) => {
+//   try {
+//     const { orderId } = req.params;
+//     const { status } = req.body;
+
+//     const order = await Order.findOne({ orderId })
+//        .populate("orderedItems.product");
+
+//     if (!order){
+//       return res.status(404).json({ success: false, message: "Order not found" });
+//     }
+    
+//     const validTransitions = {
+//       "Pending": ["Processing", "Cancelled"],
+//       "Processing": ["Shipped", "Cancelled"],
+//       "Shipped": ["Out for Delivery", "Cancelled"],
+//       "Out for Delivery": ["Delivered"],
+//       "Delivered": ["Return Request"],
+//       "Return Request": ["Delivered", "Returned"],
+//       "Returned": [],
+//       "Cancelled": [],
+//     };
+
+//     // Make sure we're working with clean strings
+//     const currentStatus = order.status.trim();
+//     const newStatus = status.trim();
+
+//     // Debug logging
+//     console.log("Current status:", currentStatus);
+//     console.log("New status:", newStatus);
+//     console.log("Valid transitions:", validTransitions[currentStatus]);
+
+//     // Check if the transition is valid
+//     if (!validTransitions[currentStatus] || !validTransitions[currentStatus].includes(newStatus)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: `Cannot change status from "${currentStatus}" to "${newStatus}"`,
+//       });
+//     }
+
+//     // Rest of your function remains the same...
+//     if (newStatus === "Cancelled" && !order.isCanceled) {
+//       // Cancellation handling code...
+//     }
+
+//     order.status = newStatus;
+//     if (newStatus === "Delivered") order.paymentStatus = "Paid";
+//     else if (newStatus === "Cancelled" && order.paymentStatus !== "Refunded")
+//       order.paymentStatus = "Failed";
+//     order.updatedAt = new Date();
+
+//     await order.save();
+//     res.json({ success: true, message: `Order status updated to ${status}` });
+//   } catch (error) {
+//     console.error("Error updating order status:", error);
+//     res.status(500).json({ success: false, message: "Server error" });
+//   }
+// };
+
 
 // Get Order Details
 const getOrderDetails = async (req, res) => {
