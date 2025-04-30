@@ -739,7 +739,7 @@ const getDashboardPage = async (req, res) => {
             case 'week':
                 // Current week (Sunday to current time)
                 const startOfWeek = new Date(now);
-                startOfWeek.setDate(now.getDate() - now.getDay()); // Go back to Sunday
+                startOfWeek.setDate(now.getDate() - now.getDay()); 
                 startOfWeek.setHours(0, 0, 0, 0);
                 
                 query.createdAt = { 
@@ -766,30 +766,32 @@ const getDashboardPage = async (req, res) => {
                 break;
         }
 
-        // Stats Calculations
+        
         const statsCalculations = await Order.aggregate([
-            { $match: query },
+            { $match: query }, 
             {
-                $group: {
-                    _id: null,
-                    netSale: {
-                        $sum: {
-                            $cond: [
-                                { $in: ["$status", ["Cancelled", "Returned"]] },
-                                0,
-                                "$finalAmount"
-                            ]
-                        }
-                    },
-                    totalOrders: { $sum: 1 }
+              $group: {
+                _id: null,
+                grossSales : { $sum: "$finalAmount" },     
+                totalRefunds: { $sum: "$refundAmount" },
+                totalOrders: { $sum: 1 }
+              }
+            },     
+            {
+                $project: {
+                    _id: 0,
+                    grossSales: 1,
+                    totalRefunds: 1,
+                    totalOrders:1,
+                    netSale: { $subtract: ["$grossSales", "$totalRefunds"] }
                 }
             }
-        ]);
-
-        let stats = statsCalculations.length > 0 ? statsCalculations[0] : {
+        ]); 
+           
+        let stats = statsCalculations.length > 0 ? statsCalculations[0] : { 
+            totalOrders: 0,
             netSale: 0,
-            totalOrders: 0
-        };
+        }; 
 
         // Total Customers & products
         const totalCustomers = await User.countDocuments({ isAdmin: false, isBlocked: false });

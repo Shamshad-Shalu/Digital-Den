@@ -75,7 +75,7 @@ async function determineStatus(productId) {
         console.error(`Error determining status for product ${productId}:`, error.stack);
         return 'Discontinued';
     }
-}
+};
 
 const updateProductsForBrand = async (brandId) => {
     try {
@@ -149,7 +149,6 @@ const generateCustomId = (TNX = "ID") => {
 //     const random = Math.random().toString(36).substring(2, 10).toUpperCase();
 //     return `${TNX}-${date}-${random}`;
 // }
-
 
 async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
     let subtotal = 0;

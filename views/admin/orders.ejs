@@ -43,11 +43,11 @@
             <h1 class="h3">Order Management</h1>
             <p class="text-muted">Track and manage customer orders</p>
         </div>
-        <div>
+        <!-- <div>
             <button type="button" class="btn btn-primary" id="exportOrdersBtn">
                 <i class="fas fa-file-export me-2"></i>Export Orders
             </button>
-        </div>
+        </div> -->
     </div>
 
     <!-- Search and Filter Bar -->
@@ -167,7 +167,7 @@
                 <p id="statusMessage"></p>
                 <div class="mb-3">
                     <label for="newStatus" class="form-label">New Status</label>
-                    <select class="form-select" id="newStatus">
+                    <select class="form-select" id ="newStatus">
                         <option value="Pending">Pending</option>
                         <option value="Processing">Processing</option>
                         <option value="Shipped">Shipped</option>
@@ -213,7 +213,6 @@
         'Shipped': ['Out for Delivery', 'Cancelled'],
         'Out for Delivery': ['Delivered'],
         'Delivered': ['Return Request'],
-        'Return Request': ['Delivered', 'Returned',"Partially Returned"],
         'Returned': [],
         'Cancelled': [],
     };
@@ -378,7 +377,7 @@
     function attachEventListeners() {
         // View Order Details
         document.querySelectorAll('.view-order-btn').forEach(btn => {
-            btn.removeEventListener('click', handleViewOrder); // Prevent duplicates
+            btn.removeEventListener('click', handleViewOrder); 
             btn.addEventListener('click', handleViewOrder);
         });
 
@@ -464,23 +463,12 @@
             btn.addEventListener('click', async () => {
                 const orderId = btn.getAttribute('data-order-id');
                 currentReturnId = btn.getAttribute('data-return-id');
-                console.log("orderId :"+ orderId );
-                console.log("currenreturnId :",currentReturnId)
                 try {
                     const response = await fetch(`/admin/orders/details/${orderId}`);
                     if (!response.ok) throw new Error('Failed to fetch order details');
                     const { success, order, customerStats } = await response.json();
                     if (!success) throw new Error('Invalid response structure');
-
-                
-                    const returnReasons = order.orderedItems
-                        .filter(item => item.returnStatus === 'Return Requested')
-                        .map(item => ({
-                            productName: item.product?.productName || 'Unknown',
-                            reason: item.returnReason || 'No reason provided',
-                        }));
-                        console.log(returnReasons)
-
+                    
                     document.getElementById('returnRequestBody').innerHTML = `
                         <div class="row mb-4">
                             <div class="col-md-8">
@@ -548,18 +536,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card-header"><h6 class="mb-0">Return Reasons</h6></div>
-                            <div class="card-body">
-                                <ul class="list-group">
-                                    ${returnReasons.map(item => `
-                                        <li class="list-group-item">
-                                            <strong>${item.productName}:</strong> ${item.reason}
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-                        </div>
                         <div class="card mt-4">
                             <div class="card-header"><h6 class="mb-0">Return Action</h6></div>
                             <div class="card-body">
@@ -573,6 +549,48 @@
                                 </div>
                             </div>
                         </div>
+                        ${order.returnedItems?.length ? `
+                            <div class="card mt-4">
+                                <div class="card-header"><h6 class="mb-0">Past Returned Items</h6></div>
+                                <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                        <th>Product</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th>Status</th>
+                                        <th>Reason</th>
+                                        <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${order.returnedItems.map(item => `
+                                        <tr>
+                                            <td>${item.productName || 'Unknown'}</td>
+                                            <td class="text-center">${item.quantity || 0}</td>
+                                            <td>
+                                            <span class="badge ${
+                                                item.returnStatus === 'Approved'
+                                                ? 'bg-success'
+                                                : item.returnStatus === 'Rejected'
+                                                ? 'bg-danger'
+                                                : 'bg-secondary'
+                                            }">
+                                                ${item.returnStatus}
+                                            </span>
+                                            </td>
+                                            <td>${item.returnReason || '-'}</td>
+                                            <td>${item.returnNote || '-'}</td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                    </table>
+                                </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
                     `;
                     const returnModal = new bootstrap.Modal(document.getElementById('returnRequestModal'));
                     returnModal.show();
@@ -643,6 +661,13 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h5 class="mb-0">Order #${order.orderId}</h5>
                                 <span class="badge bg-${getStatusColorClass(order.status).split('-')[1]} text-dark">${order.status}</span>
+                            </div>
+                            <div class="card-header">
+                                 ${(order.status === 'Cancelled')? `
+                                    <div class="">
+                                       cancellation Reason : ${order.cancellation?.reason}
+                                    </div>
+                                ` : ''}
                             </div>
                             <div class="card-body">
                                 <div class="row">

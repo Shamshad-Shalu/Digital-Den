@@ -125,14 +125,6 @@
             <div class="modal-body p-0" id="invoice-body">
                 <!-- Dynamic content will be inserted here -->
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i> Close
-                </button>
-                <button type="button" class="btn btn-primary" id="download-invoice">
-                    <i class="fas fa-download me-1"></i> Download PDF
-                </button>
-            </div>
         </div>
     </div>
 </div>
@@ -172,6 +164,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Return Order Modal -->
 <div class="modal fade" id="returnOrderModal" tabindex="-1">
@@ -248,6 +241,7 @@
 <input type="hidden"  id="paginationLimit" value="<%= pagination.limit %>">
 
 <script>
+
      // Store orders data for invoice modal
         let ordersData = <%- JSON.stringify(orders) %>; 
     document.addEventListener("DOMContentLoaded", () => {
@@ -267,9 +261,9 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearch = this.value;
-                currentPage = 1; // Reset to page 1 on search
+                currentPage = 1; 
                 fetchOrders();
-            }, 500); // 500ms debounce
+            }, 500); 
         });
 
         // Sort change handler
@@ -290,7 +284,7 @@
             });
         });
 
-        // Fetch orders via AJAX
+        // Fetch order
         async function fetchOrders() {
             try {
                 const params = new URLSearchParams({
@@ -523,6 +517,7 @@
                 });
             });
 
+
             // Invoice modal
             document.querySelectorAll('.btn[data-bs-target="#invoiceModal"]').forEach(button => {
                 button.addEventListener('click', function () {
@@ -627,30 +622,67 @@
                                 <p>Thank you for shopping with <span class="highlight">DIGITAL DEN</span>!</p>
                             </div>
                         </div>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary" id="download-invoice" >
+                                <i class="fas fa-download me-1"></i> Download PDF
+                            </button>
+                        </div>
                     `;
-                    document.getElementById('download-invoice').onclick = () => window.location.href = `/order/invoice/${orderId}`;
                 });
             });
+        
+ 
+             //pdf 
+             document.addEventListener('click', async function (e) {
+                if (e.target && e.target.id === 'download-invoice') {
+                    const invoiceElement = document.querySelector('#invoice-body .invoice-container');
 
+                    if (!invoiceElement) {
+                        Swal.fire('Error', 'Invoice content not found', 'error');
+                        return;
+                    }
 
-            
+                    // Clone and style for black-and-white
+                    const clone = invoiceElement.cloneNode(true);
+                    clone.style.backgroundColor = '#fff';
+                    clone.style.color = '#000';
+                    clone.querySelectorAll('*').forEach(el => {
+                        el.style.backgroundColor = 'transparent';
+                        el.style.color = '#000';
+                        el.style.borderColor = '#000';
+                        el.style.boxShadow = 'none';
+                    });
 
-        // // Helper function to determine badge class based on status
-        // function getStatusBadge(status) {
-        //     switch(status?.toLowerCase()) {
-        //         case 'delivered':
-        //             return 'success';
-        //         case 'processing':
-        //         case 'shipped':
-        //             return 'info';
-        //         case 'pending':
-        //             return 'warning';
-        //         case 'cancelled':
-        //             return 'danger';
-        //         default:
-        //             return 'info';
-        //     }
-        // }
+                    // Temporarily add to DOM to render
+                    document.body.appendChild(clone);
+                    clone.style.position = 'absolute';
+                    clone.style.left = '-9999px';
+
+                    // Render canvas from DOM
+                    const canvas = await html2canvas(clone, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        logging: false
+                    });
+
+                    // Remove the clone
+                    document.body.removeChild(clone);
+;
+
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+              
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const padding = 10; 
+                    const contentWidth = pdfWidth - padding * 2;
+                    const pdfHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    pdf.addImage(imgData, 'PNG', padding, 10, contentWidth, pdfHeight)
+                    pdf.save(`Invoice_DigitalDen_${new Date().toISOString().slice(0,10)}.pdf`);
+                }
+            });
 
 
             // Track modal
@@ -877,5 +909,8 @@
 
     });
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <%- include('../partial/user/footer') %>

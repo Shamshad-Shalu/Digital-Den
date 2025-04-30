@@ -282,27 +282,45 @@ const updateOrderStatus = async (req, res) => {
 
 
 // Get Order Details
+
 const getOrderDetails = async (req, res) => {
   try {
     const { orderId } = req.params;
 
     const order = await Order.findOne({ orderId })
       .populate("userId", "username email phone createdAt orderHistory")
-      .populate("orderedItems.product", "productName sku");
+      .populate("orderedItems.product", "productName ");
 
-    if (!order)
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    if (!order.userId)
-      return res
-        .status(500)
-        .json({ success: false, message: "User data missing" });
+      if (!order){
+        return res.status(404).json({ success: false, message: "Order not found",});
+      }
+      if (!order.userId){
+        return res.status(500).json({success: false, message: "User data missing",});
+      } 
 
-    res.json({
-      success: true,
-      order: order.toObject(),
-    });
+      const returnedItems = order.orderedItems
+      .filter(item => item.returnStatus !== "Not Returned")
+      .map(item => ({
+        productId: item.product?._id || null,
+        productName: item.product?.productName || "Unknown",
+        quantity: item.quantity || 0,
+        returnStatus: item.returnStatus || "N/A",
+        returnReason: item.returnReason || "wrong_item",
+        returnNote: item.returnNote || "N/A",
+      }));
+
+      res.json({
+        success: true,
+        order: {
+          ...order.toObject(),
+          returnedItems,
+        }
+      });
+
+        // res.json({
+        //   success: true,
+        //   order: order.toObject(),
+        // });
   } catch (error) {
     console.error("Error fetching order details:", error);
     res

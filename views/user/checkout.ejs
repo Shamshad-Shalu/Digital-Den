@@ -885,11 +885,10 @@
                             placeOrder.innerHTML = `Place Order`;
 
                             if (!data.success) {
-                                Swal.fire('Error', data.message || 'Failed to create payment order', 'error');
+                                window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description = Payment service is currently facing technical issues. Please try again later or use a different payment method.`;
+                                // Swal.fire('Error', data.message || 'Failed to create payment order', 'error');
                                 return;
                             }
-
-                            console.log('Razorpay response:', data);
 
                             // Initialize Razorpay payment
                             const options = {

@@ -764,7 +764,7 @@
                     <div class="wallet-card-bg"></div>
                     <h3><i class="bi bi-wallet2"></i> Digital Wallet</h3>
                     <div class="balance">
-                        ₹<%= Number(wallet.balance).toLocaleString("en-IN") %>
+                        ₹<%= Number(wallet.balance).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                     </div>
                     <div class="wallet-info">
                         <div class="wallet-info-item">
