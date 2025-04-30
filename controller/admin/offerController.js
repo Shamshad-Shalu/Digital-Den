@@ -114,8 +114,6 @@ const addOffer = async (req, res) => {
           allProducts: appliedOn === 'product' ? allProducts : false
       };
 
-      console.log("Offer data :",offerData);
-
       const errors = await validateOffer(offerData);
       if (errors) {
         console.log(errors)
@@ -132,28 +130,34 @@ const addOffer = async (req, res) => {
       res.status(500).json({ success: false, message: 'Server error: ' + error.message });
     }
 };
-
+ 
 const editOffer = async (req , res)=> {
   try {
       const { id } = req.params;
       const { 
         name,description,type,discount,startDate,endDate,appliedOn,   
-        brands , products , allProducts = false ,categories
+        brands , products, allProducts = false ,categories ,productChoice 
       } = req.body;
 
       const offerData = {
            name,
           description,
-          type,
+          type, 
           discount,
           startDate,
           endDate,
           appliedOn,
           categories: appliedOn === 'category' ? categories : [],
           brands: appliedOn === 'brand' ? brands : [],
-          products: appliedOn === 'product' ? products : [],
           allProducts: appliedOn === 'product' ? allProducts : false
       };
+
+      const totalProducts = await Product.find({isDeleted:false , isListed:true });
+        if(appliedOn === 'product') {
+                offerData.products  = productChoice === "specific" ? products : (totalProducts.map(product => product._id) );
+        }else {
+            offerData.products = [];
+        }
 
       const errors = await validateOffer(offerData);
       if (errors) {
@@ -185,7 +189,7 @@ const editOffer = async (req , res)=> {
       console.error('Error editing offer:', error);
       res.status(500).json({ success: false, message: 'Failed to edit offer' });
   }
-};
+}; 
 
 const toggleOfferStatus = async(req ,res)=>{
   try {

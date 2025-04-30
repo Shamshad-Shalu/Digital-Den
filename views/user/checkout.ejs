@@ -886,8 +886,12 @@
                                  Place Order
                             `;
 
-                            if (!data.success) {
-                                Swal.fire('Error',data.message || 'Failed to create payment order', 'error');
+                                if (!data.success) {
+                                    Swal.fire({ 
+                                    icon: 'error', 
+                                    title: 'Server Error', 
+                                    text: 'An error occurred while creating the online payment. Please try another payment method or try again later.'
+                                });
                                 return;
                             }
                             console.log('Razorpay response:', data);

@@ -266,7 +266,7 @@ function validateCancelOrder(data) {
         errors.reason = 'Invalid cancellation reason';
     }
 
-    // Validate additional comments  - optional field
+    // Validate additional comments  
     if (data.comments) {
         if (data.comments.length < 10) {
             errors.comments = 'Additional comments must be at least 10 characters long';
@@ -323,7 +323,6 @@ async function validateUserProfile(user) {
     }
     return Object.keys(errors).length > 0 ? errors : null;
 }
-
 
 // coupon Function
 async function validateCoupon(coupon,couponId = null) {
@@ -394,7 +393,6 @@ async function validateCoupon(coupon,couponId = null) {
     return Object.keys(errors).length > 0 ? errors : null;
 };
 
-
 function validateOffer(data) {
     const errors = {};
   
@@ -432,8 +430,8 @@ function validateOffer(data) {
       errors.discount = 'Discount must be a valid number';
     } else if (Number(data.discount) <= 0) {
       errors.discount = 'Discount must be greater than 0';
-    } else if (data.type === 'Percentage' && Number(data.discount) > 100) {
-      errors.discount = 'Percentage discount cannot exceed 100';
+    } else if (data.type === 'Percentage' && Number(data.discount) > 50) {
+      errors.discount = 'Percentage discount cannot exceed 50';
     } else if (Number(data.discount) % 1 !== 0) {
       errors.discount = 'Discount must be a whole number';
     }

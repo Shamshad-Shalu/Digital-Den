@@ -73,7 +73,6 @@
                             <th>Offer On</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>Products</th>
                             <th width="120">Status</th>
                             <th width="50">Actions</th>
                         </tr>
@@ -91,7 +90,7 @@
     </div>
 </div>
 
-<!-- add offer modal  -->
+<!-- Add Offer Modal -->
 <div class="modal fade" id="addOfferModal" tabindex="-1" aria-labelledby="addOfferModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -104,19 +103,19 @@
                     <!-- Basic Offer Details -->
                     <div class="mb-3">
                         <label class="form-label">Offer Name</label>
-                        <input type="text" class="form-control" name="name" id="name" placeholder="Summer Deal">
+                        <input type="text" class="form-control" name="name" id="addName" placeholder="Summer Deal">
                         <div class="invalid-feedback"></div>
                     </div>
                     <div class="mb-3">
-                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                        <label for="addDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="addDescription" name="description" rows="4"></textarea>
                         <div class="invalid-feedback"></div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Discount Type</label>
-                            <select class="form-select" name="type" id="discountType">
+                            <select class="form-select" name="type" id="addDiscountType">
                                 <option value="Percentage">Percentage (%)</option>
                                 <option value="Fixed">Fixed (₹)</option>
                             </select>
@@ -124,7 +123,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Discount Value</label>
-                            <input type="number" class="form-control" name="discount" id="discount" placeholder="Enter Discount ">
+                            <input type="number" class="form-control" name="discount" id="addDiscount" placeholder="Enter Discount">
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -132,19 +131,20 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="startDate" id="startDate">
+                            <input type="date" class="form-control" name="startDate" id="addStartDate">
                             <div class="invalid-feedback"></div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="endDate" id="endDate">
+                            <input type="date" class="form-control" name="endDate" id="addEndDate">
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
+
                     <!-- Offer Target Selection -->
                     <div class="mb-3">
                         <label class="form-label">Apply Offer On</label>
-                        <select class="form-select" name="appliedOn" id="appliedOn" onchange="handleOfferTargetChange()">
+                        <select class="form-select" name="appliedOn" id="addAppliedOn" onchange="addHandleOfferTargetChange('add')">
                             <option value="" disabled selected>Select Type</option>
                             <option value="category">Category</option>
                             <option value="brand">Brand</option>
@@ -154,31 +154,30 @@
                     </div>
 
                     <!-- Category Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="categorySection">
+                    <div class="mb-4 d-none selection-section" id="addCategorySection">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label mb-0 fw-bold">Select Categories</label>
                             <div class="input-group input-group-sm" style="width: 60%;">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="categorySearch" placeholder="Search categories..." onkeyup="filterItems('category')">
+                                <input type="text" class="form-control" id="addCategorySearch" placeholder="Search categories..." onkeyup="addFilterItems('category', 'add')">
                             </div>
                         </div>
                         <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                            <div id="categoryList">
-                                <!-- categories -->
+                            <div id="addCategoryList">
                                 <% if (locals.categories && categories.length > 0) { %>
                                     <% categories.forEach((category, index) => { %>
                                         <div class="form-check category-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="<%= category._id %>">
-                                            <label class="form-check-label" for="<%= category._id %>"><%= category.name %></label>
+                                            <input class="form-check-input" type="checkbox" value="<%= category._id %>" id="addCategory_<%= category._id %>">
+                                            <label class="form-check-label" for="addCategory_<%= category._id %>"><%= category.name %></label>
                                         </div>
                                     <% }) %>
                                 <% } %>
                             </div>
-                            <div id="noCategoriesFound" class="text-center py-2 d-none text-muted">
+                            <div id="addNoCategoriesFound" class="text-center py-2 d-none text-muted">
                                 <small>No categories found</small>
                             </div>
                             <div class="text-center mt-2">
-                                <button type="button" class="btn btn-link btn-sm" id="showMoreCategories" onclick="toggleAdditionalItems('category')">
+                                <button type="button" class="btn btn-link btn-sm" id="addShowMoreCategories" onclick="addToggleAdditionalItems('category', 'add')">
                                     <span class="show-more-text">Show more</span>
                                     <span class="show-less-text d-none">Show less</span>
                                 </button>
@@ -187,31 +186,30 @@
                     </div>
 
                     <!-- Brand Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="brandSection">
+                    <div class="mb-4 d-none selection-section" id="addBrandSection">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label mb-0 fw-bold">Select Brands</label>
                             <div class="input-group input-group-sm" style="width: 60%;">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="brandSearch" placeholder="Search brands..." onkeyup="filterItems('brand')">
+                                <input type="text" class="form-control" id="addBrandSearch" placeholder="Search brands..." onkeyup="addFilterItems('brand', 'add')">
                             </div>
                         </div>
                         <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                            <div id="brandList">
-                                <!-- Initial 5 brands -->
+                            <div id="addBrandList">
                                 <% if (locals.brands && brands.length > 0) { %>
                                     <% brands.forEach((brand, index) => { %>
                                         <div class="form-check brand-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="<%= brand._id %>">
-                                            <label class="form-check-label" for="<%= brand._id %>"><%= brand.brandName %></label>
+                                            <input class="form-check-input" type="checkbox" value="<%= brand._id %>" id="addBrand_<%= brand._id %>">
+                                            <label class="form-check-label" for="addBrand_<%= brand._id %>"><%= brand.brandName %></label>
                                         </div>
                                     <% }) %>
                                 <% } %>
                             </div>
-                            <div id="noBrandsFound" class="text-center py-2 d-none text-muted">
+                            <div id="addNoBrandsFound" class="text-center py-2 d-none text-muted">
                                 <small>No brands found</small>
                             </div>
                             <div class="text-center mt-2">
-                                <button type="button" class="btn btn-link btn-sm" id="showMoreBrands" onclick="toggleAdditionalItems('brand')">
+                                <button type="button" class="btn btn-link btn-sm" id="addShowMoreBrands" onclick="addToggleAdditionalItems('brand', 'add')">
                                     <span class="show-more-text">Show more</span>
                                     <span class="show-less-text d-none">Show less</span>
                                 </button>
@@ -220,43 +218,41 @@
                     </div>
 
                     <!-- Product Selection with Search -->
-                    <div class="mb-4 d-none selection-section" id="productSection">
+                    <div class="mb-4 d-none selection-section" id="addProductSection">
                         <div class="mb-2">
                             <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" name="productChoice" id="allProducts" value="all" checked onclick="toggleProductSelector(false)">
-                                <label class="form-check-label" for="allProducts">All Products</label>
+                                <input type="radio" class="form-check-input" name="productChoice" id="addAllProducts" value="all" checked onclick="addToggleProductSelector(false, 'add')">
+                                <label class="form-check-label" for="addAllProducts">All Products</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input type="radio" class="form-check-input" name="productChoice" id="specificProducts" value="specific" onclick="toggleProductSelector(true)">
-                                <label class="form-check-label" for="specificProducts">Select Specific Products</label>
+                                <input type="radio" class="form-check-input" name="productChoice" id="addSpecificProducts" value="specific" onclick="addToggleProductSelector(true, 'add')">
+                                <label class="form-check-label" for="addSpecificProducts">Select Specific Products</label>
                             </div>
                         </div>
-                        
-                        <div id="productSelector" class="d-none">
+                        <div id="addProductSelector" class="d-none">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label class="form-label mb-0 fw-bold">Select Products</label>
                                 <div class="input-group input-group-sm" style="width: 60%;">
                                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="productSearch" placeholder="Search products..." onkeyup="filterItems('product')">
+                                    <input type="text" class="form-control" id="addProductSearch" placeholder="Search products..." onkeyup="addFilterItems('product', 'add')">
                                 </div>
                             </div>
                             <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                                <div id="productList">
-                                       <!--products -->
+                                <div id="addProductList">
                                     <% if (locals.products && products.length > 0) { %>
                                         <% products.forEach((product, index) => { %>
                                             <div class="form-check product-item <%= index >= 5 ? 'additional-item d-none' : '' %>">
-                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="<%= product._id %>">
-                                                <label class="form-check-label" for="<%= product._id %>"><%= product.productName %></label>
+                                                <input class="form-check-input" type="checkbox" value="<%= product._id %>" id="addProduct_<%= product._id %>">
+                                                <label class="form-check-label" for="addProduct_<%= product._id %>"><%= product.productName %></label>
                                             </div>
                                         <% }) %>
                                     <% } %>
                                 </div>
-                                <div id="noProductsFound" class="text-center py-2 d-none text-muted">
+                                <div id="addNoProductsFound" class="text-center py-2 d-none text-muted">
                                     <small>No products found</small>
                                 </div>
                                 <div class="text-center mt-2">
-                                    <button type="button" class="btn btn-link btn-sm" id="showMoreProducts" onclick="toggleAdditionalItems('product')">
+                                    <button type="button" class="btn btn-link btn-sm" id="addShowMoreProducts" onclick="addToggleAdditionalItems('product', 'add')">
                                         <span class="show-more-text">Show more</span>
                                         <span class="show-less-text d-none">Show less</span>
                                     </button>
@@ -273,7 +269,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- Edit Offer Modal -->
 <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel" aria-hidden="true">
@@ -517,18 +512,13 @@
 
             if (!response.ok) {
                 throw new Error(data.message || 'Failed to fetch offers');
+              
             }
-
             const tableBody = document.getElementById("tableBody");
             tableBody.innerHTML  = '';
 
             if(data.offers?.length > 0 ){
                 data.offers.forEach((offer, index )=> {
-                    let productCount = Math.max(
-                        offer.products.length,
-                        offer.categories.length,
-                        offer.brands.length
-                    );
                     const type = offer.type;
                     const discount = type ==="Percentage" ? offer.discount+"%" : "₹"+offer.discount ;
                     const bgColor = offer.status === "Active" ? 'bg-success' :  
@@ -545,8 +535,7 @@
                             </td>
                             <td>
                                 ${new Date(offer.endDate ).toLocaleDateString("en-US", { month: "long", day: "2-digit", year: "numeric" })}
-                            </td>
-                            <td>${productCount} products</td>    
+                            </td> 
                             <td>
                                 <button class="btn btn-sm status-btn ${bgColor} text-white font-bold"
                                         ${offer.status === 'Expired' || offer.status === 'Upcoming' ? 'disabled' : ''}
@@ -746,24 +735,23 @@
             // Get applied checkboxes
             const appliedOn = jsonData.appliedOn;
 
-            console.log("applaidon",appliedOn)
             if (appliedOn === 'category') {
-                jsonData.categories = Array.from(document.querySelectorAll('#categoryList input:checked')).map(input => input.value);
+                jsonData.categories = Array.from(document.querySelectorAll('#addCategoryList input:checked')).map(input => input.value);
             } else if (appliedOn === 'brand') {
-                jsonData.brands = Array.from(document.querySelectorAll('#brandList input:checked')).map(input => input.value);
+                jsonData.brands = Array.from(document.querySelectorAll('#addBrandList input:checked')).map(input => input.value);
             } else if (appliedOn === 'product') {
-                const allSelected = document.querySelector('input[name="productChoice"]:checked');
+                const allSelected = document.querySelector('#addOfferForm input[name="productChoice"]:checked');
                 if (allSelected && allSelected.value === 'all') {
                     jsonData.allProducts = true;
-                    jsonData.products = Array.from(document.querySelectorAll('#productList input[type="checkbox"]'))
-                    .map(input => input.value);
-        
+                    jsonData.products = Array.from(document.querySelectorAll('#addProductList input[type="checkbox"]'))
+                        .map(input => input.value);
                 } else {
-                    jsonData.products = Array.from(document.querySelectorAll('#productList input:checked')).map(input => input.value);
+                    jsonData.products = Array.from(document.querySelectorAll('#addProductList input:checked')).map(input => input.value);
                 }
             }
 
-            console.log("data",jsonData)
+            console.log("formData",jsonData);
+
             try {
                 const response = await fetch('/admin/offer/add', {
                     method: 'POST',
@@ -778,23 +766,23 @@
                     Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
                 } else {
                     bootstrap.Modal.getInstance(document.getElementById('addOfferModal')).hide();
-                    addOfferForm.reset(); 
-                    document.querySelectorAll('#categoryList input:checked, #brandList input:checked, #productList input:checked')
+                    addOfferForm.reset();
+                    document.querySelectorAll('#addCategoryList input:checked, #addBrandList input:checked, #addProductList input:checked')
                         .forEach(input => input.checked = false);
-                    document.getElementById('productSelector')?.classList.add('d-none');
-                    document.getElementById('appliedOn').selectedIndex = 0;
-                    document.querySelectorAll('.selection-section').forEach(section => section.classList.add('d-none'));
+                    document.getElementById('addProductSelector')?.classList.add('d-none');
+                    document.getElementById('addAppliedOn').selectedIndex = 0;
+                    document.querySelectorAll('#addOfferForm .selection-section').forEach(section => section.classList.add('d-none'));
                     Swal.fire('Success', 'Offer added successfully', 'success')
-                        .then(() => fetchOffer()); 
+                        .then(() => fetchOffer());
                 }
-
             } catch (error) {
                 console.error('Add offer error:', error);
                 Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
             }
-        }); 
+        });
     });
 
+    
     function editOffer() {
         // Edit Offer
         const editOfferModal = document.getElementById('editOfferModal');
@@ -817,15 +805,6 @@
                 form.elements['appliedOn'].value = appliedOn;
                 handleOfferTargetChange(); 
 
-                console.log('Offer Data:', {
-                    offerId,
-                    appliedOn,
-                    categories: button.getAttribute('data-categories'),
-                    brands: button.getAttribute('data-brands'),
-                    products: button.getAttribute('data-products'),
-                    allProducts: button.getAttribute('data-all-products'),
-                });
-
                 // Reset all checkboxes
                 document.querySelectorAll('#editOfferForm input[type="checkbox"]').forEach(input => {
                     input.checked = false;
@@ -834,22 +813,18 @@
                 // Handle checkbox values
                 if (appliedOn === 'category') {
                     const categories = button.getAttribute('data-categories')?.split(',') || [];
-                    console.log(categories)
                     categories.forEach(id => {
                         const checkbox = document.querySelector(`#categoryList input[value="${id.trim()}"]`);
                         if (checkbox) checkbox.checked = true;
                     });
                 } else if (appliedOn === 'brand') {
                     const brands = button.getAttribute('data-brands')?.split(',') || [];
-                    console.log(brands)
                     brands.forEach(id => {
                         const checkbox = document.querySelector(`#brandList input[value="${id.trim()}"]`);
                         if (checkbox) checkbox.checked = true;
                     });
                 } else if (appliedOn === 'product') {
                     const products = button.getAttribute('data-products')?.split(',') || [];
-                    console.log(products)
-
                     if (products.includes('all')) {
                         document.getElementById('allProducts').checked = true;
                         toggleProductSelector(false);
@@ -882,7 +857,6 @@
 
              // Get applied checkboxes
             const appliedOn = jsonData.appliedOn;
-            console.log("applaidon",appliedOn);
 
             if (appliedOn === 'category') {
                 jsonData.categories = Array.from(document.querySelectorAll('#categoryList input:checked')).map(input => input.value);
@@ -904,6 +878,9 @@
             }
 
             try {
+
+                console.log("editOfferData :",jsonData)
+
                 const response = await fetch(`/admin/offer/edit/${offerId}`, {
                     method: 'PATCH',
                     body: JSON.stringify(jsonData),
@@ -993,7 +970,7 @@
         })
     };
 
-    // Function to handle the offer target change
+    // // Function to handle the offer target change
     function handleOfferTargetChange() {
         const selected = document.getElementById("appliedOn").value;
         
@@ -1071,6 +1048,77 @@
             });
         }
     }
+
+    function addHandleOfferTargetChange(prefix) {
+        const selected = document.getElementById(`${prefix}AppliedOn`).value;
+
+        document.querySelectorAll(`#${prefix}OfferForm .selection-section`).forEach(section => {
+            section.classList.add('d-none');
+        });
+
+        if (selected === "category") {
+            document.getElementById(`${prefix}CategorySection`).classList.remove("d-none");
+        } else if (selected === "brand") {
+            document.getElementById(`${prefix}BrandSection`).classList.remove("d-none");
+        } else if (selected === "product") {
+            document.getElementById(`${prefix}ProductSection`).classList.remove("d-none");
+        }
+    }
+
+    function addToggleProductSelector(show, prefix) {
+        document.getElementById(`${prefix}ProductSelector`).classList.toggle("d-none", !show);
+    }
+
+    function addToggleAdditionalItems(type, prefix) {
+        const additionalItems = document.querySelectorAll(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}List .additional-item`);
+        const showMoreBtn = document.getElementById(`${prefix}ShowMore${type.charAt(0).toUpperCase() + type.slice(1)}s`);
+        const showMoreText = showMoreBtn.querySelector('.show-more-text');
+        const showLessText = showMoreBtn.querySelector('.show-less-text');
+
+        additionalItems.forEach(item => {
+            item.classList.toggle('d-none');
+        });
+
+        showMoreText.classList.toggle('d-none');
+        showLessText.classList.toggle('d-none');
+    }
+
+    function addFilterItems(type, prefix) {
+        const searchInput = document.getElementById(`${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}Search`).value.toLowerCase();
+        const items = document.querySelectorAll(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}List .${type}-item`);
+        const noItemsFoundMsg = document.getElementById(`${prefix}No${type.charAt(0).toUpperCase() + type.slice(1)}sFound`);
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const label = item.querySelector('label').textContent.toLowerCase();
+            if (label.includes(searchInput)) {
+                item.style.display = '';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        if (visibleCount === 0) {
+            noItemsFoundMsg.classList.remove('d-none');
+        } else {
+            noItemsFoundMsg.classList.add('d-none');
+        }
+
+        const showMoreBtn = document.getElementById(`${prefix}ShowMore${type.charAt(0).toUpperCase() + type.slice(1)}s`);
+        const showMore = showMoreBtn.querySelector('.show-more-text').classList.contains('d-none');
+
+        if (searchInput) {
+            document.querySelectorAll(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}List .${type}-item.additional-item`).forEach(item => {
+                item.classList.remove('d-none');
+            });
+        } else if (!showMore) {
+            document.querySelectorAll(`#${prefix}${type.charAt(0).toUpperCase() + type.slice(1)}List .${type}-item.additional-item`).forEach(item => {
+                item.classList.add('d-none');
+            });
+        }
+    }
+
 
     function displayFormErrors(form, errors) {
         clearErrors(form);

@@ -1,0 +1,517 @@
+<%- include('../partial/user/header') %>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+    :root {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --header-bg: #ffffff;
+        --card-bg: #ffffff;
+        --border-color: #dee2e6;
+        --accent-color: #007bff;
+        --error-color: #dc3545;
+        --shadow-color: rgba(0,0,0,0.1);
+        --muted-text: #6c757d;
+        --input-bg: #ffffff;
+        --input-text: #333333;
+        --input-placeholder: #6c757d;
+        --success-color: #28a745;
+        --hover-bg: rgba(0,0,0,0.03);
+    }
+
+    [data-theme="dark"] {
+        --bg-color: #121212;
+        --text-color: #e0e0e0;
+        --header-bg: #1e1e1e;
+        --card-bg: #2a2a2a;
+        --border-color: #3a3a3a;
+        --accent-color: #4BB6E8;
+        --error-color: #f27474;
+        --shadow-color: rgba(0,0,0,0.3);
+        --muted-text: #a7a3a3;
+        --input-bg: #3a3a3a;
+        --input-text: #e0e0e0;
+        --input-placeholder: #a7a3a3;
+        --success-color: #2ecc71;
+        --hover-bg: rgba(255,255,255,0.05);
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: all 0.3s ease;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* Text elements - explicitly set text color for all */
+    p, span, h1, h2, h3, h4, h5, h6, div, small {
+        color: var(--text-color);
+        transition: color 0.3s ease;
+    }
+
+    /* Muted text elements */
+    .text-muted, p.text-muted, span.text-muted, div.text-muted, small.text-muted {
+        color: var(--muted-text) !important;
+        transition: color 0.3s ease;
+    }
+
+    .failure-container {
+        background-color: var(--card-bg);
+        border: 0.5px solid var(--border-color);
+        border-radius: 10px;
+        padding: 30px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px var(--shadow-color);
+    }
+
+    .btn-primary {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: var(--error-color);
+        border-color: var(--error-color);
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+
+    .btn-outline {
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        background-color: transparent;
+    }
+
+    .btn-outline:hover {
+        background-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .failure-icon {
+        color: var(--error-color);
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .failure-animation {
+        animation: failure-pulse 1.5s ease infinite;
+    }
+
+    @keyframes failure-pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .order-details {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+    }
+
+    .order-details h5 {
+        color: var(--text-color);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+
+    .detail-label {
+        color: var(--muted-text);
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .animate-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-icon {
+        margin-right: 8px;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 999;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px var(--shadow-color);
+        transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+        transform: scale(1.1);
+    }
+
+    /* Footer text fix */
+    .footer-text p {
+        color: var(--text-color);
+    }
+
+    .footer-text p.text-muted {
+        color: var(--muted-text) !important;
+    }
+
+    .footer-text a {
+        color: var(--accent-color) !important;
+    }
+
+    .error-details {
+        background-color: var(--card-bg);
+        border: 1px solid var(--error-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .error-message {
+        background-color: rgba(220, 53, 69, 0.1);
+        padding: 12px;
+        border-radius: 6px;
+        margin: 10px 0;
+        color: var(--error-color);
+        border-left: 4px solid var(--error-color);
+    }
+
+    .payment-options {
+        margin-top: 15px;
+        padding: 15px;
+        border: 1px dashed var(--border-color);
+        border-radius: 8px;
+    }
+
+    .payment-option-item {
+        margin-bottom: 10px;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .payment-option-item:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .payment-option-item.selected {
+        border-color: var(--accent-color);
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    @media (max-width: 767px) {
+        .failure-container {
+            padding: 20px 15px;
+        }
+        
+        .btn-group-vertical .btn {
+            margin-bottom: 10px;
+        }
+    }
+
+    /* Additional mobile improvements */
+    @media (max-width: 576px) {
+        .d-sm-flex {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .d-sm-flex .btn {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+    }
+</style> 
+
+<div class="container py-5 animate-in">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="failure-container text-center">
+                <!-- Failure Icon -->
+                <div class="failure-icon failure-animation">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                </div>
+                
+                <!-- Failure Message -->
+                <h2 class="mb-3 fw-bold">Payment Failed</h2>
+                <p class="mb-4">We couldn't process your payment. <%= error_description %></p>
+                
+                <!-- Order Details -->
+                <div class="order-details animate-in" style="animation-delay: 0.2s;">
+                    <h5 class="fw-bold">Order Information</h5>
+                    <!-- <div class="detail-row">
+                        <span class="detail-label">Order Number:</span>
+                        <span class="detail-value">N/A (Payment Failed)</span>
+                    </div> -->
+                    <div class="detail-row">
+                        <span class="detail-label">Date:</span>
+                        <span class="detail-value"><%= currentDate %></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value">Online</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Total Amount:</span>
+                        <span class="detail-value fw-bold" style="color: var(--accent-color);">₹ <%= totalAmount.toFixed(2) %></span>
+                    </div>
+                </div>
+                
+                <!-- Error Details -->
+                <div class="error-details animate-in" style="animation-delay: 0.3s;">
+                    <h5 class="fw-bold">Error Details</h5>
+                    <div class="error-message">
+                        <p class="mb-0"><i class="fas fa-info-circle me-2"></i> <%= error_description %></p>
+                    </div>
+                </div>
+
+                <!-- Payment Options -->
+                <div class="order-details animate-in" style="animation-delay: 0.4s;">
+                    <h5 class="fw-bold">Choose a Payment Method</h5>
+                    <div class="payment-options">
+                        <div class="payment-option-item d-flex align-items-center selected">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="Online" checked>
+                            </div>
+                            <label class="ms-2 flex-grow-1 text-start" for="online">
+                                <div class="fw-medium">Online (Razorpay)</div>
+                                <small class="text-muted">Credit/Debit Cards, UPI, Net Banking, EMI</small>
+                            </label>
+                        </div>
+                        <div class="payment-option-item d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="wallet" value="Wallet" <%= walletBalance < totalAmount ? 'disabled' : '' %>>
+                            </div>
+                            <label class="ms-2 flex-grow-1 text-start" for="wallet">
+                                <div class="fw-medium">Wallet</div>
+                                <small class="text-muted">Pay using your account wallet balance</small>
+                            </label>
+                            <div>
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="payment-option-item d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD">
+                            </div>
+                            <label class="ms-2 flex-grow-1 text-start" for="cod">
+                                <div class="fw-medium">Cash on Delivery (COD)</div>
+                                <small class="text-muted">Pay when you receive your order</small>
+                            </label>
+                            <div>
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-center mt-4 animate-in" style="animation-delay: 0.6s;">
+                    <div class="d-grid gap-3 d-sm-flex">
+                        <button class="btn btn-danger px-4 py-2" id="retryPayment">
+                            <i class="fas fa-redo-alt btn-icon"></i> Retry Payment
+                        </button>
+                        <a href="/user/orders" class="btn btn-outline px-4 py-2">
+                            <i class="fas fa-shopping-bag btn-icon"></i> View Order Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional Info -->
+            <div class="text-center mt-4 animate-in footer-text" style="animation-delay: 0.7s;">
+                <p class="mb-0">For any queries related to your order, please contact our <a href="/user/contactUs">customer support</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>  
+    document.addEventListener('DOMContentLoaded', function() {
+        // Payment option selection
+        const paymentOptions = document.querySelectorAll('.payment-option-item');
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                paymentOptions.forEach(item => item.classList.remove('selected'));
+                this.classList.add('selected');
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+
+
+        // Retry Payment functionality
+        const retryButton = document.getElementById('retryPayment');
+        retryButton.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedPayment) {
+                Swal.fire('Error', 'Please select a payment method', 'error');
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const totalAmount = urlParams.get('totalAmount');
+            const addressId = urlParams.get('addressId');
+
+            if (!totalAmount || !addressId) {
+                Swal.fire('Error', 'Missing order details. Please try again from the checkout page.', 'error');
+                return;
+            }
+
+            const orderData = {
+                addressId: addressId,
+                paymentMethod: selectedPayment.value,
+                totalAmount: Number(totalAmount)
+            };
+
+            try {
+                if (orderData.paymentMethod === 'Online') {
+                    retryButton.disabled = true;
+                    retryButton.innerHTML = `
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Processing...
+                    `;
+
+                    const response = await fetch('/user/order/create-razorpay-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: parseInt(totalAmount) })
+                    });
+
+                    const data = await response.json();
+
+                    retryButton.disabled = false;
+                    retryButton.innerHTML = `<i class="fas fa-redo-alt btn-icon"></i> Retry Payment`;
+
+                    if (!data.success) {
+                        Swal.fire('Error', data.message || 'Failed to create payment order', 'error');
+                        return;
+                    }
+
+                    const options = {
+                        key: data.checkoutData?.razorpayKeyId || data.key_id,
+                        amount: data.order.amount,
+                        currency: "INR",
+                        name: "Digitan Den",
+                        description: "Order Payment Retry",
+                        order_id: data.order.id,
+                        handler: async function (response) {
+                            try {
+                                orderData.razorpay_payment_id = response.razorpay_payment_id;
+                                orderData.razorpay_order_id = response.razorpay_order_id;
+                                orderData.razorpay_signature = response.razorpay_signature;
+
+                                Swal.fire({
+                                    title: 'Processing Payment',
+                                    text: 'Please wait while we verify your payment...',
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+
+                                const placeOrderResponse = await fetch('/user/order/retry-payment', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(orderData)
+                                });
+
+                                const placeOrderResult = await placeOrderResponse.json();
+
+                                if (placeOrderResult.success) {
+                                    Swal.fire('Success', placeOrderResult.message, 'success')
+                                        .then(() => {
+                                            window.location.href = '/user/order-success';
+                                        });
+                                } else {
+                                    Swal.fire('Error', placeOrderResult.message || 'An error occurred', 'error');
+                                }
+                            } catch (error) {
+                                console.error('Payment verification error:', error);
+                                Swal.fire('Error', error.message || 'An error occurred', 'error');
+                            }
+                        },
+                        prefill: {
+                            name: data.user.name,
+                            email: data.user.email,
+                            contact: data.user.contact
+                        },
+                        theme: {
+                            color: "#6366f1"
+                        },
+                        modal: {
+                            ondismiss: function() {
+                                window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=Payment was cancelled by the user`;
+                            }
+                        }
+                    };
+
+                    const razorpayInstance = new Razorpay(options);
+                    razorpayInstance.open();
+
+                    razorpayInstance.on('payment.failed', function(response) {
+                        window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=${encodeURIComponent(response.error.description || 'Payment failed')}`;
+                    });
+
+                } else {
+                    const response = await fetch('/user/order/retry-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderData)
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        Swal.fire('Success', result.message, 'success');
+                        window.location.href = '/user/order-success';
+                    } else {
+                        Swal.fire('Error', result.message || 'An error occurred', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error retrying payment:', error);
+                retryButton.disabled = false;
+                retryButton.innerHTML = `<i class="fas fa-redo-alt btn-icon"></i> Retry Payment`;
+                Swal.fire('Error', 'An error occurred while retrying the payment', 'error');
+            }
+        });
+    });
+</script>
+
+<%- include('../partial/user/footer') %>

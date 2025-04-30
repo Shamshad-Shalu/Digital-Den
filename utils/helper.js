@@ -151,6 +151,123 @@ const generateCustomId = (TNX = "ID") => {
 // }
 
 
+async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
+    let subtotal = 0;
+    let totalDiscount = 0;
+    let couponDiscount = 0;
+    let discountDetails = []; 
+
+     //  When Cart is Empty
+    if (!cart?.items || cart.items.length === 0) {
+        if (product && quantity) {
+            const status = await determineStatus(product._id);
+            if (status === 'Discontinued' || status === 'Out of stock') {
+                return { subtotal: 0, discount: 0, tax: 0, shipping: 0, totalAmount: 0, couponDiscount: 0, discountDetails: [] };
+            }
+
+            subtotal = product.regularPrice * quantity;
+
+            const {amount , type } = await calculateBestOffer(product , quantity );
+
+            totalDiscount = amount ;
+
+            discountDetails.push({ productId: product._id, type , amount: amount / quantity ,total:amount });
+        }
+    // When Cart has Items
+    } else {
+        const productIds = cart.items.map(item => item.productId);
+        
+        const products = await Product.find({ 
+            _id: { $in: productIds },
+            isListed: true
+        }).populate('brand').populate('category');
+        
+        for (const item of cart.items) {
+            if (item.discontinuedAt) continue;
+            
+            const itemProduct = products.find(pr => 
+                pr._id.toString() === (typeof item.productId === 'object' 
+                    ? item.productId._id.toString() 
+                    : item.productId.toString())
+            );
+
+            if (!itemProduct) {
+                item.discontinuedAt = new Date();
+                continue;
+            }
+            
+            const status = await determineStatus(itemProduct._id);
+            if (status === 'Discontinued' || status === 'Out of stock') {
+                item.discontinuedAt = new Date();
+                continue;
+            }
+
+
+            const itemSubtotal = itemProduct.regularPrice * item.quantity;
+            subtotal += itemSubtotal;
+
+            const {amount , type } = await calculateBestOffer(itemProduct , item.quantity );
+
+            totalDiscount += amount ;
+
+            discountDetails.push({ productId: itemProduct._id, type, amount: amount / item.quantity , total:amount });
+        }
+
+        // Add New Product if not in cart
+        if (product && quantity) {
+            const isNewProduct = !cart.items.some(item => 
+                (typeof item.productId === 'object' 
+                    ? item.productId._id.toString() 
+                    : item.productId.toString()) === product._id.toString()
+            );
+            
+            if (isNewProduct) {
+                const status = await determineStatus(product._id);
+                if (status !== 'Discontinued' && status !== 'Out of stock') {
+                    const newSubtotal = product.regularPrice * quantity;
+                    subtotal += newSubtotal;
+
+                    const { amount, type } = await calculateBestOffer(product, quantity);
+                    totalDiscount += amount ;
+
+                    discountDetails.push({ productId: product._id, type, amount: amount/ quantity  });
+                }
+            }
+        }
+    }
+
+    // coupon handle 
+    if (appliedCoupon && ( subtotal-totalDiscount >= appliedCoupon.minPurchase)) {
+        if (appliedCoupon.status === 'Active' && (!appliedCoupon.expireOn || new Date() <= appliedCoupon.expireOn)) {
+            if (appliedCoupon.type === 'Percentage') {
+                couponDiscount = ((subtotal-totalDiscount) * appliedCoupon.discount) / 100;
+                if (appliedCoupon.maxDiscount && couponDiscount > appliedCoupon.maxDiscount) {
+                    couponDiscount = appliedCoupon.maxDiscount;
+                }
+            } else if (appliedCoupon.type === 'Fixed') {
+                couponDiscount = appliedCoupon.discount;
+            }
+        }
+    }
+
+    const netTotal = subtotal - totalDiscount - couponDiscount;
+    const shipping =  !netTotal ? 0 : ( netTotal > 500 ? 0 : 50);
+    const tax = (netTotal + shipping) * 0.18 
+    const totalAmount = netTotal + tax + shipping ;  // 9 for tax on shipping 18%
+
+    console.log({
+        subtotal,
+        netAmount:subtotal - totalDiscount,
+        netTotal,
+        tax,
+        shipping,
+        coupon:couponDiscount,
+        totalAmount,
+    })
+
+    return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
+}
+
 async function getSpecialOffer(product) {
     const now = new Date();
     const regularPrice = product.regularPrice;
@@ -227,6 +344,7 @@ module.exports = {
     validateUser,
     genarateOtp,
     getSpecialOffer,
+    calculateCartTotals,
     calculateBestOffer,
     determineStatus,
     updateProductsForBrand,
