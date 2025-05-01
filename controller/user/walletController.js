@@ -14,13 +14,13 @@ const getWalletPage = async (req, res) => {
         const {userData, isLoggedIn } = res.locals;
 
         if (!isLoggedIn) {
-            return res.status(401).json({ success: false, message: "Please login to view Wallet", redirectUrl:"/user/signin" });
+            return res.status(401).json({ success: false, message: "Please login to view Wallet", redirectUrl:"/signin" });
         }
         
         const user = await User.findById(userData);
         if (!user) {
             return res.status(403).json({
-                message: "User not found with this ID", redirectUrl: '/user/signin'
+                message: "User not found with this ID", redirectUrl: '/signin'
             });
         }
         
@@ -82,7 +82,7 @@ const getWalletPage = async (req, res) => {
             });
         }
 
-        res.render("user/wallet", { 
+        res.render("wallet", { 
             user,
             wallet: filteredWallet,
             page,
@@ -109,7 +109,7 @@ const addAmountWallet = async (req, res) => {
 
         if (!isLoggedIn) {
             return res.status(401).json({ 
-                success: false, message: "Please login to add funds to your wallet", redirectUrl: "/user/signin" 
+                success: false, message: "Please login to add funds to your wallet", redirectUrl: "/signin" 
             });
         }
         let error = '';
@@ -135,7 +135,7 @@ const addAmountWallet = async (req, res) => {
         const user = await User.findById(userData);
         if (!user) {
             return res.status(403).json({
-                success: false,message: "User not found with this ID",redirectUrl: '/user/signin'
+                success: false,message: "User not found with this ID",redirectUrl: '/signin'
             });
         }
 

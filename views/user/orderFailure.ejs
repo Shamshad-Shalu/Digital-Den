@@ -343,7 +343,7 @@
                         <button class="btn btn-danger px-4 py-2" id="retryPayment">
                             <i class="fas fa-redo-alt btn-icon"></i> Retry Payment
                         </button>
-                        <a href="/user/orders" class="btn btn-outline px-4 py-2">
+                        <a href="/orders" class="btn btn-outline px-4 py-2">
                             <i class="fas fa-shopping-bag btn-icon"></i> View Order Details
                         </a>
                     </div>
@@ -352,7 +352,7 @@
             
             <!-- Additional Info -->
             <div class="text-center mt-4 animate-in footer-text" style="animation-delay: 0.7s;">
-                <p class="mb-0">For any queries related to your order, please contact our <a href="/user/contactUs">customer support</a>.</p>
+                <p class="mb-0">For any queries related to your order, please contact our <a href="/contactUs">customer support</a>.</p>
             </div>
         </div>
     </div>
@@ -411,7 +411,7 @@
                         Processing...
                     `;
 
-                    const response = await fetch('/user/order/create-razorpay-order', {
+                    const response = await fetch('/order/create-razorpay-order', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ amount: parseInt(totalAmount) })
@@ -449,7 +449,7 @@
                                     }
                                 });
 
-                                const placeOrderResponse = await fetch('/user/order/retry-payment', {
+                                const placeOrderResponse = await fetch('/order/retry-payment', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify(orderData)
@@ -460,7 +460,7 @@
                                 if (placeOrderResult.success) {
                                     Swal.fire('Success', placeOrderResult.message, 'success')
                                         .then(() => {
-                                            window.location.href = '/user/order-success';
+                                            window.location.href = '/order-success';
                                         });
                                 } else {
                                     Swal.fire('Error', placeOrderResult.message || 'An error occurred', 'error');
@@ -480,7 +480,7 @@
                         },
                         modal: {
                             ondismiss: function() {
-                                window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=Payment was cancelled by the user`;
+                                window.location.href = `/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=Payment was cancelled by the user`;
                             }
                         }
                     };
@@ -489,11 +489,11 @@
                     razorpayInstance.open();
 
                     razorpayInstance.on('payment.failed', function(response) {
-                        window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=${encodeURIComponent(response.error.description || 'Payment failed')}`;
+                        window.location.href = `/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=${encodeURIComponent(response.error.description || 'Payment failed')}`;
                     });
 
                 } else {
-                    const response = await fetch('/user/order/retry-payment', {
+                    const response = await fetch('/order/retry-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(orderData)
@@ -501,7 +501,7 @@
                     const result = await response.json();
                     if (result.success) {
                         Swal.fire('Success', result.message, 'success');
-                        window.location.href = '/user/order-success';
+                        window.location.href = '/order-success';
                     } else {
                         Swal.fire('Error', result.message || 'An error occurred', 'error');
                     }

@@ -25,13 +25,9 @@ const getWishlistPage = async (req , res) => {
 
     try {
         const { isLoggedIn, userData  } = res.locals;
-        // let  page= req.body. parseInt(page) || 1;
-        // let limit = 5;
-
-        // let query = {};
 
         if (!isLoggedIn ) {
-            return res.status(401).json({ success: false, message: "Please login to manage wishlist",redirectUrl:"/user/signin" });
+            return res.status(401).json({ success: false, message: "Please login to manage wishlist",redirectUrl:"/signin" });
         }
 
         const wishlist = await Wishlist.findOne({ userId: userData._id })
@@ -45,7 +41,7 @@ const getWishlistPage = async (req , res) => {
          
 
         if (!wishlist) {
-            return res.render("user/wishlist", {
+            return res.render("wishlist", {
                 wishlist: { products: [] }
             });
         } 
@@ -92,7 +88,7 @@ const getWishlistPage = async (req , res) => {
             .filter(item => item !== null) 
         };
 
-    res.render("user/wishlist", { wishlist: wishlistData });
+    res.render("wishlist", { wishlist: wishlistData });
 
     } catch (error) {
         console.error("Error in Wishlist:", error);
@@ -108,7 +104,7 @@ const addToWishlist = async (req , res )=>{
     const { isLoggedIn, userData, isUserBlocked } = res.locals;
     const { productId } = req.body;
     if (!isLoggedIn) {
-        return res.status(401).json({ success: false, message: "Please login to add to wishlist",redirectUrl:"/user/signin" });
+        return res.status(401).json({ success: false, message: "Please login to add to wishlist",redirectUrl:"/signin" });
     }
 
     if (isUserBlocked) {
@@ -162,7 +158,6 @@ const addToWishlist = async (req , res )=>{
             }
         );
 
-        console.log("Updated wishlist:", wishlist);
         res.status(200).json({ success: true, message: "Product added to wishlist successfully" });
 
     } catch (error) {
@@ -397,7 +392,7 @@ const getCartPage = async (req, res) => {
             
         })
 
-        if (!cart) return res.render('user/cart', { cart: defaultCart, coupons });
+        if (!cart) return res.render('cart', { cart: defaultCart, coupons });
 
         cart = await checkCartItemStatus(cart);  
         cart = await validateCartCoupon(cart);    
@@ -452,7 +447,7 @@ const getCartPage = async (req, res) => {
             couponCode: appliedCoupon?.code || null
         }
 
-        res.render("user/cart", { cart: cartData, coupons });
+        res.render("cart", { cart: cartData, coupons });
 
     } catch (error) {
         console.error("Error in getCartPage:", error);
@@ -839,7 +834,7 @@ const  proceedToCheckout = async (req , res) => {
                 shipping: cart.shipping,
                 totalAmount: cart.totalAmount
             },
-            redirectUrl : "/user/checkout"
+            redirectUrl : "/checkout"
         });   
     } catch (error) {
         console.error("Error moving to checkout:", error);
@@ -855,14 +850,14 @@ const  proceedToCheckout = async (req , res) => {
 const getCheckoutpage = async (req, res) => {
     const {userData, isLoggedIn,isUserBlocked} = res.locals;
     if (!isLoggedIn || isUserBlocked) {
-        return res.status(401).redirect("/user/home");
+        return res.status(401).redirect("/");
     }
     try {
 
         // Fetch the user
         const user = await User.findById(userData._id);
         if (!user) {
-            return res.redirect("/user/home");
+            return res.redirect("/");
         }
 
         const cart = await Cart.findOne({ userId: userData._id })
@@ -909,7 +904,7 @@ const getCheckoutpage = async (req, res) => {
         const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         const defaultAddress = addresses.some(addr => addr.isDefault);
 
-        res.render("user/checkout",{
+        res.render("checkout",{
             checkoutData : {
                 states: indianStates,
                 addresses,
@@ -943,7 +938,7 @@ const placeOrder = async (req, res) => {
         const { userData, isLoggedIn, isUserBlocked } = res.locals;
 
         if (!isLoggedIn || isUserBlocked) {
-            return res.status(401).redirect("/user/home");
+            return res.status(401).redirect("/");
         }
 
         const { addressId, paymentMethod, razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
@@ -1185,14 +1180,14 @@ const getOrderFailurePage = async (req, res) => {
         const { totalAmount, addressId, error_description } = req.query;
 
         if (!totalAmount || !addressId) {
-            return res.redirect('/user/checkout'); 
+            return res.redirect('/checkout'); 
         }
  
         const user = await User.findById(res.locals.userData); 
         const wallet = await Wallet.findOne({ userId: user._id });
         const walletBalance = wallet ? wallet.balance : 0;
 
-        res.render('user/orderFailure', {
+        res.render('orderFailure', {
             totalAmount: parseFloat(totalAmount),
             addressId,
             error_description: error_description || 'Payment failed',

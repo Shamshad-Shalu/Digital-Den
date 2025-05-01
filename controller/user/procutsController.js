@@ -53,7 +53,7 @@ const loadHome = async (req , res) => {
         topProducts = topProducts.filter(top => top.category && top.brand);
 
         res.setHeader('Cache-Control', 'no-store');
-        res.render("user/home", {
+        res.render("home", {
           products,
           offers,
           topProducts,
@@ -228,7 +228,7 @@ const getProducts = async (req, res) => {
             wishlist
         };
         
-        res.render("user/products",renderData);
+        res.render("products",renderData);
     } catch (error) {
         console.error("Error fetching products:", error);
       
@@ -250,7 +250,7 @@ const getProducts = async (req, res) => {
             user: res.locals.userData,
             showBlockedNotification: res.locals.isUserBlocked
         };
-        res.status(500).render("user/products", errorData);
+        res.status(500).render("products", errorData);
     }
 };
 
@@ -268,7 +268,7 @@ const getProductDetails = async (req, res) => {
         product.status = status;
         
         if (status === 'Discontinued') {
-            return res.redirect('/user/products');
+            return res.redirect('/products');
         }
         
         // Calculate all available discounts
@@ -354,7 +354,7 @@ const getProductDetails = async (req, res) => {
         }
         
 
-        res.render('user/product-details', {
+        res.render('product-details', {
             product,
             relatedProducts,
             title: product.productName,

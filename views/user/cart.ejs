@@ -371,7 +371,7 @@
                         <% }) %>
                     <% } else {%>
                         <div class="alert alert-info text-center">
-                            Your cart is empty. <a href="/user/products" class="alert-link">Start shopping now!</a>
+                            Your cart is empty. <a href="/products" class="alert-link">Start shopping now!</a>
                         </div>
                     <% } %>
                 </div> -->
@@ -455,7 +455,7 @@
                         <% }) %>
                     <% } else { %>
                         <div class="alert alert-info text-center">
-                            Your cart is empty. <a href="/user/products" class="alert-link">Start shopping now!</a>
+                            Your cart is empty. <a href="/products" class="alert-link">Start shopping now!</a>
                         </div>
                     <% } %>
                 </div>
@@ -545,7 +545,7 @@
                         </div>
                     </div>
                     <button class="btn btn-primary w-100 py-2 mb-2" id="checkoutBtn" <%= cart && cart.items.some(item => !item.isDiscontinued && item.product.status !== 'Out of stock') ? '' : 'disabled' %>>Proceed to Checkout</button>
-                    <a href="/user/products"><button class="btn btn-outline-secondary w-100 py-2">Continue Shopping</button></a>
+                    <a href="/products"><button class="btn btn-outline-secondary w-100 py-2">Continue Shopping</button></a>
                 </div>
             </div>
         </div>
@@ -583,7 +583,7 @@
                 try {
                     console.log("Quantity:",quantity)
                         cartItem.classList.add('updating');
-                        const response  = await fetch("/user/cart/update",{
+                        const response  = await fetch("/cart/update",{
                             method:"POST",
                             headers:{
                                 'Content-Type': 'application/json'
@@ -637,7 +637,7 @@
 
                 // Server-side validation
                 try {
-                    const response = await fetch('/user/checkout', {
+                    const response = await fetch('/checkout', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -683,7 +683,7 @@
         
             async function removeFromCart(productId) {
                 try {
-                    const response  = await fetch("/user/cart/remove",{
+                    const response  = await fetch("/cart/remove",{
                         method:"POST",
                         headers:{
                             'Content-Type': 'application/json'
@@ -705,7 +705,7 @@
         
             async function saveForLater(productId) {
                 try {
-                    const response = await fetch('/user/wishlist/add', {
+                    const response = await fetch('/wishlist/add', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ productId }),
@@ -746,7 +746,7 @@
 
             // async function applyCoupon(code) {
             //     try {
-            //         const res = await fetch('/user/cart/apply-coupon', {
+            //         const res = await fetch('/cart/apply-coupon', {
             //             method: 'POST',
             //             headers: { 'Content-Type': 'application/json' },
             //             body: JSON.stringify({ couponCode: code })
@@ -774,7 +774,7 @@
             // }
             async function applyCoupon(couponCode) {
                 try {
-                    const response = await fetch('/user/cart/apply-coupon', {
+                    const response = await fetch('/cart/apply-coupon', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ couponCode })

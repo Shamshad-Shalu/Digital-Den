@@ -35,6 +35,7 @@ app.use(session({
 }));
 
 
+
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
@@ -59,11 +60,6 @@ app.use((req, res, next) => {
 });
 
 
-app.use((req, res, next) => {
-    res.locals.isLoggedIn = !!req.session.user;
-    next();
-});
-
 app.use(nocache());
 
 app.use(express.json());
@@ -73,22 +69,20 @@ app.use(express.urlencoded({extended:true}));
 
 app.use(express.static("public"))
 app.set("view engine","ejs");
-// app.set(path.join(__dirname,"views"));
-app.set([path.join(__dirname,"views/user"),path.join(__dirname,"views/admin")]);
+app.set('views', [
+  path.join(__dirname, 'views/user'),
+  path.join(__dirname, 'views')
+]);
 
 
-app.get("/",(req,res)=> {
-    res.redirect("/user/home");
-})
 
+app.get("/admin", (req, res) => {
+  res.redirect("/admin/login");
+});
 
-app.get("/admin",(req,res)=> {
-    res.redirect("/admin/login");
-})
-
-// Router 
-app.use("/user",userRouter);
-app.use("/admin",adminRouter);
+// Routers
+app.use("/admin", adminRouter);
+app.use("/", userRouter);
 
 
 connectDatabase().then(()=>{

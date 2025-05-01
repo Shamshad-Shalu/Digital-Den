@@ -409,7 +409,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="/user/address/add" method="POST" id="addAddressForm">
+                <form action="/address/add" method="POST" id="addAddressForm">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="addressName" class="form-label">Full Name</label>
@@ -504,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 jsonData.isDefault = jsonData.isDefault === 'on'; 
 
                 try {
-                    const response = await fetch('/user/address/add', {
+                    const response = await fetch('/address/add', {
                         method: 'POST',
                         body: JSON.stringify(jsonData),
                         headers: { 'Content-Type': 'application/json' }
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 jsonData.isDefault = jsonData.isDefault === 'on'; 
 
                 try {
-                    const response = await fetch(`/user/address/edit/${addressId}`, {
+                    const response = await fetch(`/address/edit/${addressId}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(jsonData)
@@ -569,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const addressId = button.dataset.addressId;
 
                 try {
-                    const response = await fetch(`/user/address/delete/${addressId}`,{
+                    const response = await fetch(`/address/delete/${addressId}`,{
                         method:"DELETE",
                         headers:{
                             'Content-Type': 'application/json'

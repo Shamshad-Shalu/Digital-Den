@@ -232,7 +232,7 @@
                         </div>
                     </div>
                     <div class="text-end">
-                        <a href="/user/edit-profile" class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>">Edit Profile</a>
+                        <a href="/edit-profile" class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>">Edit Profile</a>
                     </div>
 
 
@@ -351,12 +351,6 @@
         background-color: rgba(99, 102, 241, 0.15) !important;
     }
 </style>
-
-
-
-
-
-
 
                     <div class="divider"></div>
 
@@ -598,7 +592,7 @@
             });
 
             // Use URL
-            const URL = form.id === 'changePasswordForm' ? '/user/change-password' : '/user/add-password';
+            const URL = form.id === 'changePasswordForm' ? '/change-password' : '/add-password';
 
             try {
                 const response = await fetch(URL, {
@@ -673,7 +667,7 @@
                     }
                 });
 
-                const url = isOtpSent ? '/user/verify-email-otp' : '/user/change-email';
+                const url = isOtpSent ? '/verify-email-otp' : '/change-email';
                 const response = await fetch(url, {
                     method: 'POST',
                     body: JSON.stringify(jsonData),

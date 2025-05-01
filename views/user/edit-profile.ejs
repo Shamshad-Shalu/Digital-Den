@@ -139,7 +139,7 @@
                             </div>
                         </div>
                         <div class="text-end">
-                            <a href="/user/profile" class="btn btn-secondary me-2">Cancel</a>
+                            <a href="/profile" class="btn btn-secondary me-2">Cancel</a>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
@@ -151,182 +151,7 @@
 
 <%- include('../partial/user/footer') %>
 
-<!-- 
 <script>
-// Utility Functions
-function displayFormErrors(form, errors) {
-    clearErrors(form);
-    if (errors && typeof errors === 'object') {
-        Object.entries(errors).forEach(([field, message]) => {
-            const input = form.querySelector(`[name="${field}"]`);
-            if (input) {
-                input.classList.add('is-invalid');
-                const feedback = input.parentElement.querySelector('.invalid-feedback');
-                if (feedback) {
-                    feedback.textContent = message;
-                    feedback.style.display = 'block';
-                }
-            }
-        });
-    }
-}
-
-function clearErrors(form) {
-    form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-    form.querySelectorAll('.invalid-feedback').forEach(el => {
-        el.textContent = '';
-        el.style.display = 'none';
-    });
-}
-
-function showSwal(type, title, text, timer) {
-    return Swal.fire({
-        icon: type,
-        title,
-        text,
-        showConfirmButton: false,
-        timer,
-        timerProgressBar: true
-    });
-}
-
-function showProcessingSwal(title, text) {
-    return Swal.fire({
-        title,
-        text,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Edit Profile Form
-    const editProfileForm = document.getElementById('editProfileForm');
-    if (editProfileForm) {
-        let isPhoneOtpSent = false;
-        let isPhotoRemoved = false;
-
-        const photoUpload = document.getElementById('photoUpload');
-        const profilePhotoPreview = document.getElementById('profilePhotoPreview');
-        const removePhotoBtn = document.getElementById('removePhotoBtn');
-
-        if (photoUpload && profilePhotoPreview) {
-            photoUpload.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        // Ensure the existing preview is removed
-                        const parent = profilePhotoPreview.parentElement;
-                        profilePhotoPreview.remove(); // Remove the old preview
-
-                        // Create new image element
-                        const img = document.createElement('img');
-                        img.src = event.target.result;
-                        img.className = 'profile-photo mb-3';
-                        img.id = 'profilePhotoPreview';
-                        parent.insertBefore(img, parent.firstChild); // Insert at the top of the container
-                        isPhotoRemoved = false;
-                        console.log('Image preview updated:', img.src); // Debug log
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-
-        if (removePhotoBtn) {
-            removePhotoBtn.addEventListener('click', () => {
-                const parent = profilePhotoPreview.parentElement;
-                profilePhotoPreview.remove(); // Remove the current preview
-
-                const defaultIcon = document.createElement('div');
-                defaultIcon.className = 'default-profile-icon mb-3';   
-                 defaultIcon.id = 'profilePhotoPreview';
-                defaultIcon.innerHTML = '<i class="bi bi-person-fill"></i>';                  
-                parent.insertBefore(defaultIcon, parent.firstChild); 
-                isPhotoRemoved = true;
-                photoUpload.value = '';
-                console.log('Image removed, default icon displayed'); // Debug log
-            });
-        }
-
-        editProfileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            clearErrors(editProfileForm);
-
-            // Prepare FormData
-            const formData = new FormData(editProfileForm);
-            formData.append('removePhoto', isPhotoRemoved);
-
-            // Client-side validation
-            const jsonData = Object.fromEntries(formData);
-            Object.keys(jsonData).forEach(key => {
-                if (typeof jsonData[key] === 'string') {
-                    jsonData[key] = jsonData[key].trim();
-                }
-            });
-
-            const clientErrors = {};
-            if (!jsonData.firstName) clientErrors.firstName = "First name is required";
-            if (!jsonData.lastName) clientErrors.lastName = "Last name is required";
-            if (!jsonData.username) clientErrors.username = "Username is required";
-            if (jsonData.phone && !/^\d{10}$/.test(jsonData.phone)) {
-                clientErrors.phone = "Phone number must be 10 digits";
-            }
-            if (isPhoneOtpSent && !jsonData.phoneOtp) {
-                clientErrors.phoneOtp = "Phone OTP is required";
-            }
-
-            if (Object.keys(clientErrors).length > 0) {
-                displayFormErrors(editProfileForm, clientErrors);
-                await showSwal('error', 'Error', 'Please fix the errors in the form', 1500);
-                return;
-            }
-
-            try {
-                const url = isPhoneOtpSent ? '/user/verify-phone-otp' : '/user/update-profile';
-                console.log('Submitting form to:', url, 'with data:', jsonData); // Debug log
-                const processingSwal = showProcessingSwal('Processing...', 'Please wait while we update your profile');
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                console.log('Server response:', data); // Debug log
-                await processingSwal.close();
-
-                if (!response.ok || !data.success) {
-                    displayFormErrors(editProfileForm, data.errors);
-                    await showSwal('error', 'Error', data.message || 'Profile update failed', 1500);
-                    return;
-                }
-
-                if (!isPhoneOtpSent && jsonData.phone && jsonData.phone !== '<%= user.phone || "" %>') {
-                    document.getElementById('phoneOtpField').style.display = 'block';
-                    isPhoneOtpSent = true;
-                    await showSwal('success', 'OTP Sent', 'Please check your email for the phone verification OTP', 1000);
-                } else {
-                    await showSwal('success', 'Success', 'Profile updated successfully', 500);
-                    window.location.href = '/user/profile';
-                }
-            } catch (error) {
-                console.error('Profile update error:', error);
-                Swal.close();
-                await showSwal('error', 'Error', 'Something went wrong: ' + error.message, 1500);
-            }
-        });
-    }
-});
-</script> -->
-
-<script>
-    // Utility Functions
     function displayFormErrors(form, errors) {
       clearErrors(form);
       if (errors && typeof errors === 'object') {
@@ -442,7 +267,7 @@ document.addEventListener("DOMContentLoaded", () => {
           });
     
           try {
-            const url = isPhoneOtpSent ? '/user/verify-phone-otp' : '/user/update-profile';
+            const url = isPhoneOtpSent ? '/verify-phone-otp' : '/update-profile';
             
             const processingSwal = showProcessingSwal('Processing...', 'Please wait while we update your profile');
     
@@ -467,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
               await showSwal('success', 'OTP Sent', 'Please check your email for the phone verification OTP', 1000);
             } else {
               await showSwal('success', 'Success', 'Profile updated successfully', 500);
-              window.location.href = '/user/profile';
+              window.location.href = '/profile';
             }
           } catch (error) {
             console.error('Profile update error:', error);

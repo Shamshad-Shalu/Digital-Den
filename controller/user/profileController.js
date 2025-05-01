@@ -14,7 +14,7 @@ const getUserProfile = async (req, res) => {
         const {userData} = res.locals 
   
         if (!userData) {
-            return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/user/signin" });
+            return res.status(401).json({ success: false, message: "Please login to view Profile.",redirectUrl:"/signin" });
         }  
         
         const user = await User.findById(userData._id)
@@ -22,7 +22,7 @@ const getUserProfile = async (req, res) => {
 
         const totalReferrals = user?.redeemedUsers?.length || 0 ;
 
-        res.render('user/profile', { user , totalReferrals });
+        res.render('profile', { user , totalReferrals });
     } catch (error) {
         console.error('Error fetching profile:', error);
         res.status(500).render('error', { message: 'Server error' });
@@ -34,7 +34,7 @@ const getEditProfile = async (req, res) => {
         const user = res.locals.userData;
         const formData = req.session.formData || {};
         delete req.session.formData; 
-        res.render('user/edit-profile', { user, errors: {}, otpSent: false, phoneOtpSent: false, formData });
+        res.render('edit-profile', { user, errors: {}, otpSent: false, phoneOtpSent: false, formData });
     } catch (error) {
         console.error('Error fetching edit profile:', error);
         res.status(500).render('error', { message: 'Server error' });
@@ -47,7 +47,7 @@ const addPassword = async (req , res ) => {
         const user = await User.findById(res.locals.userData);
         if (!user) {
             return res.status(403).json({
-                message: "User not found with this ID",redirectUrl: '/user/signin'
+                message: "User not found with this ID",redirectUrl: '/signin'
             });
         }
         const data = {
@@ -91,7 +91,7 @@ const changePassword = async (req,res) => {
 
         const user = await User.findById(userData._id);
         if(!user) {
-            return res.status(403).json({ message: "User not found with this ID",redirectUrl: '/user/login'});
+            return res.status(403).json({ message: "User not found with this ID",redirectUrl: '/login'});
         };
 
         const errors = await  validatePassword(user, data, true);

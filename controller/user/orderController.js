@@ -14,9 +14,9 @@ const getorderSuccessPage = async (req, res) => {
         const order = await Order.findOne({ orderId, userId: userData._id })
             .populate('orderedItems.product');
         if (!order) {
-            return res.redirect('/user/orders');
+            return res.redirect('/orders');
         }
-        res.render('user/order-success', { order });
+        res.render('order-success', { order });
     } catch (error) {
         console.error('Error fetching order success:', error);
         res.status(500).send('Server error');
@@ -117,7 +117,7 @@ const getOrders = async (req, res) => {
             });
         }
 
-        res.render('user/orders', {
+        res.render('orders', {
             user,
             orders,
             summary,
@@ -161,7 +161,7 @@ const trackOrder = async (req, res) => {
         console.error('Error in trackOrder:', error);
         res.status(500).json({ message: 'Server error' });
     }
-};
+}; 
 
 const cancelOrder = async (req , res) => {
     try {

@@ -39,16 +39,16 @@
                     <div class="col-md-6 text-end">
                         <span class="d-flex align-items-center justify-content-end">
                             <% if(locals.isLoggedIn){ %>
-                            <a href="/user/profile" class="my-account">
+                            <a href="/profile" class="my-account">
                                 <span><i class="fa fa-user"></i> My Account</span>
                             </a>
                             <% } %>
                             <% if(locals.isLoggedIn){ %>
-                                <a href="/user/logout" class="auth-btn logout-btn">
+                                <a href="/logout" class="auth-btn logout-btn">
                                     Logout
                                 </a>
                             <% } else { %>
-                                <a href="/user/signin" class="auth-btn login-btn" >
+                                <a href="/signin" class="auth-btn login-btn" >
                                     Login
                                 </a>
                             <% } %>
@@ -67,7 +67,7 @@
                             <h1 class="logo">DIGITAL DEN</h1>
                         </div>
                         <div class="d-flex align-items-center search-bar-container ">
-                            <form action="/user/products" method="GET" class="d-flex">
+                            <form action="/products" method="GET" class="d-flex">
                                 <input type="text" class="form-control" name="search" placeholder="Search Products Here..." 
                                  value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>">
                                 <button class="btn search-btn" type="submit"><i class="fa fa-search"></i></button>
@@ -75,7 +75,7 @@
                         </div>
                         <div class="menu-bar-icons d-flex align-items-center ">
                             <div class="cart-container position-relative">
-                                <a href="/user/wishlist">
+                                <a href="/wishlist">
                                     <i class="fa-solid fa-heart cart-icon"></i>
                                     <!-- <span
                                         class="notification position-absolute top-0 start-100 translate-middle badge rounded-pill d-flex justify-content-center">
@@ -84,7 +84,7 @@
                                 </a> 
                             </div>
                             <div class="cart-container position-relative">
-                                <a href="/user/cart">
+                                <a href="/cart">
                                     <i class="fa fa-shopping-cart cart-icon"></i>
                                     <!-- <span
                                         class="notification position-absolute top-0 start-100 translate-middle badge rounded-pill d-flex justify-content-center">
@@ -93,7 +93,7 @@
                                 </a>
                             </div>
                             <div class="cart-container position-relative">
-                                <a href="/user/orders">
+                                <a href="/orders">
                                     <i class="fa-sharp fa-solid fa-truck-fast cart-icon"></i>
                                     <!-- <span class="notification position-absolute top-0 start-100 translate-middle badge rounded-pill d-flex justify-content-center">
                                         7
@@ -116,25 +116,25 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/home">Home</a>
+                            <a class="nav-link" href="/">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/products">Products</a>
+                            <a class="nav-link" href="/products">Products</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/cart">Cart</a>
+                            <a class="nav-link" href="/cart">Cart</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/wishlist">Wishlist</a>
+                            <a class="nav-link" href="/wishlist">Wishlist</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Settings</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/aboutUs">About Us</a>
+                            <a class="nav-link" href="/aboutUs">About Us</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/user/contactUs">Contact Us</a>
+                            <a class="nav-link" href="/contactUs">Contact Us</a>
                         </li>
                     </ul>
 

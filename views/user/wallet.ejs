@@ -935,7 +935,7 @@
         }).toString();
 
         try {
-            const response = await fetch(`/user/wallet?${queryParams}`,{
+            const response = await fetch(`/wallet?${queryParams}`,{
                 headers:{'X-Requested-With': 'XMLHttpRequest'},
             });
 
@@ -945,7 +945,7 @@
                     title: 'Unauthorized',
                     text: 'Please log in to continue',
                 }).then(() => {
-                    window.location.href = '/user/signin';
+                    window.location.href = '/signin';
                 });
                 return;
             }
@@ -1101,7 +1101,7 @@
                 `;
 
                 // add amount to wallet
-                const response = await fetch("/user/wallet/add", {
+                const response = await fetch("/wallet/add", {
                     method: "POST",
                     body: JSON.stringify({ amount }),
                     headers: {
@@ -1148,7 +1148,7 @@
                             });
 
                             // Verify payment 
-                            const verifyResponse = await fetch('/user/wallet/verify-payment', {
+                            const verifyResponse = await fetch('/wallet/verify-payment', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -1201,7 +1201,7 @@
                     modal: {
                         ondismiss: async function() {
                             try {
-                                await fetch('/user/wallet/payment-failure', {
+                                await fetch('/wallet/payment-failure', {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json'
@@ -1226,7 +1226,7 @@
                 // Handle Razorpay errors
                 razorpayInstance.on('payment.failed', async function(response) {
                     try {
-                        await fetch('/user/wallet/payment-failure', {
+                        await fetch('/wallet/payment-failure', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'

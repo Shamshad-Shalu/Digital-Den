@@ -274,16 +274,16 @@
                     <span><%= user ? user.email : '' %></span>
                 </div>
             </div>
-            <a href="/user/profile" class="sidebar-link" data-section="profile">
+            <a href="/profile" class="sidebar-link" data-section="profile">
                 <i class="bi bi-person"></i> Profile
             </a>
-            <a href="/user/address" class="sidebar-link" data-section="address">
+            <a href="/address" class="sidebar-link" data-section="address">
                 <i class="bi bi-geo-alt"></i> Address
             </a>
-            <a href="/user/orders" class="sidebar-link" data-section="orders">
+            <a href="/orders" class="sidebar-link" data-section="orders">
                 <i class="bi bi-box"></i> Orders
             </a>
-            <a href="/user/wallet" class="sidebar-link" data-section="wallet">
+            <a href="/wallet" class="sidebar-link" data-section="wallet">
                 <i class="bi bi-wallet2"></i> Wallet
             </a>
         </div>
@@ -296,12 +296,12 @@
 
     // Function to set the active link based on the current URL
     function setActiveLink() {
-        const currentPath = window.location.pathname; // e.g., "/user/address"
+        const currentPath = window.location.pathname; // e.g., "/address"
 
         sidebarLinks.forEach(link => {
             const linkPath = link.getAttribute('href');
             // Special case for edit-profile: treat it as part of the "Profile" section
-            if (currentPath === '/user/edit-profile' && linkPath === '/user/profile') {
+            if (currentPath === '/edit-profile' && linkPath === '/profile') {
                 link.classList.add('active');
             } else if (linkPath === currentPath) {
                 link.classList.add('active');

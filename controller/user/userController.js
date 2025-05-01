@@ -9,13 +9,13 @@ const {sendForgotOtp, sendSignupOtp} = require("../../utils/userEmails.js")
 const loadLoagin = async (req , res) =>{
     try {
         if(!req.session.user){
-            return res.render("user/signin");
+            return res.render("signin");
         }
-        res.redirect("/user/home");
+        res.redirect("/");
         
     } catch (error) {
         console.log("an error found while loading login:",error);
-        res.redirect("/user/pageNotFound");   
+        res.redirect("/pageNotFound");   
     }
 }
 
@@ -56,7 +56,7 @@ const login = async (req , res) => {
         return res.status(200).json({
             success: true,
             message: "Login successful",
-            redirectUrl: "/user/home"
+            redirectUrl: "/"
           });
 
         
@@ -73,7 +73,7 @@ const login = async (req , res) => {
 
 const loadSignup = async (req,res) =>{
     try {
-       return res.render("user/signup");
+       return res.render("signup");
     } catch (error) {
         console.log("Signup page is not loading..:",error);
         res.status(500).send("Server Error");
@@ -126,7 +126,7 @@ const signup = async(req,res) =>{
         return res.status(200).json({
             success: true,
             message: "Signup successful",
-            redirectUrl: "/user/verify-otp"
+            redirectUrl: "/verify-otp"
         });
         
     } catch (error) {
@@ -140,7 +140,7 @@ const signup = async(req,res) =>{
 
 const loadVerifyOtp = async (req,res)=> {
     try{
-        res.render("user/verify-otp");
+        res.render("verify-otp");
     }
     catch(err){
         console.log("an error fond in otp verification!! ")
@@ -253,7 +253,7 @@ const verifyOTP = async(req, res)=>{
         return  res.json({
             success:true,
             message:"Account created Successfully!!!",
-            redirectUrl:"/user/home"
+            redirectUrl:"/"
         });
        
 
@@ -307,21 +307,21 @@ const logout = async (req, res)=>{
         req.session.destroy(err => {
             if(err){
                 console.log("Session destruction error:",err.message);
-                return res.status(500).redirect("/user/pageNotFound");
+                return res.status(500).redirect("/pageNotFound");
             }
 
-            return res.redirect("/user/home");
+            return res.redirect("/");
         })
     } catch (error) {
 
         console.log("Logout error :",error);
-        res.redirect("/user/pageNotFound"); 
+        res.redirect("/pageNotFound"); 
     }
 }
 
 const loadForgotPage = async (req,res) => {
     try {
-        res.render("user/forgot");
+        res.render("forgot");
         
     } catch (error) {
         console.log("forgot password page not loading:", error);
@@ -360,7 +360,7 @@ const forgotPassword = async (req , res) => {
         return res.status(200).json({
             success: true,
             message: "Email Sent successfully",
-            redirectUrl: "/user/reset-otp"
+            redirectUrl: "/reset-otp"
         });
     } catch (error) {
         console.error("forgot-password error",error);
@@ -373,7 +373,7 @@ const forgotPassword = async (req , res) => {
 
 const getResetOtpPage = async (req , res ) => {
     try {
-        res.render("user/reset-otp")
+        res.render("reset-otp")
         
     } catch (error) {
         res.status(500).send("Server error"); 
@@ -399,7 +399,7 @@ const forgotOtp = async (req , res) =>{
             return  res.json({
                 success:true,
                 message:"Account created Successfully!!!",
-                redirectUrl:"/user/reset-password"
+                redirectUrl:"/reset-password"
             });
         }else {
             res.status(400).json(({ 
@@ -472,7 +472,7 @@ const resendResetOtp = async (req , res) =>{
 const loadResetPassword = async (req, res) => {
     try {
         
-        res.render("user/repassword");
+        res.render("repassword");
     } catch (error) {
         console.log("Error loading reset password:", error);
         res.status(500).send("Server error");
@@ -518,7 +518,7 @@ const ResetPassword = async (req , res) => {
         return res.status(200).json({
             success: true,
             message: "Password reset successfully",
-            redirectUrl: "/user/signin"
+            redirectUrl: "/signin"
         });
        
         
@@ -535,7 +535,7 @@ const ResetPassword = async (req , res) => {
 
 const pageNotFound = async (req,res)=> {
     try {
-        res.render("user/pageNotFound");
+        res.render("pageNotFound");
 
     } catch (error) {
         res.status(500).send("an issue while loading");

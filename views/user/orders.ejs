@@ -295,7 +295,7 @@
                     search: currentSearch,
                 });
 
-                const response = await fetch(`/user/orders?${params.toString()}`, {
+                const response = await fetch(`/orders?${params.toString()}`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                     },
@@ -691,7 +691,7 @@
                     const orderId = this.closest(".order-card").dataset.orderId;
 
                     try {
-                        const response = await fetch(`/user/order/track/${orderId}`);
+                        const response = await fetch(`/order/track/${orderId}`);
                         if (!response.ok) {
                             const errorData = await response.json();
                             throw new Error(`Failed to fetch order: ${response.status} - ${errorData.message || response.statusText}`);
@@ -757,7 +757,7 @@
                     });
 
                     try {
-                        const response = await fetch(`/user/order/cancel/${currentOrderId}`, {
+                        const response = await fetch(`/order/cancel/${currentOrderId}`, {
                             method: 'POST',
                             body: JSON.stringify(jsonData),
                             headers: { 'Content-Type': 'application/json' },
@@ -807,7 +807,7 @@
                     });
 
                     try {
-                        const response = await fetch(`/user/order/return/${returnOrderId}`, {
+                        const response = await fetch(`/order/return/${returnOrderId}`, {
                             method: 'POST',
                             body: JSON.stringify(jsonData),
                             headers: { 'Content-Type': 'application/json' },
@@ -858,7 +858,7 @@
                     });
 
                     try {
-                        const response = await fetch(`/user/order/return-item/${currentOrderId}/${currentItemId}`, {
+                        const response = await fetch(`/order/return-item/${currentOrderId}/${currentItemId}`, {
                             method: 'POST',
                             body: JSON.stringify(jsonData),
                             headers: { 'Content-Type': 'application/json' },

@@ -130,7 +130,7 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item"><a href="/user/products?category=<%= product.category.name %>"><%= product.category.name %></a></li>
+            <li class="breadcrumb-item"><a href="/products?category=<%= product.category.name %>"><%= product.category.name %></a></li>
             <li class="breadcrumb-item active"><%= product.productName %></li>
         </ol>
     </nav>
@@ -352,7 +352,7 @@
                 <div class="purchase-options mb-4">
                     <div class="row align-items-center">
                         <div class="alert alert-warning">
-                            This product is currently out of stock. <a href="/user/products" class="alert-link">Browse other products</a>.
+                            This product is currently out of stock. <a href="/products" class="alert-link">Browse other products</a>.
                         </div>
                     </div>
                 </div>
@@ -365,7 +365,7 @@
                 </div>
             <%}else { %>   
                 <div class="alert alert-danger">
-                    This product is currently unavailable. <a href="/user/products" class="alert-link">Browse other products</a>.
+                    This product is currently unavailable. <a href="/products" class="alert-link">Browse other products</a>.
                 </div>
             <% } %>
             <!-- Highlights -->
@@ -451,7 +451,7 @@
         <div class="row">
             <% relatedProducts.forEach(related => { %>
                 <div class="col-md-6 col-lg-4 col-xl-3 mt-3">
-                    <a href="/user/product/<%= related._id %>" class="product-link">
+                    <a href="/product/<%= related._id %>" class="product-link">
                         <div class="product-card">
                             <div class="image-container">
                                 <img src="/uploads/products/<%= related.cardImage %>" alt="Product Image">
@@ -494,7 +494,7 @@
     function addToCart(productId) {
         const quantityInput = document.getElementById("quantity");
         const quantity = quantityInput ? quantityInput.value : 1; 
-        fetch("/user/cart/add", {
+        fetch("/cart/add", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -537,7 +537,7 @@
 
     // Define addToCart globally
     function addtoWishlist(productId) {
-        fetch("/user/wishlist/add", {
+        fetch("/wishlist/add", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',

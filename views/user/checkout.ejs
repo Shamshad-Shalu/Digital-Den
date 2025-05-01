@@ -386,7 +386,7 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <form class="editAddressForm" data-address-id="<%= address._id %>" 
-                                                            action="/user/address/edit/<%= address._id %>" method="POST">
+                                                            action="/address/edit/<%= address._id %>" method="POST">
                                                             <div class="row g-3">
                                                                 <div class="col-md-6">
                                                                     <label for="editAddressName<%= address._id %>" class="form-label">Full Name</label>
@@ -582,7 +582,7 @@
                                 <strong > ₹<%= checkoutData.summery.totalAmount.toFixed(2) %></strong>
                             </div>
                             <button class="btn btn-primary w-100 py-2 mb-2 placeOrder " id="placeOrder">Place Order</button>
-                            <a href="/user/cart" class="btn btn-outline-secondary w-100 py-2">Return to Cart</a>
+                            <a href="/cart" class="btn btn-outline-secondary w-100 py-2">Return to Cart</a>
                         <% } %>
                     </div>    
                 </div>
@@ -599,7 +599,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addAddressForm" action="/user/address/add" method="POST">
+                    <form id="addAddressForm" action="/address/add" method="POST">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="addressName" class="form-label">Full Name</label>
@@ -756,7 +756,7 @@
                     jsonData.isDefault = jsonData.isDefault === 'on'; 
 
                     try {
-                        const response = await fetch('/user/address/add', {
+                        const response = await fetch('/address/add', {
                             method: 'POST',
                             body: JSON.stringify(jsonData),
                             headers: { 'Content-Type': 'application/json' }
@@ -794,7 +794,7 @@
                     jsonData.isDefault = jsonData.isDefault === 'on'; 
 
                     try {
-                        const response = await fetch(`/user/address/edit/${addressId}`, {
+                        const response = await fetch(`/address/edit/${addressId}`, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(jsonData)
@@ -872,7 +872,7 @@
                                 Processing...
                             `;
 
-                            const response = await fetch('/user/order/create-razorpay-order', {
+                            const response = await fetch('/order/create-razorpay-order', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ amount: parseInt(totalAmount) })
@@ -885,7 +885,7 @@
                             placeOrder.innerHTML = `Place Order`;
 
                             if (!data.success) {
-                                window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description = Payment service is currently facing technical issues. Please try again later or use a different payment method.`;
+                                window.location.href = `/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description = Payment service is currently facing technical issues. Please try again later or use a different payment method.`;
                                 // Swal.fire('Error', data.message || 'Failed to create payment order', 'error');
                                 return;
                             }
@@ -915,7 +915,7 @@
                                         });
 
                                         // Verify payment
-                                        const placeOrderResponse = await fetch('/user/order/place', {
+                                        const placeOrderResponse = await fetch('/order/place', {
                                             method: 'POST',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify(orderData)
@@ -926,7 +926,7 @@
                                         if (placeOrderResult.success) {
                                             Swal.fire('Success', placeOrderResult.message, 'success')
                                                 .then(() => {
-                                                    window.location.href = '/user/order-success';
+                                                    window.location.href = '/order-success';
                                                 });
                                         } else {
                                             Swal.fire('Error', placeOrderResult.message || 'An error occurred', 'error');
@@ -947,7 +947,7 @@
                                 modal: {
                                     ondismiss: function() {
                                         // Redirect orderFailure page
-                                        window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=Payment was cancelled by the user`;
+                                        window.location.href = `/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=Payment was cancelled by the user`;
                                     }
                                 }
                             };
@@ -959,7 +959,7 @@
                             // Handle Razorpay errors
                             razorpayInstance.on('payment.failed', function(response) {
                                 // Redirect orderFailure page
-                                window.location.href = `/user/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=${encodeURIComponent(response.error.description || 'Payment failed')}`;
+                                window.location.href = `/order-failure?totalAmount=${totalAmount}&addressId=${orderData.addressId}&error_description=${encodeURIComponent(response.error.description || 'Payment failed')}`;
                             });
 
                         } catch (error) {
@@ -973,7 +973,7 @@
                             });
                         }
                     } else {
-                        const response = await fetch('/user/order/place', {
+                        const response = await fetch('/order/place', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(orderData)
@@ -981,7 +981,7 @@
                         const result = await response.json();
                         if (result.success) {
                             Swal.fire('Success', result.message, 'success');
-                            window.location.href = '/user/order-success';
+                            window.location.href = '/order-success';
                         } else {
                             Swal.fire('Error', result.message || 'An error occurred', 'error');
                         }

@@ -75,7 +75,7 @@ router.get('/sales/export', saleController.exportSales);
 router.get('/dashboard', saleController.getDashboardPage);
 
 router.get("pageError",(req,res)=>{
-    res.render("admin/pageError")
+    res.render("pageError")
 })
 
 

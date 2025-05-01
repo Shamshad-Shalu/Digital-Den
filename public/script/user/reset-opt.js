@@ -86,7 +86,7 @@ function verifyOTP(event) {
     // Send AJAX request
     $.ajax({
         type: "POST",
-        url: "/user/reset-otp",
+        url: "/reset-otp",
         data: { 
             otp: otp 
         },
@@ -138,7 +138,7 @@ function resendOTP(event) {
 
     $.ajax({
         type: "POST",
-        url: "/user/resend-fOtp",
+        url: "/resend-fOtp",
         headers: {
             'X-CSRF-TOKEN': csrfToken
         },

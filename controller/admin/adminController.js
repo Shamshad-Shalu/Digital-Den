@@ -75,16 +75,6 @@ const logout = async (req, res)=>{
     }
 }
 
-const loadDashboard = async (req, res ) => {
-
-    try {
-        res.setHeader('Cache-Control', 'no-store');
-        res.render("admin/dashboard");
-    } catch (error) {
-        console.error("Dashboard error:", error);
-        res.status(500).send("An error occurred loading the dashboard");
-    }
-}
 
 const pageError = async (req, res ,next)=>{
     try {
@@ -100,7 +90,6 @@ module.exports = {
     loadLoagin,
     login,
     logout,
-    loadDashboard,
     pageError
     
 }

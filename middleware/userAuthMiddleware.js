@@ -59,9 +59,9 @@ const checkBlockedStatus = async (req, res, next) => {
 const checkUserLoggedIn = (req, res, next) => {
     if (!res.locals.isLoggedIn || !res.locals.userData) {
         if (req.xhr || req.headers['content-type'] === 'application/json') {
-          return res.status(401).json({ success: false, redirect: '/user/signin?showAlert=true' });
+          return res.status(401).json({ success: false, redirect: '/signin?showAlert=true' });
         }
-        return res.redirect('/user/signin?showAlert=true');
+        return res.redirect('/signin?showAlert=true');
     }
 
   if (res.locals.isUserBlocked) {
@@ -86,7 +86,7 @@ const checkSignupSession = (req, res, next) => {
       return res.status(400).json({
           success: false,
           message: "Session data missing. Please start signup process again.",
-          redirectUrl: "/user/signup"
+          redirectUrl: "/signup"
       });
   }
   next();

@@ -9,9 +9,9 @@
                     <div class="filter-sidebar">
                         <div class="filter-title">
                             <span>Filters</span>
-                            <a href="/user/products" class="small text-decoration-none">Clear All</a>
+                            <a href="/products" class="small text-decoration-none">Clear All</a>
                         </div>
-                        <form id="filterForm" action="/user/products" method="GET">
+                        <form id="filterForm" action="/products" method="GET">
                             <div class="filter-group">
                                 <h5>Categories</h5>
                                 <% categories.forEach(category => { %>
@@ -75,12 +75,12 @@
                         <div class="no-products-message">
                             <i class="fas fa-search"></i>
                             <p>No products found matching your criteria.</p>
-                            <a href="/user/products" class="btn btn-outline-primary">View All Products</a>
+                            <a href="/products" class="btn btn-outline-primary">View All Products</a>
                         </div>
                     <% } else { %>
                         <div class="product-grid">
                             <% products.forEach(product => { %>                          
-                                <a href="/user/product/<%= product._id %>" class="product-link">
+                                <a href="/product/<%= product._id %>" class="product-link">
                                     <div class="product-card">
                                         <div class="image-container">
                                             <% if (product.originalPrice && product.originalPrice > product.price) { %>
@@ -186,7 +186,7 @@
                 console.log("Query params:", queryString);
                 
                 // Navigate to the filtered page
-                window.location.href = `/user/products?${queryString}`;
+                window.location.href = `/products?${queryString}`;
             });
         }
     </script>

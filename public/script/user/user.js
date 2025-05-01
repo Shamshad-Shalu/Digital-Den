@@ -8,7 +8,7 @@
     try {
         if(isInWishlist) {
             //remove from wishlist 
-            const response = await fetch("/user/wishlist/remove",{
+            const response = await fetch("/wishlist/remove",{
                 method:"POST",
                 headers:{
                 'Content-Type': 'application/json', 
@@ -54,7 +54,7 @@
             }
         }else {
            // add to wishlist 
-           const response = await fetch("/user/wishlist/add",{
+           const response = await fetch("/wishlist/add",{
                 method:"POST",
                 headers:{
                 'Content-Type': 'application/json', 

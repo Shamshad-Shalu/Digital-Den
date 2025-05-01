@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            const response = await fetch("/user/forgot-password",{
+            const response = await fetch("/forgot-password",{
                 method:"POST",
                 headers: { 'Content-Type': 'application/json' },
                 body:JSON.stringify({email:email})

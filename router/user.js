@@ -34,21 +34,22 @@ router.patch("/reset-password",userController.ResetPassword);
 router.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"]
 }));
- 
+  
 router.get("/auth/google/callback", 
     passport.authenticate("google", {
-        failureRedirect: "/user/signin",
+        failureRedirect: "/signin",
         failureFlash: true
     }),
     (req, res) => {
        req.session.user = req.user._id;
-        res.redirect("/user/home");
+        res.redirect("/");
     }
 );
 
 //home 
 router.use(checkBlockedStatus);
-router.get("/home",productsController.loadHome);
+router.get("/", productsController.loadHome);
+
 // products-page
 router.get("/products", productsController.getProducts);
 router.get('/product/:id', productsController.getProductDetails);
@@ -85,7 +86,7 @@ router.post('/order/cancel/:orderId', orderController.cancelOrder);
 router.post('/order/return/:orderId', orderController.returnOrder);
 router.post('/order/return-item/:orderId/:itemId', orderController.returnItem);
  
-
+    
 router.use(checkUserLoggedIn);
 //address -section
 router.get("/address",addressController.loadAddresspage);

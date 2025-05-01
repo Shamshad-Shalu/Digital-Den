@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", ()=> {
         });
 
         $.ajax({
-            url:"/user/signup",
+            url:"/signup",
             type:"POST",
             data:JSON.stringify(formData),
             contentType:"application/json",

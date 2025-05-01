@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", ()=> {
         }
 
         $.ajax({
-            url:"/user/signin",
+            url:"/signin",
             type:"POST",
             data:JSON.stringify(formData),
             contentType:"application/json",
@@ -102,5 +102,5 @@ if (urlParams.get('showAlert') === 'true') {
     //     showConfirmButton: false
     // });
     // Remove the query parameter from the URL without reloading
-    window.history.replaceState({}, document.title, '/user/signin');
+    window.history.replaceState({}, document.title, '/signin');
 }
