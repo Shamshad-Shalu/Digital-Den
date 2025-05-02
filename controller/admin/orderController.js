@@ -8,7 +8,7 @@ const { generateCustomId } = require("../../utils/helper");
 const Wallet = require("../../model/walletSchema");
 
 // Get All Orders
-const getAllOrders = async (req, res) => {
+const getAllOrders = async (req, res , next) => {
   try {
     const {
       search = "",
@@ -104,13 +104,13 @@ const getAllOrders = async (req, res) => {
       dateRange,
     });
   } catch (error) {
-    console.error("Error in getAllOrders:", error);
-    res.status(500).render("error", { message: "Error fetching orders" });
+    error.statusCode = 500; 
+    next(error);
   }
 };
 
 // Update Order Status
-const updateOrderStatus = async (req, res) => {
+const updateOrderStatus = async (req, res,next) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -216,8 +216,8 @@ const updateOrderStatus = async (req, res) => {
     await order.save();
     res.json({ success: true, message: `Order status updated to ${status}` });
   } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    error.statusCode = 500; 
+    next(error);
   }
 };
 
@@ -283,7 +283,7 @@ const updateOrderStatus = async (req, res) => {
 
 // Get Order Details
 
-const getOrderDetails = async (req, res) => {
+const getOrderDetails = async (req, res ,next) => {
   try {
     const { orderId } = req.params;
 
@@ -317,19 +317,13 @@ const getOrderDetails = async (req, res) => {
         }
       });
 
-        // res.json({
-        //   success: true,
-        //   order: order.toObject(),
-        // });
   } catch (error) {
-    console.error("Error fetching order details:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to fetch order details" });
+    error.statusCode = 500; 
+    next(error);
   }
 };
 
-const processReturnRequest = async (req, res) => {
+const processReturnRequest = async (req, res , next) => {
   try {
     const { returnId } = req.params;
     const { returnStatus } = req.body;
@@ -459,8 +453,8 @@ const processReturnRequest = async (req, res) => {
     res.json({success: true,message: `Return request ${returnStatus} successfully`,});
     
   } catch (error) {
-    console.error("Error processing return request:", error);
-    res.status(500).json({ success: false, message: `Server error: ${error.message}` });
+    error.statusCode = 500; 
+    next(error);
   }
 };
 

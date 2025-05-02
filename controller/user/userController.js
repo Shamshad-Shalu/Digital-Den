@@ -1,8 +1,6 @@
 const User = require("../../model/userSchema");
 const bcrypt = require("bcrypt");
-const { validateUser ,sendVerificationEmail, genarateOtp }  = require("../../utils/helper.js");
-const Product = require("../../model/productSchema.js")
-const Review = require("../../model/reviewSchema .js");
+const { validateUser, genarateOtp }  = require("../../utils/helper.js");
 const Wallet = require("../../model/walletSchema.js");
 const {sendForgotOtp, sendSignupOtp} = require("../../utils/userEmails.js")
 
@@ -80,7 +78,7 @@ const loadSignup = async (req,res) =>{
     }
 }
 
-const signup = async(req,res) =>{
+const signup = async(req,res,next) =>{
     try {
         
         const {username,email,password ,referralCode  } = req.body;
@@ -130,11 +128,7 @@ const signup = async(req,res) =>{
         });
         
     } catch (error) {
-        console.error("Signup  error",error);
-        res.status(500).json({
-            success:false,
-            message:"Something Went Wrong!",
-        })  
+        next(error);  
     }
 }
 
@@ -148,7 +142,7 @@ const loadVerifyOtp = async (req,res)=> {
     }
 }
 
-const verifyOTP = async(req, res)=>{
+const verifyOTP = async(req, res , next)=>{
 
     try {
         const {otp } = req.body;
@@ -258,15 +252,11 @@ const verifyOTP = async(req, res)=>{
        
 
     } catch (error) {
-        console.log("Error Verifying OTP :",error);
-        return res.status(500).json({
-            success:false,
-            message:"An Error occured while processing otp"
-        });  
+        next(error);
     }
 }
 
-const resendOtp = async (req, res)=>{
+const resendOtp = async (req, res ,next)=>{
     try {
         
         const { email, username } = req.session.userData;
@@ -294,11 +284,7 @@ const resendOtp = async (req, res)=>{
             message: "OTP resent successfully"
         });
     } catch (error) {
-        console.log("Error resending OTP:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error. Please try again..."
-        }); 
+        next(error);
     }
 }
 
@@ -330,7 +316,7 @@ const loadForgotPage = async (req,res) => {
     }
 }
 
-const forgotPassword = async (req , res) => {
+const forgotPassword = async (req , res ,next) => {
     try {
         const {email} = req.body;
         const findUser = await User.findOne({email, isAdmin:false});
@@ -363,11 +349,7 @@ const forgotPassword = async (req , res) => {
             redirectUrl: "/reset-otp"
         });
     } catch (error) {
-        console.error("forgot-password error",error);
-        res.status(500).json({
-            success:false,
-            message:"Something Went Wrong!",
-        }) 
+      next(error)
     }
 }
 
@@ -380,7 +362,7 @@ const getResetOtpPage = async (req , res ) => {
     }
 }
 
-const forgotOtp = async (req , res) =>{
+const forgotOtp = async (req , res ,next) =>{
     try {
         const {otp } = req.body;
         console.log(otp)
@@ -409,15 +391,11 @@ const forgotOtp = async (req , res) =>{
         }
 
     } catch (error) {
-        console.log("Error Verifying OTP :",error);
-        res.status(500).json({
-            success:false,
-            message:"An Error occured while processing otp"
-        });    
+        next(error);   
     }
 }
 
-const resendResetOtp = async (req , res) =>{
+const resendResetOtp = async (req , res ,next) =>{
     try {
 
         if (!req.session.userData || !req.session.userData.email) {
@@ -461,11 +439,7 @@ const resendResetOtp = async (req , res) =>{
             message: "OTP resent successfully"
         });
     } catch (error) {
-        console.log("Error resending OTP:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error. Please try again..."
-        }); 
+        next(error);   
     }
 }
 
@@ -479,7 +453,7 @@ const loadResetPassword = async (req, res) => {
     }
 }
 
-const ResetPassword = async (req , res) => {
+const ResetPassword = async (req , res ,next) => {
     try {
         const {password} = req.body;
         const {email} =  req.session.userData;  
@@ -523,13 +497,7 @@ const ResetPassword = async (req , res) => {
        
         
     } catch (error) {
-
-        console.error("Password reset error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Something went wrong!",
-        });
-        
+        next(error);   
     }
 }
 
@@ -538,8 +506,7 @@ const pageNotFound = async (req,res)=> {
         res.render("pageNotFound");
 
     } catch (error) {
-        res.status(500).send("an issue while loading");
-        
+        res.status(500).send("an issue while loading");  
     }
 }
 

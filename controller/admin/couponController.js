@@ -2,7 +2,7 @@ const Coupon = require("../../model/couponSchema");
 const User = require("../../model/userSchema");
 const {validateCoupon } = require("../../utils/validation");
 
-const getCoupons = async (req,res)=>{
+const getCoupons = async (req,res , next)=>{
     try {
 
         let { search = '', start = '', end = '', type = 'All', status  = 'All', page } = req.query;
@@ -63,16 +63,12 @@ const getCoupons = async (req,res)=>{
         });
 
     } catch (error) {
-        console.error("Error in getCoupons:", error.message);
-        res.status(500).json({
-            success: false,
-            message: "Something Went Wrong!",
-            redirectUrl:"/admin/pageError" 
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
-const addCoupon = async (req ,res) => {
+const addCoupon = async (req ,res ,next) => {
     try {
         const { code , discount ,type , minPurchase ,maxDiscount = null ,usageLimit = null ,expireOn } = req.body;
         const couponData = {
@@ -94,12 +90,12 @@ const addCoupon = async (req ,res) => {
         res.status(201).json({ success: true, message: 'Coupon added successfully', data: coupon });
 
     } catch (error) {
-        console.error('Error adding coupon:', error);
-        res.status(500).json({ success: false, message: 'Server error' }); 
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
-const editCoupon = async (req , res)=> {
+const editCoupon = async (req , res, next)=> {
     try {
         const { id } = req.params;
         const { code , discount ,type , minPurchase ,maxDiscount = null ,usageLimit = null ,expireOn } = req.body;
@@ -146,12 +142,12 @@ const editCoupon = async (req , res)=> {
         });
         
     } catch (error) {
-        console.error('Error editing coupon:', error);
-        res.status(500).json({ success: false, message: 'Failed to edit coupon' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const toggleCouponStatus = async(req ,res)=>{
+const toggleCouponStatus = async(req ,res , next)=>{
     try {
         await updateCouponStatuses();
         const id = req.params.id;
@@ -179,8 +175,8 @@ const toggleCouponStatus = async(req ,res)=>{
         });
 
     } catch (error) {
-        console.error('Error toggling status:', error);
-        res.status(500).json({ success: false, message: 'Failed to update status' });
+        error.statusCode = 500; 
+        next(error);
     }
 }
 

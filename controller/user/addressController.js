@@ -3,7 +3,7 @@ const {State} = require("country-state-city");
 const Address = require("../../model/addressModel");
 const {validateAddress} = require("../../utils/validation");
 
-const loadAddresspage = async (req, res) => {
+const loadAddresspage = async (req, res , next) => {
     try {
 
       // Fetch the user
@@ -26,10 +26,8 @@ const loadAddresspage = async (req, res) => {
       });
         
     } catch (error) {
-
-        console.error('Error fetching Address:', error);
-        res.status(500).send("Server error ");
-        
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
@@ -56,8 +54,6 @@ const addAddress = async (req, res) => {
             altPhone: altPhone || '',
             isDefault:!!isDefault
         };
-
-        console.log(addressData)
 
         const errors = validateAddress(addressData);
         if (errors) {
@@ -141,10 +137,7 @@ const editAddress = async (req, res) => {
             ...addressData
         };
 
-
-
         await addressDoc.save();
-        console.log('Address updated successfully');
         return res.status(200).json({ success: true, message: "Address updated successfully" });
     } catch (error) {
         console.error("Error in editing address:", error);
@@ -177,11 +170,8 @@ const deleteAddress = async (req , res) =>{
         if(isDefault && addressDoc.addresses.length > 0) {
             addressDoc.addresses[0].isDefault = true;
         }
-
         await addressDoc.save();
-        return res.status(200).json({ success: true, message: "Address deleted successfully" });
-
-        
+        return res.status(200).json({ success: true, message: "Address deleted successfully" }); 
     } catch (error) {
         console.error("Error in deleting address:", error);
         return res.status(500).json({ success: false, message: "Server error: " + error.message });

@@ -56,8 +56,8 @@
     <div class="main-section">
         <div class="error-container">
             <div class="error-icon">⚠️</div>
-            <h1>Oops! Something went wrong</h1>
-            <p>We're sorry, but we encountered an error while processing your request. Please try again later or contact support if the problem persists.</p>
+            <h1>Oops! <%= statusCode || 404 %></h1>
+            <p><%= errorMessage || "We're sorry, but we encountered an error while processing your request. Please try again later or contact support if the problem persists." %> </p>
             <a href="/admin" class="home-button">Return to Home Page</a>
         </div> 
     </div>

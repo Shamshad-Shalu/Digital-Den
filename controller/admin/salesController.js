@@ -3,7 +3,7 @@ const User = require("../../model/userSchema");
 const Product = require("../../model/productSchema");
 
 
-const getSalePage = async (req, res) => {
+const getSalePage = async (req, res, next) => {
     try {
         
         const {
@@ -141,11 +141,8 @@ const getSalePage = async (req, res) => {
             netSale: 0,
         };  
 
-        
-
         const totalOrders = await Order.countDocuments(query);
 
-        
         const sales = await Order.find(query)
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
@@ -210,8 +207,8 @@ const getSalePage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error fetching sales:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
@@ -715,7 +712,7 @@ const exportSales = async (req, res) => {
 // };
 
  
-const getDashboardPage = async (req, res) => {
+const getDashboardPage = async (req, res , next ) => {
     try {
         const { period = 'month' } = req.query;
 
@@ -765,8 +762,7 @@ const getDashboardPage = async (req, res) => {
                 };
                 break;
         }
-
-        
+ 
         const statsCalculations = await Order.aggregate([
             { $match: query }, 
             {
@@ -1066,8 +1062,8 @@ const getDashboardPage = async (req, res) => {
             recentOrders: recentOrdersData
         });
     } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        error.statusCode = 500; 
+        next(error);
     }
 };
  

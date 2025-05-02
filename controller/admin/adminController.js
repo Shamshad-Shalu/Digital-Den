@@ -14,7 +14,7 @@ const loadLoagin = async (req , res) =>{
     }
 }
 
-const login = async (req , res) => {
+const login = async (req , res ,next) => {
     try {
         const {email , password} = req.body;
 
@@ -49,16 +49,12 @@ const login = async (req , res) => {
 
 
     } catch (error) {
-        console.error("Login error:", error);
-        return res.status(500).json({
-          success: false,
-          message: "An error occurred during login"
-        });
-        
+        error.statusCode = 500; 
+        next(error);    
     }
 }
 
-const logout = async (req, res)=>{
+const logout = async (req, res , next)=>{
     try {
         req.session.destroy(err => {
             if(err){
@@ -69,27 +65,15 @@ const logout = async (req, res)=>{
             return res.redirect("/admin/login");
         })
     } catch (error) {
-
-        console.log("Logout error :",error);
-        res.redirect("/admin/pageError"); 
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
 
-const pageError = async (req, res ,next)=>{
-    try {
-        res.setHeader('Cache-Control', 'no-store');
-        res.render("admin/pageError");
-    } catch (error) {
-
-        res.status(500).send("An Error found while loading error page");
-    }
-}
 
 module.exports = {
     loadLoagin,
     login,
-    logout,
-    pageError
-    
+    logout, 
 }

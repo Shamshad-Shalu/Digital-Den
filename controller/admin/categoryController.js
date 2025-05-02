@@ -1,7 +1,7 @@
 const Category = require('../../model/categorySchema');
 const {updateProductsForCategory} = require("../../utils/helper")
 
-const categoryInfo = async (req, res) => {
+const categoryInfo = async (req, res, next ) => {
     try {
         const search = req.query.search || "";
         const status = req.query.status || "All";
@@ -38,8 +38,8 @@ const categoryInfo = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in categoryInfo:', error);
-        res.status(500).render('error', { message: 'Error fetching category data' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
@@ -72,7 +72,7 @@ const toggleCategoryStatus = async (req, res) => {
     }
 }
 
-const addCategory = async (req, res) => {
+const addCategory = async (req, res , next) => {
     try {
         const {name ,description , categoryOffer} = req.body;
 
@@ -107,9 +107,8 @@ const addCategory = async (req, res) => {
         res.json({ success: true, message: 'Category added successfully' });
           
         } catch (error) {
-            console.error('Error adding category:', error);
-            res.status(500).json({ success: false, message: 'Failed to add category' });
-        
+            error.statusCode = 500; 
+            next(error);   
     }
   
 }

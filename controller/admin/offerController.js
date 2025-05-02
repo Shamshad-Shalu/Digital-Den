@@ -4,7 +4,7 @@ const Category = require('../../model/categorySchema');
 const Brand = require('../../model/brandSchema');
 const { validateOffer } = require('../../utils/validation');
 
-const getOffers = async (req, res) => {
+const getOffers = async (req, res , next) => {
    try {
 
         const categories = await Category.find({ isListed: true, isDeleted: false });
@@ -84,16 +84,12 @@ const getOffers = async (req, res) => {
         });
   
       } catch (error) {
-        console.error("Error fetching offers:", error.message);
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong",
-            redirectUrl: "/admin/pageError"
-        });
+        error.statusCode = 500; 
+        next(error);
       }
 };   
    
-const addOffer = async (req, res) => {
+const addOffer = async (req, res, next) => {
     try {
         const {
           name,description,type,discount,startDate,endDate,appliedOn,   
@@ -114,7 +110,7 @@ const addOffer = async (req, res) => {
           allProducts: appliedOn === 'product' ? allProducts : false
       };
 
-      const errors = await validateOffer(offerData);
+      const errors = validateOffer(offerData);
       if (errors) {
         console.log(errors)
           return res.status(400).json({ success: false, errors });
@@ -125,13 +121,12 @@ const addOffer = async (req, res) => {
 
       res.status(201).json({ success: true, message: 'Offer added successfully', data: offer });
     } catch (error) {
-
-      console.error('Error adding offer:', error);
-      res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        error.statusCode = 500; 
+        next(error);
     }
 };
  
-const editOffer = async (req , res)=> {
+const editOffer = async (req , res , next)=> {
   try {
       const { id } = req.params;
       const { 
@@ -159,7 +154,7 @@ const editOffer = async (req , res)=> {
             offerData.products = [];
         }
 
-      const errors = await validateOffer(offerData);
+      const errors = validateOffer(offerData);
       if (errors) {
           console.log(errors)
           return res.status(400).json({ success: false, errors });
@@ -186,17 +181,16 @@ const editOffer = async (req , res)=> {
       });
       
   } catch (error) {
-      console.error('Error editing offer:', error);
-      res.status(500).json({ success: false, message: 'Failed to edit offer' });
+    error.statusCode = 500; 
+    next(error);
   }
 }; 
 
-const toggleOfferStatus = async(req ,res)=>{
+const toggleOfferStatus = async(req ,res ,next )=>{
   try {
 
       const id = req.params.id;
       const {status} = req.body;
-      console.log("in backend:",id)
 
       const offer = await Offer.findById(id); 
       if (!offer) {
@@ -221,15 +215,14 @@ const toggleOfferStatus = async(req ,res)=>{
       });
 
   } catch (error) {
-      console.error('Error toggling status:', error);
-      res.status(500).json({ success: false, message: 'Failed to update status' });
+    error.statusCode = 500; 
+    next(error);
   }
 };
 
 // update offer status
 const updateOfferStatuses = async () => {
   try {
-
       const now = new Date();
       const offers = await Offer.find();
       const bulkOps = offers.map(offer => {

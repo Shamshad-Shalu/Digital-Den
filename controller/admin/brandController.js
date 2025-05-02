@@ -1,7 +1,7 @@
 const Brand = require('../../model/brandSchema');
 const {updateProductsForBrand} = require("../../utils/helper")
 
-const brandInfo = async (req, res) => {
+const brandInfo = async (req, res , next) => {
     try {
         const search = req.query.search || "";
         const status = req.query.status || "All";
@@ -35,12 +35,12 @@ const brandInfo = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in brandInfo:', error);
-        res.status(500).render('error', { message: 'Error fetching brand data' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const toggleBrandStatus = async (req, res) => {
+const toggleBrandStatus = async (req, res, next) => {
     try {
         const id = req.params.id;
         const brand = await Brand.findById(id); 
@@ -62,12 +62,12 @@ const toggleBrandStatus = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error toggling status:', error);
-        res.status(500).json({ success: false, message: 'Failed to update status' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const addBrand = async (req, res) => {
+const addBrand = async (req, res ,next) => {
     try {
         let { name, brandOffer } = req.body;
 
@@ -106,12 +106,12 @@ const addBrand = async (req, res) => {
         res.json({ success: true, message: 'Brand added successfully' });
 
     } catch (error) {
-        console.error('Error adding brand:', error);
-        res.status(500).json({ success: false, message: 'Failed to add brand' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const editBrand = async (req, res) => {
+const editBrand = async (req, res ,next ) => {
     try {
         const { name, brandOffer } = req.body; 
         const { id } = req.params;
@@ -154,8 +154,8 @@ const editBrand = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error editing brand:', error);
-        res.status(500).json({ success: false, message: 'Failed to edit brand' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

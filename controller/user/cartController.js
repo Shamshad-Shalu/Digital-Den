@@ -735,7 +735,7 @@ function prepareCartData(cart) {
     };
 }
 
-const removeFromCart = async (req , res ) => {
+const removeFromCart = async (req , res ,next ) => {
 
     let {productId } = req.body;
     const {userData , isUserBlocked} = res.locals;
@@ -779,12 +779,12 @@ const removeFromCart = async (req , res ) => {
         return res.status(200).json({success: true,message:"Item removed from cart successfully"})
         
     } catch (error) {
-        console.error("Error removing item from cart:", error);
-        res.status(500).json({ success: false, message: "Failed to remove item from cart"})
+        error.statusCode = 500;
+        next(error);
     }
 }
 
-const  proceedToCheckout = async (req , res) => {
+const  proceedToCheckout = async (req , res , next) => {
     const { userData} = res.locals;
     
     try {
@@ -837,17 +837,13 @@ const  proceedToCheckout = async (req , res) => {
             redirectUrl : "/checkout"
         });   
     } catch (error) {
-        console.error("Error moving to checkout:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Failed to proceed to checkout", 
-            error: error.message 
-        });
+        error.statusCode = 500;
+        next(error);
     }
 
 }
  
-const getCheckoutpage = async (req, res) => {
+const getCheckoutpage = async (req, res ,next) => {
     const {userData, isLoggedIn,isUserBlocked} = res.locals;
     if (!isLoggedIn || isUserBlocked) {
         return res.status(401).redirect("/");
@@ -926,14 +922,13 @@ const getCheckoutpage = async (req, res) => {
         })
 
     } catch (error) {
-
-        console.error('Error fetching Address:', error);
-        res.status(500).send("Server error ");
+        error.statusCode = 500;
+        next(error);
         
     }
 }
 
-const placeOrder = async (req, res) => {
+const placeOrder = async (req, res, next ) => {
     try {
         const { userData, isLoggedIn, isUserBlocked } = res.locals;
 
@@ -1102,12 +1097,12 @@ const placeOrder = async (req, res) => {
             })
 
     } catch (error) {
-        console.error("Error placing order:", error);
-        return res.status(500).json({success: false,message: "Server error: " + error.message});
+        error.statusCode = 500;
+        next(error);
     }
 };
 
-const createRazorpayOrder = async (req, res) => {
+const createRazorpayOrder = async (req, res , next) => {
     try {
         const { userData } = res.locals;
         const { amount } = req.body;
@@ -1167,15 +1162,12 @@ const createRazorpayOrder = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error creating Razorpay order:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error creating order: ' + error.message
-        });
+        error.statusCode = 500;
+        next(error);
     }
 };
 
-const getOrderFailurePage = async (req, res) => {
+const getOrderFailurePage = async (req, res , next) => {
     try {
         const { totalAmount, addressId, error_description } = req.query;
 
@@ -1195,12 +1187,12 @@ const getOrderFailurePage = async (req, res) => {
             currentDate: new Date().toLocaleDateString()
         });
     } catch (error) {
-        console.error('Error rendering order failure page:', error);
-        res.status(500).render('error', { message: 'Server error' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const retryPayment = async (req, res) => {
+const retryPayment = async (req, res , next) => {
     try {
         const { addressId, paymentMethod, totalAmount } = req.body;
 
@@ -1215,8 +1207,8 @@ const retryPayment = async (req, res) => {
 
         return await placeOrder(req, res);
     } catch (error) {
-        console.error('Error retrying payment:', error);
-        return res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

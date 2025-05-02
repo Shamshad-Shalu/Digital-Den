@@ -9,7 +9,7 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
     
-const getWalletPage = async (req, res) => {
+const getWalletPage = async (req, res , next) => {
     try {
         const {userData, isLoggedIn } = res.locals;
 
@@ -25,8 +25,6 @@ const getWalletPage = async (req, res) => {
         }
         
         const { search = '', type = 'All', filter = 'All', status = 'All', page = 1, limit = 5 } = req.query;
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
         
         // Find the wallet
         let wallet = await Wallet.findOne({userId: user._id});
@@ -94,15 +92,12 @@ const getWalletPage = async (req, res) => {
             type
         });
     } catch (error) {
-        console.error("Error in getWalletPage:", error.message);
-        res.status(500).json({
-            success: false,
-            message: "Something Went Wrong!",
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const addAmountWallet = async (req, res) => {
+const addAmountWallet = async (req, res, next ) => {
     try {
         const { userData, isLoggedIn } = res.locals;
         const { amount } = req.body;
@@ -196,15 +191,12 @@ const addAmountWallet = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error in addAmountWallet:", error.message);
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong while processing your request"
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const verifyPayment = async (req, res) => {
+const verifyPayment = async (req, res, next) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, transactionId } = req.body;
         
@@ -277,11 +269,8 @@ const verifyPayment = async (req, res) => {
         });
         
     } catch (error) {
-        console.error("Error in verifyPayment:", error.message);
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong while verifying your payment"
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

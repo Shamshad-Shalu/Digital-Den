@@ -297,6 +297,7 @@ async function validateUserProfile(user) {
             errors.phone = 'Invalid phone number format';
         } else if (user.phone) {
             const existingUser = await User.findOne({ phone: user.phone, _id: { $ne: user._id } });
+            console.log("existing user:",existingUser);
             if (existingUser) {
                 errors.phone = 'Phone number is already in use';
             }

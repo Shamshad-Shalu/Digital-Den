@@ -2,7 +2,7 @@
  const User = require("../../model/userSchema");
  const Wallet = require("../../model/walletSchema");
 
-const customerInfo = async (req, res) =>{
+const customerInfo = async (req, res, next) =>{
     try {
 
         let search = req.query.search || "";
@@ -42,12 +42,12 @@ const customerInfo = async (req, res) =>{
         });
 
     } catch (error) {
-        console.log('Error in customerInfo:', error);
-        res.status(500).render('error', { message: 'Error fetching user data' });
+        error.statusCode = 500; 
+        next(error);
     }
-}
+};
 
-const toggleUserStatus = async (req, res )=>{
+const toggleUserStatus = async (req, res, next)=>{
     try {
 
         const userId = req.params.id;
@@ -74,17 +74,13 @@ const toggleUserStatus = async (req, res )=>{
         }
         res.redirect("/admin/customers");
 
-    } catch (error) {
-        
-        console.error('Error in toggleUserStatus:', error);
-        if (req.xhr) {
-            return res.status(500).json({ success: false, message: 'Error updating user status' });
-        }
-        res.status(500).render('error', { message: 'Server error' });
+    } catch (error) { 
+        error.statusCode = 500; 
+        next(error);
     }
-}
+};
 
-const customerWalletInfo = async (req, res) => {
+const customerWalletInfo = async (req, res, next) => {
     try {
         const {userId} = req.params;
         const user = await User.findById(userId);
@@ -164,11 +160,8 @@ const customerWalletInfo = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error in getWalletPage:", error.message);
-        res.status(500).json({
-            success: false,
-            message: "Something Went Wrong!",
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

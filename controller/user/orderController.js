@@ -7,7 +7,7 @@ const Product = require("../../model/productSchema");
 const {validateCancelOrder } = require("../../utils/validation");
 const  { generateCustomId }= require("../../utils/helper"); 
 
-const getorderSuccessPage = async (req, res) => {
+const getorderSuccessPage = async (req, res , next) => {
     const { userData } = res.locals;
     const { orderId } = req.session; 
     try {
@@ -18,12 +18,12 @@ const getorderSuccessPage = async (req, res) => {
         }
         res.render('order-success', { order });
     } catch (error) {
-        console.error('Error fetching order success:', error);
-        res.status(500).send('Server error');
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const getOrders = async (req, res) => {
+const getOrders = async (req, res , next) => {
     const { userData } = res.locals;
 
     try {
@@ -132,11 +132,8 @@ const getOrders = async (req, res) => {
             search, 
         });
     } catch (error) {
-        console.error('Error fetching orders:', error);
-        if (req.xhr || req.headers['x-requested-with'] === 'XMLHttpRequest') {
-            return res.status(500).json({ success: false, message: 'Server error' });
-        }
-        res.status(500).send('Server error');
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
@@ -163,7 +160,7 @@ const trackOrder = async (req, res) => {
     }
 }; 
 
-const cancelOrder = async (req , res) => {
+const cancelOrder = async (req , res , next) => {
     try {
 
         if (res.locals.isUserBlocked) {
@@ -274,12 +271,12 @@ const cancelOrder = async (req , res) => {
         res.json({success: true,message: 'Order canceled successfully',});
         
     } catch (error) {
-        console.error('Cancel order error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const returnOrder = async (req, res) => {
+const returnOrder = async (req, res , next) => {
     try {
         const { isUserBlocked, userData } = res.locals;
         if (isUserBlocked) {
@@ -341,12 +338,12 @@ const returnOrder = async (req, res) => {
             message: 'Return request submitted for review',
         });
     } catch (error) {
-        console.error('Return order error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const returnItem = async (req, res) => {
+const returnItem = async (req, res , next) => {
     try {
         const { userData  } = res.locals;
         const { orderId, itemId } = req.params;
@@ -409,8 +406,8 @@ const returnItem = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Return order error:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

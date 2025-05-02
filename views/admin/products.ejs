@@ -321,6 +321,7 @@
         
         document.getElementById("confirmDelete").addEventListener("click", async () => {
             try {
+   
                 const response = await fetch(`/admin/products/delete/${currentProductId}`, { 
                     method: 'PATCH',
                     headers: {
@@ -328,6 +329,8 @@
                         'Content-Type': 'application/json'
                     }
                 });
+
+                console.log("response", response)
                 
                 const data = await response.json();
                 
@@ -358,6 +361,7 @@
                     });
                 } else {
                     throw new Error(data.message);
+
                 }
             } catch (error) {
                 console.error('Delete product error:', error);

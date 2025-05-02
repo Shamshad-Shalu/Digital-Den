@@ -7,6 +7,7 @@ const addressController = require("../controller/user/addressController.js");
 const orderController = require("../controller/user/orderController.js");
 const profileController = require("../controller/user/profileController.js")
 const walletController = require("../controller/user/walletController.js")
+const {userErrorHandler} = require("../middleware/errorHandler.js");
 const { checkBlockedStatus ,checkSignupSession,
       checkUserLoggedIn} = require('../middleware/userAuthMiddleware.js');
 const passport = require("passport");
@@ -94,7 +95,6 @@ router.post("/address/add",addressController.addAddress);
 router.patch("/address/edit/:id", addressController.editAddress);
 router.delete("/address/delete/:id", addressController.deleteAddress);
 
-
 // profile -section 
 router.get('/profile', profileController.getUserProfile);
 router.get('/edit-profile', profileController.getEditProfile);
@@ -111,6 +111,8 @@ router.post('/wallet/add',walletController.addAmountWallet);
 router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
- 
+  
+// error handler 
+router.use(userErrorHandler);
 module.exports = router;
 

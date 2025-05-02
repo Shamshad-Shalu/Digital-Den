@@ -6,7 +6,7 @@ const { validateProduct } = require('../../utils/validation');
 const fs = require('fs').promises;
 const path = require('path');
 
-const productInfo = async (req, res) => {
+const productInfo = async (req, res , next) => {
     try {
         const categories = await Category.find({ isListed: true, isDeleted: false });
         const brands = await Brand.find({ isListed: true, isDeleted: false });
@@ -66,9 +66,8 @@ const productInfo = async (req, res) => {
 
         });
     } catch (error) {
-
-        console.error('Error in brandInfo:', error);
-        res.status(500).render('error', { message: 'Error fetching brand data' });   
+      error.statusCode = 500; 
+        next(error);  
     }
 }
 
@@ -89,7 +88,7 @@ const viewProduct = async (req, res) => {
     }
 };
 
-const getEditProduct = async (req, res) => {
+const getEditProduct = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const product = await Product.findById(productId).populate('category brand'); 
@@ -107,12 +106,12 @@ const getEditProduct = async (req, res) => {
             
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Server error');
+      error.statusCode = 500; 
+        next(error);
     }
 };
 
-const deleteProduct = async (req , res) => {
+const deleteProduct = async (req , res, next) => {
   try {
           const {id} = req.params;
           const product = await Product.findByIdAndUpdate(
@@ -139,12 +138,12 @@ const deleteProduct = async (req , res) => {
           });
   
       } catch (error) {
-          console.error('Error deleting product:', error);
-          res.status(500).json({ success: false, message: 'Failed to delete product' });
+        error.statusCode = 500; 
+        next(error);
       }
 }
 
-const toggleProductStatus = async (req , res ) => {
+const toggleProductStatus = async (req , res , next ) => {
    try {
            const id = req.params.id;
            const product = await Product.findById(id); 
@@ -167,8 +166,8 @@ const toggleProductStatus = async (req , res ) => {
            });
    
        } catch (error) {
-           console.error('Error toggling status:', error);
-           res.status(500).json({ success: false, message: 'Failed to update status' });
+        error.statusCode = 500; 
+        next(error);
        }
 }
 
@@ -380,7 +379,7 @@ async function cleanupFiles(files) {
   await Promise.all(filePaths.map((filePath) => fs.unlink(filePath).catch(() => {})));
 }
 
-const getAddProductPage = async (req, res) => {
+const getAddProductPage = async (req, res , next) => {
     try {
 
         const categories = await Category.find({ isListed: true, isDeleted: false });
@@ -392,12 +391,12 @@ const getAddProductPage = async (req, res) => {
 
         });
     } catch (error) {
-        console.error('Error loading add product page:', error);
-        res.status(500).json({ success: false, message: 'Failed to load addEdit product page' });
+      error.statusCode = 500; 
+      next(error);
     }
 };
   
-const getEditProductPage = async (req, res) => {
+const getEditProductPage = async (req, res , next) => {
     try {
         const product = await Product.findById(req.params.id)
                 .populate('category')
@@ -414,8 +413,8 @@ const getEditProductPage = async (req, res) => {
         res.render('admin/editProduct', { product, categories, brands });
         
     } catch (error) {
-        console.error('Error rendering edit product page:', error);
-        res.status(500).send('Server Error');
+      error.statusCode = 500; 
+      next(error);
     }
 };
 

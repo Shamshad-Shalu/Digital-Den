@@ -522,3 +522,65 @@ body.swal2-shown {
 
 
 
+/* SweetAlert Custom Styling */
+
+.swal-theme {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    font-family: inherit;
+  }
+  
+  /* Light Theme */
+  :root .swal-theme {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    box-shadow: 0 0 10px var(--nav-shadow);
+  }
+  
+  :root .swal-theme .swal2-title {
+    color: var(--text-color);
+  }
+  
+  :root .swal-theme .swal2-content {
+    color: var(--text-muted);
+  }
+  
+  :root .swal-theme .swal2-confirm,
+  :root .swal-theme .swal2-cancel {
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+    border: none;
+    box-shadow: none;
+  }
+  
+  :root .swal-theme .swal2-confirm:hover,
+  :root .swal-theme .swal2-cancel:hover {
+    filter: brightness(1.1);
+  }
+  
+  /* Dark Theme */
+  [data-theme="dark"] .swal-theme {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    box-shadow: 0 0 10px var(--nav-shadow);
+  }
+  
+  [data-theme="dark"] .swal-theme .swal2-title {
+    color: var(--text-color);
+  }
+  
+  [data-theme="dark"] .swal-theme .swal2-content {
+    color: var(--text-muted);
+  }
+  
+  [data-theme="dark"] .swal-theme .swal2-confirm,
+  [data-theme="dark"] .swal-theme .swal2-cancel {
+    background-color: var(--footer-bg) !important;
+    color: var(--footer-text);
+  }
+  
+  [data-theme="dark"] .swal-theme .swal2-confirm:hover,
+  [data-theme="dark"] .swal-theme .swal2-cancel:hover {
+    filter: brightness(1.2);
+  }
+  

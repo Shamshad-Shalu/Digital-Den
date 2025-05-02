@@ -9,6 +9,7 @@ const orderController = require("../controller/admin/orderController.js");
 const couponController = require("../controller/admin/couponController.js");
 const offerController = require("../controller/admin/offerController.js");
 const saleController = require("../controller/admin/salesController.js");
+const { adminErrorHandler } = require("../middleware/errorHandler.js");
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
 
@@ -16,7 +17,6 @@ const upload = require("../middleware/upload.js")
 router.get("/login",adminController.loadLoagin)
 router.post("/login",adminController.login);
 router.get("/logout",adminController.logout);
-router.get("/pageError",adminController.pageError);
 
 // Protected routes
 router.use(adminAuth);
@@ -74,9 +74,5 @@ router.get("/sales",saleController.getSalePage);
 router.get('/sales/export', saleController.exportSales);
 router.get('/dashboard', saleController.getDashboardPage);
 
-router.get("pageError",(req,res)=>{
-    res.render("pageError")
-})
-
-
+router.use(adminErrorHandler);
 module.exports = router;

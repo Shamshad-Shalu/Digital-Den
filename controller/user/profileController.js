@@ -41,7 +41,7 @@ const getEditProfile = async (req, res) => {
     }
 };
 
-const addPassword = async (req , res ) => {
+const addPassword = async (req , res , next) => {
     try {
 
         const user = await User.findById(res.locals.userData);
@@ -73,16 +73,15 @@ const addPassword = async (req , res ) => {
        res.status(200).json({success:true , message: "Password added succesfully .." });
         
     } catch (error) {
-        console.error('Error fetching edit profile:', error);
-        res.status(500).json({message:"error while processing .."}); 
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
-const changePassword = async (req,res) => {
+const changePassword = async (req,res , next) => {
     try {
 
         const  {googleIdUser ,userData, isUserBlocked}  = res.locals;
-
         const data =  {
             currentPassword: req.body.currentPassword,
             password:req.body.password, 
@@ -110,12 +109,12 @@ const changePassword = async (req,res) => {
         res.json({success:true ,message:"success"})
         
     } catch (error) {
-        console.error('Error fetching edit profile:', error);
-        res.status(500).json({message:" Error while processing password"});   
+        error.statusCode = 500; 
+        next(error); 
     }
 }
 
-const changeEmail = async (req , res) => {
+const changeEmail = async (req , res , next) => {
     try {
         const {userData} = res.locals;
         const {password , email } = req.body ;
@@ -149,15 +148,12 @@ const changeEmail = async (req , res) => {
         res.status(200).json({success:true, message:"OTP sent to new email. Please verify "});
 
     } catch (error) {
-        console.error('Change email error:', error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Server error occurred'
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
-const verifyEmailOtp = async (req , res) => {
+const verifyEmailOtp = async (req , res , next) => {
     try {
         const {userData} = res.locals;
         const {otp } = req.body ;
@@ -181,8 +177,6 @@ const verifyEmailOtp = async (req , res) => {
             return res.status(400).json({ success: false, errors });
         }
 
-        console.log("otp is verified ")
-
         user.email = req.session.email;
 
         // Clear session temp data
@@ -196,11 +190,8 @@ const verifyEmailOtp = async (req , res) => {
         });
 
     } catch (error) {
-        console.error('OTP verification error:', error);
-        return res.status(500).json({ 
-            success: false, 
-            message: 'Server error occurred'
-        });
+        error.statusCode = 500; 
+        next(error);
     }
 }
 
@@ -284,7 +275,7 @@ const updateProfile = async (req, res) => {
     }
 };
 
-const verifyPhoneOtp = async (req, res) => {
+const verifyPhoneOtp = async (req, res , next) => {
     try {
         const { userData } = res.locals;
         const { phoneOtp } = req.body;
@@ -322,8 +313,8 @@ const verifyPhoneOtp = async (req, res) => {
             message: 'Phone number updated successfully'
         });
     } catch (error) {
-        console.error('Phone OTP verification error:', error);
-        return res.status(500).json({ success: false, message: 'Server error occurred' });
+        error.statusCode = 500; 
+        next(error);
     }
 };
 

@@ -254,7 +254,7 @@ const getProducts = async (req, res) => {
     }
 };
 
-const getProductDetails = async (req, res) => {
+const getProductDetails = async (req, res , next ) => {
     try {
         const { userData ,isLoggedIn , isUserBlocked } = res.locals;
         const productId = req.params.id;
@@ -367,8 +367,8 @@ const getProductDetails = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Server Error');
+        error.statusCode = 500; 
+        next(error);
     }
 };
 
