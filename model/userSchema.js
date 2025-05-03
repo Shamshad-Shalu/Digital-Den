@@ -70,24 +70,7 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
         default: []
-    }],
-   
-    // searchHistory:[{
-    //     category:{
-    //         type:Schema.Types.ObjectId,
-    //         ref:"Category",
-    //         required: false
-    //     },
-    //     brand:{
-    //         type:String,
-    //         required: false
-    //     },
-    //     searchOn:{
-    //         type:Date,
-    //         default:Date.now
-    //     }
-    // }]
-
+    }]
 },
 { timestamps: true })
 

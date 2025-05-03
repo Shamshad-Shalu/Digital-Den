@@ -29,13 +29,23 @@ router.post("/resend-fOtp",userController.resendResetOtp)
 router.post("/reset-otp",userController.forgotOtp);
 router.get("/reset-password",userController.loadResetPassword);
 router.patch("/reset-password",userController.ResetPassword);
+              
+                                 
+router.get("/contactUs",(req , res , next ) => {
+    try {
+        res.render("contact")
+    } catch (error) {
+        error.statusCode = 500; 
+        next(error);  
+    }
+}) 
 
 
 // Google OAuth routes
 router.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"]
 }));
-  
+   
 router.get("/auth/google/callback", 
     passport.authenticate("google", {
         failureRedirect: "/signin",
@@ -111,6 +121,25 @@ router.post('/wallet/add',walletController.addAmountWallet);
 router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
+// aboutUs
+
+
+router.get('/product/:productId/stats', productsController.getReviewStats);
+
+// Create a new review - requires authentication
+router.post('/product/:productId',productsController.createReview);
+
+// Update a review - requires authentication
+router.put('/:reviewId', productsController.updateReview);
+
+// Delete a review - requires authentication
+router.delete('/:reviewId', productsController.deleteReview);
+
+// Vote on a review - requires authentication
+router.post('/:reviewId/vote', productsController.voteReview);
+
+// Add reply to a review - requires authentication
+router.post('/:reviewId/reply',productsController.addReply);
   
 // error handler 
 router.use(userErrorHandler);

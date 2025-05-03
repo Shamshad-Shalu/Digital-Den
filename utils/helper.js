@@ -307,7 +307,7 @@ async function getSpecialOffer(product) {
     }
 
     return specialOffers;
-}
+} 
 
 async function calculateBestOffer (product , quantity) {
 
