@@ -585,4 +585,7 @@ body.swal2-shown {
   [data-theme="dark"] .swal-theme .swal2-cancel:hover {
     filter: brightness(1.2);
   }
+  .text-muted {
+    color: var(--text-muted);
+  }
   

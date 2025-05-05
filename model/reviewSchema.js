@@ -60,12 +60,12 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const reviewSchema = new Schema({
-  userID: {
+  userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',                 
     required: true             
   },
-  productID: {
+  productId: {
     type: Schema.Types.ObjectId, 
     ref: 'Product',          
     required: true             
@@ -91,41 +91,10 @@ const reviewSchema = new Schema({
     type: Boolean,          
     default: false              
   },
-  helpfulVotes: {
-    type: Number,              
-    default: 0          
-  },
-  // Track users who found this review helpful
   votedUsers: [{
-    userID: {
-      type: Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    helpful: {
-      type: Boolean,
-      default: true
-    }
-  }],
-  // Replies to this review
-  replies: [{
-    userID: {
-      type: Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    content: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  isDeleted: {
-    type: Boolean,               
-    default: false              
-  }
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, { timestamps: true });
 
 // Virtual for getting user details
@@ -136,7 +105,5 @@ reviewSchema.virtual('user', {
   justOne: true
 });
 
-// Create compound index for preventing duplicate reviews
-reviewSchema.index({ userID: 1, productID: 1 }, { unique: true });
 
 module.exports = mongoose.model('Review', reviewSchema);

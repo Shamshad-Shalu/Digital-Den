@@ -96,12 +96,12 @@ const productSchema = new Schema({
         ref: "Category",
         required: true
     },
-    brand:{
+    brand:{        
         type: Schema.Types.ObjectId,
         ref: "Brand",
         required: true
-    },
-    ratingsSummary: {
+    },         
+    ratingsSummary: {   
         averageRating: {
             type: Number,
             default: 0
@@ -123,7 +123,7 @@ const productSchema = new Schema({
         ref:"Review",
         required:false
 
-    },  
+    },   
     regularPrice:{
         type: Number,
         required: true

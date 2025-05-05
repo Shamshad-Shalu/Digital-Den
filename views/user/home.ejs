@@ -71,11 +71,8 @@
                             <h4><%= product.category.name %></h4>
                             <h3><%= product.productName %></h3>
                             <div class="rating">
-                                <% if (product.rating === undefined) { %>
-                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating"> N/A
-                                <% } else { %>
-                                    <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
-                                <% } %>
+                                <% let rating = parseFloat(product.rating); %>   
+                                <img src="/images/user/icons/rating/rating-<%= (Math.round(rating * 2) / 2 ) * 10 %>.png" alt="Rating">
                             </div>
                             <p class="price">
                                 <%= product.salePrice %>
@@ -143,11 +140,8 @@
                                 <h4><%= product.category.name %></h4>
                                 <h3><%= product.productName %></h3>
                                 <div class="rating">
-                                    <% if (product.rating === undefined) { %>
-                                        <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
-                                    <% } else { %>
-                                        <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
-                                    <% } %>
+                                    <% let rating = parseFloat(product.rating); %>   
+                                    <img src="/images/user/icons/rating/rating-<%= (Math.round(rating * 2) / 2 ) * 10 %>.png" alt="Rating">
                                 </div>
                                 <p class="price">
                                     <%= product.salePrice %>
@@ -200,11 +194,8 @@
                                 <div class="flex-grow-1 p-2">
                                     <h5 class="product-title-last"><%= product.productName %></h5>
                                     <div class="rating-last">
-                                        <% if (product.rating === undefined) { %>
-                                            <img src="/images/user/icons/rating/rating-0.png" alt="Rating">
-                                        <% } else { %>
-                                            <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
-                                        <% } %>
+                                        <% let rating = parseFloat(product.rating); %>   
+                                        <img src="/images/user/icons/rating/rating-<%= (Math.round(rating * 2) / 2 ) * 10 %>.png" alt="Rating">
                                     </div>
                                     <p class="product-price-last">
                                         <%= product.salePrice %>

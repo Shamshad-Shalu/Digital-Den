@@ -56,14 +56,22 @@ router.get("/auth/google/callback",
         res.redirect("/");
     }
 );
-
+     
 //home 
 router.use(checkBlockedStatus);
 router.get("/", productsController.loadHome);
-
+                              
 // products-page
 router.get("/products", productsController.getProducts);
-router.get('/product/:id', productsController.getProductDetails);
+router.get('/product/:productId', productsController.getProductDetails);
+
+router.get('/product/:productId/reviews',productsController.getProductReviews);
+router.post('/product/addReview/:productId',productsController.addReview);
+router.patch('/product/editReview/:reviewId',productsController.editReview);
+router.post('/product/review/like/:reviewId',productsController.toggleVoteReview);
+router.delete('/product/deleteReview/:reviewId',productsController.deleteProductReview);
+                                      
+
 router.use(checkUserLoggedIn)
 
 // wishlist 
@@ -122,24 +130,23 @@ router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
 // aboutUs
+ 
+
+ 
+ 
 
 
-router.get('/product/:productId/stats', productsController.getReviewStats);
+// // Update a review - requires authentication
+// router.put('/:reviewId', productsController.updateReview);
 
-// Create a new review - requires authentication
-router.post('/product/:productId',productsController.createReview);
+// // Delete a review - requires authentication
+// router.delete('/:reviewId', productsController.deleteReview);
 
-// Update a review - requires authentication
-router.put('/:reviewId', productsController.updateReview);
+// // Vote on a review - requires authentication
+// router.post('/:reviewId/vote', productsController.voteReview);
 
-// Delete a review - requires authentication
-router.delete('/:reviewId', productsController.deleteReview);
-
-// Vote on a review - requires authentication
-router.post('/:reviewId/vote', productsController.voteReview);
-
-// Add reply to a review - requires authentication
-router.post('/:reviewId/reply',productsController.addReply);
+// // Add reply to a review - requires authentication
+// router.post('/:reviewId/reply',productsController.addReply);
   
 // error handler 
 router.use(userErrorHandler);

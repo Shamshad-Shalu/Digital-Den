@@ -209,13 +209,37 @@
             font-size: 0.75rem;
         }
     }
+
+    .modal-header {
+        background-color: var(--card-bg);
+    }
+
+    .form-control {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .form-control:focus {
+        background-color: var(--search-row-border);
+        color: var(--text-color);
+    }
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    .active {
+        --bs-btn-active-color: #fff ;
+        --bs-btn-active-bg: #6c757d ;
+        --bs-btn-active-border-color: #6c757d ;
+        --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125) ;
+    }
     </style>
-    
 
 <div class="container py-5">
     <!-- Breadcrumbs -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
+            <input type="hidden" id="currentProduct" value="<%= product._id %>" >
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="/products?category=<%= product.category.name %>"><%= product.category.name %></a></li>
             <li class="breadcrumb-item active"><%= product.productName %></li>
@@ -257,7 +281,7 @@
             <div class="ratings mb-3">
                 <span class="stars">
                     <% 
-                        const rating = product.rating === "N/A" ? 0 : parseFloat(product.rating);
+                        const rating = parseFloat(product.ratingsSummary.averageRating);
                         for (let i = 1; i <= 5; i++) {
                             if (i <= rating) { %>
                                 <i class="fas fa-star text-warning"></i>
@@ -270,8 +294,8 @@
                     %>
                                 
                 </span>
-                <span class="rating-value ms-2">0.0</span>
-                <span class="reviews-count ms-2">(No reviews yet)</span>
+                <span class="rating-value ms-2"><%= rating.toFixed(1) %></span>
+                <span class="reviews-count ms-2">(<%= (product.ratingsSummary.totalReviews) || "N/A" %>)</span>
             </div>
             <!-- Stock Status -->
             <div class="stock-status  mb-3 ">
@@ -502,20 +526,28 @@
             </div>
             <div class="tab-pane fade" id="reviews">
                 <div class="reviews-container">
-                    <!-- Review Summary -->
                     <div class="review-summary mb-4">
                         <div class="row align-items-center">
                             <div class="col-md-4 text-center mb-3 mb-md-0">
                                 <div class="overall-rating">
-                                    <h2 class="display-4 fw-bold mb-0">4.7</h2>
+                                    <h2 class="display-4 fw-bold mb-0"><%= rating.toFixed(1) %></h2>
                                     <div class="stars-large mb-2">
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star text-warning"></i>
-                                        <i class="fas fa-star-half-alt text-warning"></i>
+                                        <% 
+                                            for (let i = 1; i <= 5; i++) {
+                                                if (i <= rating) { %>
+                                                    <i class="fas fa-star text-warning"></i>
+                                                <% } else if (i - 0.5 <= rating) { %>
+                                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                                <% } else { %>
+                                                    <i class="far fa-star text-warning"></i>
+                                                <% }
+                                            }
+                                        %>
                                     </div>
-                                    <p class="text-muted">Based on 128 reviews</p>
+                                    <%  if ( product.ratingsSummary.totalReviews > 0 ) { %>
+                                        <p class="text-muted">Based on <%= (product.ratingsSummary.totalReviews)  %> reviews</p>
+                                    <% } %>
+                                    
                                 </div>
                             </div>
                             <div class="col-md-8">
@@ -523,37 +555,39 @@
                                     <div class="rating-bar d-flex align-items-center mb-2">
                                         <div class="rating-label me-2">5 <i class="fas fa-star text-warning small"></i></div>
                                         <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                                            <div class="progress-bar " role="progressbar"  data-percentage="<%= ratingsSummary.percentage['5'] %>"></div>
                                         </div>
-                                        <div class="rating-count ms-2">96</div>
+                                        <div class="rating-count ms-2"><%= ratingsSummary.count["5"] %>
+                                        </div>
                                     </div>
                                     <div class="rating-bar d-flex align-items-center mb-2">
                                         <div class="rating-label me-2">4 <i class="fas fa-star text-warning small"></i></div>
                                         <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 18%"></div>
+                                            <div class="progress-bar " role="progressbar" 
+                                            data-percentage="<%= ratingsSummary.percentage['4'] %>"></div>
                                         </div>
-                                        <div class="rating-count ms-2">23</div>
+                                        <div class="rating-count ms-2"><%= ratingsSummary.count["4"] %></div>
                                     </div>
                                     <div class="rating-bar d-flex align-items-center mb-2">
                                         <div class="rating-label me-2">3 <i class="fas fa-star text-warning small"></i></div>
                                         <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 5%"></div>
+                                            <div class="progress-bar " role="progressbar"   data-percentage="<%= ratingsSummary.percentage['3'] %>"></div>
                                         </div>
-                                        <div class="rating-count ms-2">6</div>
+                                        <div class="rating-count ms-2"><%= ratingsSummary.count["3"]  %></div>
                                     </div>
                                     <div class="rating-bar d-flex align-items-center mb-2">
                                         <div class="rating-label me-2">2 <i class="fas fa-star text-warning small"></i></div>
                                         <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-danger" role="progressbar" style="width: 2%"></div>
+                                            <div class="progress-bar " role="progressbar"   data-percentage="<%= ratingsSummary.percentage['2'] %>"></div>
                                         </div>
-                                        <div class="rating-count ms-2">2</div>
+                                        <div class="rating-count ms-2"><%= ratingsSummary.count["2"]  %></div>
                                     </div>
                                     <div class="rating-bar d-flex align-items-center">
                                         <div class="rating-label me-2">1 <i class="fas fa-star text-warning small"></i></div>
                                         <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-danger" role="progressbar" style="width: 1%"></div>
+                                            <div class="progress-bar " role="progressbar"  data-percentage="<%= ratingsSummary.percentage['1'] %>"></div>
                                         </div>
-                                        <div class="rating-count ms-2">1</div>
+                                        <div class="rating-count ms-2"><%= ratingsSummary.count["1"]  %></div>
                                     </div>
                                 </div>
                             </div>
@@ -562,136 +596,22 @@
 
                     <!-- Review Filters -->
                     <div class="review-filters mb-4">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between">
-                            <div class="filter-options mb-2 mb-sm-0">
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-outline-primary active">All Reviews</button>
-                                    <button type="button" class="btn btn-sm btn-outline-primary">Verified Purchases</button>
-                                </div>
-                            </div>
-                            <div class="sort-options">
-                                <select class="form-select form-select-sm">
-                                    <option selected>Most Recent</option>
-                                    <option>Highest Rated</option>
-                                    <option>Lowest Rated</option>
-                                    <option>Most Helpful</option>
+                        <div class="d-flex flex-wrap align-items-right text-end">
+                            <div class="sort-options ">
+                                <select class="form-select form-select-sm" id="typeFilter">
+                                    <option value="recent">Most Recent</option>
+                                    <option value="highlyRated">Highest Rated</option>
+                                    <option value="lowestRated">Lowest Rated</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <!-- Review List -->
-                    <div class="review-list">
-                        <!-- Review Item 1 -->
-                        <div class="review-item p-3 mb-3 border rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="reviewer-info d-flex align-items-center">
-                                    <div class="avatar me-2">
-                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">JD</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">John Doe</h6>
-                                        <div class="text-muted small">Verified Purchase</div>
-                                    </div>
-                                </div>
-                                <div class="review-date text-muted small">March 15, 2025</div>
-                            </div>
-                            <div class="rating mb-2">
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <span class="ms-1 fw-bold">5.0</span>
-                            </div>
-                            <h5 class="review-title mb-2">Absolutely fantastic product!</h5>
-                            <div class="review-content mb-3">
-                                <p>I've been using this product for about a month now, and I'm incredibly impressed with its performance and durability. The design is sleek and modern, and it fits perfectly in my home setup. Functionality is top-notch, and it does exactly what it claims to do with efficiency.</p>
-                            </div>
-                            <div class="d-flex align-items-center review-actions">
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-thumbs-up me-1"></i> Helpful (12)
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-comment me-1"></i> Reply
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Review Item 2 -->
-                        <div class="review-item p-3 mb-3 border rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="reviewer-info d-flex align-items-center">
-                                    <div class="avatar me-2">
-                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">AS</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Alice Smith</h6>
-                                        <div class="text-muted small">Verified Purchase</div>
-                                    </div>
-                                </div>
-                                <div class="review-date text-muted small">February 28, 2025</div>
-                            </div>
-                            <div class="rating mb-2">
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="far fa-star text-warning"></i>
-                                <span class="ms-1 fw-bold">4.0</span>
-                            </div>
-                            <h5 class="review-title mb-2">Great value, but could be improved</h5>
-                            <div class="review-content mb-3">
-                                <p>This product offers excellent value for the price point. It's well-made and delivers on most of its promises. My only complaint is that the setup was a bit more complicated than I expected, and the instructions could have been clearer. Once set up though, it works like a charm!</p>
-                            </div>
-                            <div class="d-flex align-items-center review-actions">
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-thumbs-up me-1"></i> Helpful (8)
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-comment me-1"></i> Reply
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Review Item 3 -->
-                        <div class="review-item p-3 mb-3 border rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="reviewer-info d-flex align-items-center">
-                                    <div class="avatar me-2">
-                                        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">RJ</div>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Robert Johnson</h6>
-                                        <div class="text-muted small">Verified Purchase</div>
-                                    </div>
-                                </div>
-                                <div class="review-date text-muted small">February 14, 2025</div>
-                            </div>
-                            <div class="rating mb-2">
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star-half-alt text-warning"></i>
-                                <i class="far fa-star text-warning"></i>
-                                <span class="ms-1 fw-bold">3.5</span>
-                            </div>
-                            <h5 class="review-title mb-2">Decent product with some limitations</h5>
-                            <div class="review-content mb-3">
-                                <p>The product mostly meets my expectations. Quality is good and it looks nice. However, I've found that it doesn't perform as well as advertised under certain conditions. Customer service was responsive when I reached out with questions.</p>
-                            </div>
-                            <div class="d-flex align-items-center review-actions">
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-thumbs-up me-1"></i> Helpful (4)
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary me-2">
-                                    <i class="far fa-comment me-1"></i> Reply
-                                </button>
-                            </div>
-                        </div>
+                    <div class="review-list" id="reviewList">
+                        <!-- dynamicaly populated  --> 
                     </div>
 
-                    <!-- Load More Button -->
                     <div class="text-center mt-4">
                         <button id="loadMoreReviews" class="btn btn-outline-primary px-4">
                             <i class="fas fa-spinner me-2"></i> Load More Reviews
@@ -711,14 +631,18 @@
                                     <i class="far fa-star fs-4 me-1 rating-star" data-rating="4"></i>
                                     <i class="far fa-star fs-4 me-1 rating-star" data-rating="5"></i>
                                 </div>
+                                <input type="hidden" name="rating">
+                                <div class="invalid-feedback review "></div>
                             </div>
                             <div class="mb-3">
                                 <label for="reviewTitle" class="form-label">Review Title</label>
-                                <input type="text" class="form-control" id="reviewTitle" placeholder="Summarize your experience">
+                                <input type="text" class="form-control" id="reviewTitle" name="reviewTitle" placeholder="Summarize your experience">
+                                <div class="invalid-feedback reviewTitle"></div>
                             </div>
                             <div class="mb-3">
                                 <label for="reviewContent" class="form-label">Your Review</label>
-                                <textarea class="form-control" id="reviewContent" rows="4" placeholder="Tell us what you liked or disliked about this product"></textarea>
+                                <textarea class="form-control" id="reviewContent" name="reviewText" rows="4" placeholder="Tell us what you liked or disliked about this product"></textarea>
+                                <div class="invalid-feedback reviewText"></div>
                             </div>
                             <button type="submit" class="btn btn-primary">Submit Review</button>
                         </form>
@@ -759,12 +683,23 @@
                             </div>
                             <h4><%= related.category.name %></h4>
                             <h3><%= related.productName %></h3>
-                            <div class="rating">
-                                <% if(product.rating ===undefined  ) { %>
-                                    <img src="/images/user/icons/rating/rating-0.png" alt="Rating">N/A
-                                <% } else { %>
-                                <img src="/images/user/icons/rating/rating-<%= product.rating * 10 %>.png" alt="Rating">
-                                <% } %>
+                            <div class="ratings ">
+                                <span class="stars">
+                                    <% 
+                                        let ratings = parseFloat(related.rating) 
+                                        //  ;
+                                        for (let i = 1; i <= 5; i++) {
+                                            if (i <= ratings) { %>
+                                                <i class="fas fa-star text-warning"></i>
+                                            <% } else if (i - 0.5 <= ratings) { %>
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            <% } else { %>
+                                                <i class="far fa-star text-warning"></i>
+                                            <% }
+                                        }
+                                    %>              
+                                </span>
+                                <span class="rating-value ms-2"><%= ratings.toFixed(1) %></span>
                             </div>
                             <p class="price"><%= related.salePrice %>
                             <% if(related.regularPrice > related.salePrice) { %>
@@ -778,16 +713,194 @@
     </div>
 </div>
 
+
+!-- Edit Review Modal -->
+<div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editReviewModalLabel">Edit Your Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editReviewForm">
+                    <div class="mb-3">
+                        <label class="form-label">Your Rating</label>
+                        <div class="rating-select edit-rating-select">
+                            <i class="far fa-star fs-4 me-1 edit-rating-star" data-rating="1"></i>
+                            <i class="far fa-star fs-4 me-1 edit-rating-star" data-rating="2"></i>
+                            <i class="far fa-star fs-4 me-1 edit-rating-star" data-rating="3"></i>
+                            <i class="far fa-star fs-4 me-1 edit-rating-star" data-rating="4"></i>
+                            <i class="far fa-star fs-4 me-1 edit-rating-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" name="rating" id="editRatingInput">
+                        <div class="invalid-feedback edit-review-rating"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editReviewTitle" class="form-label">Review Title</label>
+                        <input type="text" class="form-control" id="editReviewTitle" name="reviewTitle" placeholder="Summarize your experience">
+                        <div class="invalid-feedback edit-review-title"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewContent" class="form-label">Your Review</label>
+                        <textarea class="form-control" name="reviewText" id="editReviewText" rows="4" placeholder="Tell us what you liked or disliked about this product"></textarea>
+                        <div class="invalid-feedback reviewText"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editReviewForm" class="btn btn-primary" >Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteReviewModal" tabindex="-1" aria-labelledby="deleteReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteReviewModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this review? This action cannot be undone.</p>
+                <input type="hidden" id="deleteReviewId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteReviewBtn">Delete Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// Star rating functionality
+
 document.addEventListener('DOMContentLoaded', function() {
+
+    const editRatingStars = document.querySelectorAll('.edit-rating-star');
+    editRatingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            document.getElementById('editRatingInput').value = rating;
+            
+            // Update star appearance
+            editRatingStars.forEach(s => {
+                if (parseInt(s.getAttribute('data-rating')) <= rating) {
+                    s.classList.remove('far');
+                    s.classList.add('fas');
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('fas');
+                    s.classList.add('far');
+                    s.classList.remove('active');
+                }
+            });
+        });
+    });
+
+    const editReviewModal = document.getElementById('editReviewModal');
+    let reviewId ;
+    editReviewModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        reviewId = button.getAttribute('data-id');
+        const form = document.getElementById('editReviewForm');
+
+        form.elements['rating'].value = button.getAttribute('data-rating');
+        form.elements['reviewTitle'].value = button.getAttribute('data-title');
+        form.elements['reviewText'].value = button.getAttribute('data-feedback');
+    });
+    // edit review
+    const editReviewForm = document.getElementById('editReviewForm');
+    editReviewForm.addEventListener('submit',async (e) => {
+        e.preventDefault();
+        clearErrors(editReviewForm);
+
+        const formData = new FormData(editReviewForm);
+        const jsonData = Object.fromEntries(formData);
+        // trim all values 
+        Object.keys(jsonData).forEach(key => {
+            if (typeof jsonData[key] === 'string') {
+                jsonData[key] = jsonData[key].trim();
+            }
+        });
+        console.log("edit form data:",jsonData);
+        try {
+            const response = await fetch(`/product/editReview/${reviewId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(jsonData),
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                displayFormErrors(editReviewForm, data.errors);
+                Swal.fire('Error', data.message || 'Invalid form validations..!', 'error');
+            } else {
+                bootstrap.Modal.getInstance(document.getElementById('editReviewModal')).hide();
+                Swal.fire({
+                    title: 'Success',
+                    text:  data.message || 'Review edited successfully',
+                    icon: 'success',
+                    timer: 1200,
+                    showConfirmButton: "OK"
+                })
+                .then(() => location.reload());
+            }
+        } catch (error) {
+            console.error('edit review error:', error);
+            Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+        }
+    });
+
+
+    // delete review 
+    const deleteReviewModal = document.getElementById('deleteReviewModal');
+    deleteReviewModal.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget;
+        reviewId = button.getAttribute('data-id');
+    });
+
+    document.getElementById("confirmDeleteReviewBtn").
+      addEventListener("click",async ()=> {
+        try {
+            const response = await fetch(`/product/deleteReview/${reviewId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                Swal.fire('Error', data.message || 'Unable to delete Review..', 'error');
+            } else {
+                bootstrap.Modal.getInstance(document.getElementById('deleteReviewModal')).hide();
+                Swal.fire({
+                    title: 'Success',
+                    text:  data.message || 'Review deleted successfully',
+                    icon: 'success',
+                    timer: 1200,
+                    showConfirmButton: "OK"
+                })
+                .then(() => location.reload());
+            }
+        } catch (error) {
+            console.error('delete Review error:', error);
+            Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+        }
+    })
+
+
     // Star rating selection
-    const ratingStars = document.querySelectorAll('.rating-star');
+    let selectedRating = 0;
+    const ratingStars = document.querySelectorAll(".rating-star");
     ratingStars.forEach(star => {
         star.addEventListener('click', function() {
             const rating = this.getAttribute('data-rating');
+            selectedRating = rating;
             
             // Reset all stars
             ratingStars.forEach(s => {
@@ -824,58 +937,405 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Load more reviews functionality
+
+    const productId = document.getElementById("currentProduct").value;
+    let currentPage = 1;
+    const reviewsPerPage = 5;
+    let isLoading = false;
+    let hasMoreReviews = true;
+
+    //  reviews tab 
+    const reviewsTab = document.getElementById('reviews-tab');
+    reviewsTab.addEventListener('click', function() {
+        currentPage = 1;
+        hasMoreReviews = true;
+        
+        // Clear existing reviews
+        const reviewList = document.getElementById("reviewList");
+        reviewList.innerHTML = '';
+        
+        // Fetch initial reviews
+        fetchReviews();
+    });
+
+    //  the filter 
+    const typeFilter = document.getElementById('typeFilter');
+    typeFilter.addEventListener('change', function() {
+        currentPage = 1;
+        hasMoreReviews = true;
+        
+        const reviewList = document.getElementById("reviewList");
+        reviewList.innerHTML = '';
+
+        fetchReviews();
+    });
+
+    // Load more reviews button
     const loadMoreBtn = document.getElementById('loadMoreReviews');
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function() {
-            // Simulate loading
+            if (isLoading || !hasMoreReviews) return;
+            
+            // Increment page number
+            currentPage++;
+            
+            // Show loading state
             this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
             
-            // Simulate delay for demo purposes
-            setTimeout(() => {
-                const reviewList = document.querySelector('.review-list');
-                
-                // Create new review items (just duplicating the first one for demo)
-                const firstReview = document.querySelector('.review-item');
-                const newReview = firstReview.cloneNode(true);
-                
-                // Change some details to make it look different
-                const nameElement = newReview.querySelector('.reviewer-info h6');
-                nameElement.textContent = 'Emma Williams';
-                
-                const dateElement = newReview.querySelector('.review-date');
-                dateElement.textContent = 'January 20, 2025';
-                
-                const avatarText = newReview.querySelector('.rounded-circle');
-                avatarText.textContent = 'EW';
-                avatarText.classList.remove('bg-primary');
-                avatarText.classList.add('bg-info');
-                
-                // Add to the list
-                reviewList.appendChild(newReview);
-                
-                // Reset button
-                this.innerHTML = '<i class="fas fa-spinner me-2"></i> Load More Reviews';
-            }, 1000);
+            // Fetch next page of reviews
+            fetchReviews(false);
         });
     }
-    
-    // Form submission
-    const reviewForm = document.getElementById('reviewForm');
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Thank you for your review! It will be published after moderation.');
-            this.reset();
+
+
+    document.querySelectorAll(".progress-bar").forEach(bar => {
+        const percentage = parseFloat(bar.dataset.percentage) || 0;
+        bar.style.width = percentage + "%";
+
+        if (percentage >= 50) {
+            bar.classList.add("bg-success");
+        } else if (percentage >= 20) {
+            bar.classList.add("bg-warning");
+        } else {
+            bar.classList.add("bg-danger");
+        }
+    });
+
+    // fetch reviews
+    async function fetchReviews(resetList = true) {
+        if (isLoading) return;
+        isLoading = true;
+        
+        const type = document.getElementById('typeFilter').value;
+        const queryParams = new URLSearchParams({
+            type,
+            page: currentPage,
+            limit: reviewsPerPage
+        }).toString();
+        
+        try {
+            // Show loading state on button
+            if (loadMoreBtn) {
+                loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+            }
             
-            // Reset star rating
-            ratingStars.forEach(s => {
-                s.classList.remove('fas', 'active');
-                s.classList.add('far');
+            const response = await fetch(`/product/${productId}/reviews?${queryParams}`, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+            });
+            const data = await response.json();
+
+            console.log("data" , data)
+            if (!response.ok) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to fetch reviews',
+                });
+                return;
+            }
+
+            const reviewList = document.getElementById("reviewList");
+            
+            const currentUserId =  data.user === undefined ?  undefined : data.user._id ;
+
+            // Check if we have reviews
+            if (data.reviews?.length > 0) {
+                hasMoreReviews = data.hasMore;
+
+                const reviewsHTML = data.reviews.map(review => {
+                    // star
+                    const starRating = generateStarRating(review.rating);  
+                    // Format date
+                    const reviewDate = new Date(review.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    // username icon
+                    const userInitials = review.user?.username ? review.user.username.substring(0, 1).toUpperCase() : 'U';
+                    
+                    // Profile 
+                    const profileImage = review.user?.profileImage 
+                        ? `<img src="/uploads/user/profileimages/${review.user.profileImage}" style="width: 100%; height: 100%; object-fit: cover;" class="rounded-circle" />`
+                        : userInitials;
+                    
+                    const isLiked = review.votedUsers.findIndex(id => id === currentUserId );
+
+                    return `
+                        <div class="review-item p-3 mb-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="reviewer-info d-flex align-items-center">
+                                    <div class="avatar me-2">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            ${profileImage}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">${review.user?.username || 'Anonymous'}</h6>
+                                        <div class="text-muted small">${review.verifiedPurchase ? 'Verified Purchase' : ''}</div>
+                                    </div>
+                                </div>
+                                <div class="review-date text-muted small">${reviewDate}</div>
+                            </div>
+                            <div class="rating mb-2">
+                                ${starRating}
+                                <span class="ms-1 fw-bold">${review.rating.toFixed(1)}</span>
+                            </div>
+                            <h5 class="review-title mb-2">${review.title}</h5>
+                            <div class="review-content mb-3">
+                                <p>${review.feedback}</p>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between review-actions">
+                                <button class="btn btn-sm btn-outline-secondary helpful-btn ${isLiked !== -1  ? "active" : "" } " ${!currentUserId ? "disabled" : "" } data-id="${review._id}">
+                                    <i class="far fa-thumbs-up me-1"></i> Helpful (${review.votedUsers.length }) 
+                                </button>
+                                ${currentUserId === review.user?._id ? `
+                                    <div class="review-owner-actions">
+                                        <button class="btn btn-sm btn-outline-primary me-2 edit-review-btn " 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editReviewModal" 
+                                        data-id="${review._id}" 
+                                        data-rating="${review.rating}" 
+                                        data-title="${review.title}" 
+                                        data-feedback="${review.feedback}" >
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger delete-review-btn" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteReviewModal" 
+                                            data-id="${review._id}">
+                                            <i class="fas fa-trash-alt me-1"></i> Delete
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Add the new reviews to the list
+                if (resetList) {
+                    reviewList.innerHTML = reviewsHTML;
+                } else {
+                    reviewList.innerHTML += reviewsHTML;
+                }
+                
+                // Set up helpful vote buttons
+                setupHelpfulButtons();
+                
+                // Update load more button visibility
+                loadMoreBtn.style.display = hasMoreReviews ? 'inline-block' : 'none';
+            } else if (resetList) {
+                // No reviews found
+                reviewList.innerHTML = `
+                    <div class="alert alert-info">
+                        No reviews found for this product. Be the first to write a review!
+                    </div>
+                `;
+                loadMoreBtn.style.display = 'none';
+            }
+            
+            // Reset button state
+            if (loadMoreBtn) {
+                loadMoreBtn.innerHTML = '<i class="fas fa-spinner me-2"></i> Load More Reviews';
+            }
+            
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: error.message || 'Failed to load reviews' 
+            });
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    //  generate star 
+    function generateStarRating(rating) {
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                stars += '<i class="fas fa-star text-warning"></i>';
+            } else if (i - 0.5 <= rating) {
+                stars += '<i class="fas fa-star-half-alt text-warning"></i>';
+            } else {
+                stars += '<i class="far fa-star text-warning"></i>';
+            }
+        }
+        return stars;
+    }
+
+    setupHelpfulButtons() 
+
+    // vote like
+    function setupHelpfulButtons() {
+        const helpfulButtons = document.querySelectorAll('.helpful-btn');
+        helpfulButtons.forEach(button => {
+            button.addEventListener('click', async function() {
+                reviewId = button.getAttribute('data-id');
+                 
+                try {
+                    const response = await fetch(`/product/review/like/${reviewId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok || !data.success) {
+                        displayFormErrors(reviewForm, data.errors);
+                        Swal.fire({
+                                title: 'Error',
+                                text:  data.message || 'Failed to load reviews',
+                                icon: 'error',
+                                timer: 1200,
+                                showConfirmButton: "OK"
+                            })
+                        .then(()=>{
+                            if(data.redirectUrl){
+                                location.href = data.redirectUrl;
+                            }
+                        })
+                    }else {
+                        this.innerHTML = `<i class="fas fa-thumbs-up me-1"></i> Helpful (${data.review?.votedUsers?.length})`;
+                        this.classList.toggle('active');
+                    }
+
+                } catch (error) {
+                    console.error('Error voting for review:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Failed to vote for this review'
+                    });
+                }
             });
         });
     }
+
+
+    // // Load more reviews functionality
+    // const loadMoreBtn = document.getElementById('loadMoreReviews');
+    // if (loadMoreBtn) {
+    //     loadMoreBtn.addEventListener('click', function() {
+    //         // Simulate loading
+    //         this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+            
+    //         // Simulate delay for demo purposes
+    //         setTimeout(() => {
+    //             const reviewList = document.querySelector('.review-list');
+                
+    //             // Create new review items (just duplicating the first one for demo)
+    //             const firstReview = document.querySelector('.review-item');
+    //             const newReview = firstReview.cloneNode(true);
+                
+    //             // Change some details to make it look different
+    //             const nameElement = newReview.querySelector('.reviewer-info h6');
+    //             nameElement.textContent = 'Emma Williams';
+                
+    //             const dateElement = newReview.querySelector('.review-date');
+    //             dateElement.textContent = 'January 20, 2025';
+                
+    //             const avatarText = newReview.querySelector('.rounded-circle');
+    //             avatarText.textContent = 'EW';
+    //             avatarText.classList.remove('bg-primary');
+    //             avatarText.classList.add('bg-info');
+                
+    //             // Add to the list
+    //             reviewList.appendChild(newReview);
+                
+    //             // Reset button
+    //             this.innerHTML = '<i class="fas fa-spinner me-2"></i> Load More Reviews';
+    //         }, 1000);
+    //     });
+    // }
+
+    
+    // add Form submission
+    const reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit',async function(e) {
+            e.preventDefault();
+            clearErrors(reviewForm);
+
+            const formData = new FormData(reviewForm);
+            const jsonData = Object.fromEntries(formData);
+            jsonData.rating = selectedRating;
+
+            Object.keys(jsonData).forEach(key => {
+                if (typeof jsonData[key] === 'string') {
+                    jsonData[key] = jsonData[key].trim();
+                }
+            });
+
+            try { 
+                const response = await fetch(`/product/addReview/${productId}`, {
+                    method: 'POST',
+                    body: JSON.stringify(jsonData),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    displayFormErrors(reviewForm, data.errors);
+                    Swal.fire({
+                            title: 'Error',
+                            text:  data.message || 'Invalid form validations..!',
+                            icon: 'error',
+                            timer: 1200,
+                            showConfirmButton: "OK"
+                        })
+                    .then(()=>{
+                        if(data.redirectUrl){
+                            location.href = data.redirectUrl;
+                        }
+                    })
+                } else {
+                    Swal.fire('Success', 'Address added successfully', 'success')
+                        .then(() =>  resetForm(reviewForm)) 
+                        .then(()=> location.reload());
+                }
+            } catch (error) {
+                console.error('Add address error:', error);
+                Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+            }
+        });
+    }
+
+    function resetForm(form){
+        form.reset();
+        ratingStars.forEach(s => {
+            s.classList.remove('fas', 'active');
+            s.classList.add('far');
+        });
+    }
 });
+
+        function displayFormErrors(form, errors) {
+            clearErrors(form);
+            if (errors && typeof errors === 'object') {
+                Object.entries(errors).forEach(([field, message]) => {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add('is-invalid');
+                        const feedback = input.nextElementSibling;
+                        if (feedback?.classList.contains('invalid-feedback')) {
+                            feedback.textContent = message;
+                        }
+                    }
+                });
+            }
+        } 
+
+        function clearErrors(form) {
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        }
+
 </script>
 
 

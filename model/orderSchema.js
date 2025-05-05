@@ -6,7 +6,7 @@ const orderSchema = new Schema({
     orderId:{
         type:String,
         default:generateCustomId("ORD"),
-        unique:true
+        unique:true  
     },
     userId :{
         type:Schema.Types.ObjectId,
