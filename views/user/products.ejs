@@ -64,7 +64,6 @@
                                     <li><a class="dropdown-item" href="?sort=price-high-to-low<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>"> Price: High to Low</a></li>
                                     <li><a class="dropdown-item" href="?sort=title-asc<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">A - Z</a></li>
                                     <li><a class="dropdown-item" href="?sort=title-desc<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Z - A</a></li>
-                                    <li><a class="dropdown-item" href="?sort=popularity<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Popularity</a></li>
                                     <li><a class="dropdown-item" href="?sort=rating<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">Average Ratings</a></li>
                                     <li><a class="dropdown-item" href="?sort=new-arrivals<%= searchQuery ? '&search=' + searchQuery : '' %> <%= filterQuery %>">New Arrivals</a></li>
                                 </ul>
@@ -83,12 +82,12 @@
                                 <a href="/product/<%= product._id %>" class="product-link">
                                     <div class="product-card">
                                         <div class="image-container">
-                                            <% if (product.originalPrice && product.originalPrice > product.price) { %>
+                                            <% if (product.salePrice && product.salePrice > product.salePrice) { %>
                                                 <div class="discount-badge">
-                                                    -<%= Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) %>%
+                                                    -<%= Math.round(((product.salePrice - product.salePrice) / product.salePrice) * 100) %>%
                                                 </div>
                                             <% } %>
-                                            <img src="/uploads/products/<%= product.image %>" alt="<%= product.title %>">
+                                            <img src="/uploads/products/<%= product.cardImage %>" alt="<%= product.productName %>">
                                             <!-- Add Wishlist Button -->
                                             <button class="wishlist-btn <%= wishlist && wishlist.products.some(item => item.productId.toString() === product._id.toString()) ? 'always-visible' : '' %>" 
                                                     data-product-id="<%= product._id %>" 
@@ -97,30 +96,16 @@
                                             </button>
                                         </div>
                                         <div class="product-info">
-                                            <div class="product-category"><%= product.category %></div>
-                                            <h3 class="product-title"><%= product.title %></h3>
+                                            <div class="product-category"><%= product.category.name %></div>
+                                            <h3 class="product-title"><%= product.productName %></h3>
                                             <div class="ratings ">
-                                                <span class="stars">
-                                                    <% 
-                                                        let rating = parseFloat(product.rating) 
-                                                        //  ;
-                                                        for (let i = 1; i <= 5; i++) {
-                                                            if (i <= rating) { %>
-                                                                <i class="fas fa-star text-warning"></i>
-                                                            <% } else if (i - 0.5 <= rating) { %>
-                                                                <i class="fas fa-star-half-alt text-warning"></i>
-                                                            <% } else { %>
-                                                                <i class="far fa-star text-warning"></i>
-                                                            <% }
-                                                        }
-                                                    %>              
-                                                </span>
-                                                <span class="rating-value ms-2"><%= rating.toFixed(1) %></span>
+                                                <% let rating = parseFloat(product.rating); %>   
+                                                <img src="/images/user/icons/rating/rating-<%= (Math.round(rating * 2) / 2 ) * 10 %>.png" alt="<%= product.productName %>" style="width: 100px;"  >
                                             </div>
                                             <div class="price-container">
-                                                <span class="current-price">₹<%= product.price %></span>
-                                                <% if (product.originalPrice && product.originalPrice > product.price) { %>
-                                                    <span class="original-price">₹<%= product.originalPrice %></span>
+                                                <span class="current-price">₹<%= product.salePrice.toFixed(2) %></span>
+                                                <% if (product.salePrice && product.salePrice > product.salePrice) { %>
+                                                    <span class="original-price">₹<%= product.salePrice %></span>
                                                 <% } %>
                                             </div>
                                         </div>

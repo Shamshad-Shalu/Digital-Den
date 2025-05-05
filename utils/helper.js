@@ -339,6 +339,7 @@ async function calculateBestOffer (product , quantity) {
     return {amount : maxDiscount , type : discountType }
 };
 
+
 module.exports = {
     validateUser,
     genarateOtp,

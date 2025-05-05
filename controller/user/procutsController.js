@@ -7,7 +7,8 @@ const {determineStatus ,getSpecialOffer , calculateBestOffer} = require("../../u
 const Wishlist = require("../../model/wishlistSchema");
 const Review = require("../../model/reviewSchema");
 const Order =  require("../../model/orderSchema");
-const { ObjectId } = require('mongoose').Types;            
+const { ObjectId } = require('mongoose').Types;
+const { validateReviewForm } = require("../../utils/validation");            
 
 const loadHome = async (req , res) => {
     try {
@@ -73,8 +74,7 @@ const loadHome = async (req , res) => {
         console.log("Home page not loading:", error);
         res.status(500).send("Server Error");
     }
-}
-
+};
 
 const mapProductDetails = async (products) => {
     
@@ -85,13 +85,17 @@ const mapProductDetails = async (products) => {
       return {    
         _id: product._id,            
         productName: product.productName,
+        description: product.description,
         category: product.category,
         brand:product.brand,
         rating: product.ratingsSummary.averageRating ,
         salePrice: finalPrice,           
         regularPrice: product.regularPrice,
-        cardImage: product.cardImage
+        cardImage: product.cardImage,
+        status: ["Available", "out of stock"].includes(product.status),
+
       };
+
     }));
 };
 
@@ -152,8 +156,7 @@ const getProducts = async (req, res) => {
             case "price-high-to-low": sortOption = { salePrice: -1 }; break;
             case "title-asc": sortOption = { productName: 1 }; break;
             case "title-desc": sortOption = { productName: -1 }; break;
-            case "popularity": sortOption = { quantity: -1 }; break;
-            case "rating": sortOption = { "rating.rating": -1 }; break;
+            case "rating": sortOption = { "ratingsSummary.averageRating": -1 }; break;
             case "new-arrivals": sortOption = { createdAt: -1 }; break;
             default: sortOption = { createdAt: -1 };
         }
@@ -182,7 +185,7 @@ const getProducts = async (req, res) => {
         // Fetch categories and brands, with fallback
         const allCategories = await Category.find({ isDeleted: false, isListed: true }).select("name") || [];
         const allBrands = await Brand.find({ isDeleted: false, isListed: true }).select("brandName") || [];
-     
+         
         let products = await Product.find(query)
             .populate({ 
                 path: "category", 
@@ -194,32 +197,13 @@ const getProducts = async (req, res) => {
                 match: { isListed: true, isDeleted: false }, 
                 select: "brandName" 
             })
-            .populate("rating", "rating")
             .sort(sortOption)
             .lean();
 
         products = products.filter(pr => pr.category && pr.brand);
 
-        const transformedProducts = await Promise.all(products.map(async product => {
-            const bestOffer = await calculateBestOffer(product, 1);
-            const finalPrice = product.regularPrice - bestOffer.amount;
-            let rating = product.ratingsSummary.averageRating ;
-        
-            return {
-                _id: product._id,
-                title: product.productName,
-                description: product.description,
-                category: product.category?.name || "Unknown",
-                brand: product.brand?.brandName || "Unknown",
-                price: finalPrice,
-                originalPrice: product.regularPrice,
-                image: product.cardImage,
-                rating: rating,
-                status: ["Available", "out of stock"].includes(product.status),
-            };
-        }));
+        const transformedProducts = await mapProductDetails(products);
 
-        
         let filterQueryParts = [];
         if (category) {
             const categories = Array.isArray(category) ? category : [category];
@@ -238,6 +222,7 @@ const getProducts = async (req, res) => {
         if (isLoggedIn) {
             wishlist = await Wishlist.findOne({ userId: userData._id });
         }
+
         const renderData = {
             products: transformedProducts,
             categories: allCategories.map(cat => cat.name),
@@ -286,9 +271,8 @@ const getProducts = async (req, res) => {
 const getProductDetails = async (req, res, next) => {
     try {
         const { userData, isLoggedIn, isUserBlocked } = res.locals;
-        const {productId} = req.params;
+        const { productId } = req.params;
         
-        // Get current URL for the redirect after login
         const currentUrl = req.originalUrl;
           
         let product = await Product.findById(productId)
@@ -403,7 +387,6 @@ const getProductDetails = async (req, res, next) => {
     }
 };
 
-    
 const getProductReviews = async (req, res) =>{
     try {
             const { productId } = req.params;
@@ -480,6 +463,7 @@ const getProductReviews = async (req, res) =>{
         return res.status(500).json({ success: false, message: 'Server error fetching reviews' });
     }
 };
+
 
 function calculateRatingPercentages(ratingsSummary) {
     const total = ratingsSummary.totalReviews || 0;
@@ -645,38 +629,6 @@ const deleteProductReview = async (req , res) => {
     } catch (error) {
         
     }
-};
-
-function validateReviewForm(data) {
-    const errors = {};
-
-    // Rating (must be between 1 to 5)
-    if (!data.rating || isNaN(data.rating)) {
-        errors.rating = "Please select a rating.";
-    } else if (data.rating < 1 || data.rating > 5) {
-        errors.rating = "Rating must be between 1 and 5 stars.";
-    }
-
-    // Review Title
-    if (!data.reviewTitle) {
-        errors.reviewTitle = "Review title is required.";
-    } else if (data.reviewTitle.length < 5 || data.reviewTitle.length > 100) {
-        errors.reviewTitle = "Title must be between 5 and 100 characters.";
-    } else if (!/^[a-zA-Z0-9\s.,!?'"-]+$/.test(data.reviewTitle)) {
-        errors.reviewTitle = "Title contains invalid characters.";
-    }
-
-    // Review Text / Message
-    const hasMeaningfulText = /[a-zA-Z]/;
-    if (!data.reviewText) {
-        errors.reviewText = "Review content is required.";
-    } else if (data.reviewText.length < 20 || data.reviewText.length > 3000) {
-        errors.reviewText = "Review must be between 20 and 3000 characters.";
-    } else if (!hasMeaningfulText.test(data.reviewText)) {
-        errors.reviewText = "Review must include meaningful content (not just symbols).";
-    }
-
-    return Object.keys(errors).length > 0 ? errors : null;
 };
 
 const editReview = async (req, res) => {

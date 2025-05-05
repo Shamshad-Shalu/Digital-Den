@@ -496,7 +496,40 @@ function validateOffer(data) {
     }
   
     return Object.keys(errors).length > 0 ? errors : null;
-}
+};
+
+
+function validateReviewForm(data) {
+    const errors = {};
+
+    // Rating (must be between 1 to 5)
+    if (!data.rating || isNaN(data.rating)) {
+        errors.rating = "Please select a rating.";
+    } else if (data.rating < 1 || data.rating > 5) {
+        errors.rating = "Rating must be between 1 and 5 stars.";
+    }
+
+    // Review Title
+    if (!data.reviewTitle) {
+        errors.reviewTitle = "Review title is required.";
+    } else if (data.reviewTitle.length < 5 || data.reviewTitle.length > 100) {
+        errors.reviewTitle = "Title must be between 5 and 100 characters.";
+    } else if (!/^[a-zA-Z0-9\s.,!?'"-]+$/.test(data.reviewTitle)) {
+        errors.reviewTitle = "Title contains invalid characters.";
+    }
+
+    // Review Text / Message
+    const hasMeaningfulText = /[a-zA-Z]/;
+    if (!data.reviewText) {
+        errors.reviewText = "Review content is required.";
+    } else if (data.reviewText.length < 20 || data.reviewText.length > 3000) {
+        errors.reviewText = "Review must be between 20 and 3000 characters.";
+    } else if (!hasMeaningfulText.test(data.reviewText)) {
+        errors.reviewText = "Review must include meaningful content (not just symbols).";
+    }
+
+    return Object.keys(errors).length > 0 ? errors : null;
+};
 
 module.exports = { 
     validateProduct,
@@ -506,5 +539,6 @@ module.exports = {
     validateEmail,
     validateCoupon,
     validateUserProfile,
-    validateOffer
+    validateOffer,
+    validateReviewForm
 };
