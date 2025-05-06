@@ -83,8 +83,12 @@ app.get("/admin", (req, res) => {
 // Routers
 app.use("/admin", adminRouter);
 app.use("/", userRouter);
-
+     
 
 connectDatabase().then(()=>{
-    app.listen(process.env.PORT,(err)=> console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`))
+  app.listen(process.env.PORT, '0.0.0.0', (err) => {
+      console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`);
+  });
+
+    // app.listen(process.env.PORT,(err)=> console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`))
 })
