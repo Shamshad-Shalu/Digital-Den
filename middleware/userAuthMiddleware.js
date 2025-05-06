@@ -52,8 +52,6 @@ const checkBlockedStatus = async (req, res, next) => {
       next();
     }
 }
-
-
 // middleware/authMiddleware.js
 
 const checkUserLoggedIn = (req, res, next) => {

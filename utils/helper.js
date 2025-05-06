@@ -3,36 +3,6 @@ const Product  = require("../model/productSchema");
 const Offer = require("../model/offerSchema");
 
 
-// async function determineStatus (productId, isListed, quantity)  {
-//     try {
-//       // Fetch the product with its brand and category populated
-//       const product = await Product.findById(productId)
-//         .populate('brand')
-//         .populate('category')
-//         .lean();
-  
-//       if (!product) {
-//         throw new Error('Product not found');
-//       }
-  
-//       const brandIsListed = product.brand?.isListed ?? true;
-//       const categoryIsListed = product.category?.isListed ?? true;
-  
-//       if (!brandIsListed || !categoryIsListed) {
-//         return 'Discontinued';
-//       }
-  
-//       if (!isListed) {
-//         return 'Discontinued';
-//       }
-  
-//       return quantity > 0 ? 'Available' : 'Out of stock';
-//     } catch (error) {
-//       console.error('Error determining status:', error.stack);
-//       return 'Discontinued';
-//     }
-// };
-
 async function determineStatus(productId) {
     try {
       
@@ -143,13 +113,6 @@ const generateCustomId = (TNX = "ID") => {
     return `${TNX}-${timestamp}${random}`; 
 };
 
-// // Generates a custom ID  for transactions 
-// function generateCustomId(TNX = "ID") {
-//     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-//     const random = Math.random().toString(36).substring(2, 10).toUpperCase();
-//     return `${TNX}-${date}-${random}`;
-// }
-
 async function calculateCartTotals(cart, product, quantity, appliedCoupon = null) {
     let subtotal = 0;
     let totalDiscount = 0;
@@ -253,16 +216,6 @@ async function calculateCartTotals(cart, product, quantity, appliedCoupon = null
     const shipping =  !netTotal ? 0 : ( netTotal > 500 ? 0 : 50);
     const tax = (netTotal + shipping) * 0.18 
     const totalAmount = netTotal + tax + shipping ;  // 9 for tax on shipping 18%
-
-    console.log({
-        subtotal,
-        netAmount:subtotal - totalDiscount,
-        netTotal,
-        tax,
-        shipping,
-        coupon:couponDiscount,
-        totalAmount,
-    })
 
     return { subtotal, discount: totalDiscount, tax, shipping, totalAmount, couponDiscount, discountDetails };
 }

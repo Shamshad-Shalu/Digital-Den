@@ -1,0 +1,483 @@
+<%- include('../partial/user/header') %>
+<style>
+    :root {
+        --text-color: #333333;
+        --header-bg: #ffffff;
+        --text-muted: #6c757d;
+        --card-bg: #ffffff;
+        --footer-bg: #0A1627;
+        --footer-text: #ffffff;
+        --brand-bg: #fdfbfb;
+        --border-color: #dee2e6;
+        --search-row-border: rgb(196, 192, 192);
+        --nav-shadow: rgba(0, 0, 0, 0.1);
+        --primary-color: #0d6efd;
+        --accent-color: #e83e8c;
+    }
+
+    [data-theme="dark"] {
+        --text-color: #e0e0e0;
+        --header-bg: #1e1e1e;
+        --card-bg: #2a2a2a;
+        --text-muted: #adb5bd;
+        --footer-bg: #1a1a1a;
+        --footer-text: #e0e0e0;
+        --brand-bg: #2a2a2a;
+        --border-color: #3a3a3a;
+        --search-row-border: #3a3a3a;
+        --nav-shadow: rgba(0, 0, 0, 0.3);
+        --primary-color: #0d6efd;
+        --accent-color: #e83e8c;
+    }
+
+    section {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    /* General Section Styles */
+    section {
+        padding: 60px 0;
+    }
+
+    .container {
+        max-width: 1200px;
+    }
+
+    .row {
+        margin: 0 -15px;
+    }
+
+    .col-lg-6, .col-md-4, .col-md-6, .col-lg-3, .col-6 {
+        padding: 15px;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        line-height: 1.6;
+    }
+
+    .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        box-shadow: 0 4px 6px var(--nav-shadow);
+        transition: transform 0.3s ease;
+    }
+    .card-text {
+     color: var(--text-color);   
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-title {
+        color: var(--primary-color);
+    }
+
+    .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+    }
+
+    .feature-icon {
+        background-color: var(--primary-color);
+        color: #ffffff;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    .team-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid var(--primary-color);
+    }
+
+    .stats-item {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .section-title {
+        position: relative;
+        margin-bottom: 40px;
+        padding-bottom: 15px;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .section-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background-color: var(--accent-color);
+    }
+
+    .testimonial-item {
+        background-color: var(--card-bg);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px var(--nav-shadow);
+        margin-bottom: 20px;
+    }
+
+    .testimonial-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        color: #ffffff;
+        border-radius: 10px;
+        padding: 60px 30px;
+        text-align: center;
+    }
+
+    .social-links a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--bg-color);
+        color: var(--primary-color);
+        margin-right: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+    }
+</style>
+    <section >
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center mb-5">
+                    <h2 class="section-title d-inline-block">Our Core Values</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-medal fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Quality</h4>
+                            <p class="card-text">We never compromise on quality. Every product in our inventory is carefully selected and tested to ensure it meets our high standards.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Customer Focus</h4>
+                            <p class="card-text">Our customers are at the heart of everything we do. We strive to exceed expectations with personalized service and support.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-lightbulb fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Innovation</h4>
+                            <p class="card-text">We embrace the latest technology and continuously improve our processes to offer innovative solutions to our customers.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-handshake fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Integrity</h4>
+                            <p class="card-text">Honesty and transparency are fundamental to our business. We build trust through ethical practices and fair dealings.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-leaf fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Sustainability</h4>
+                            <p class="card-text">We are committed to reducing our environmental impact through sustainable practices and promoting eco-friendly products.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">
+                                <i class="fas fa-rocket fa-lg"></i>
+                            </div>
+                            <h4 class="card-title">Growth</h4>
+                            <p class="card-text">We encourage continuous learning and development, both for our team and in the solutions we provide to our customers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Meet The Team Section -->
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="section-title">Meet Our Team</h2>
+                    <p class="lead mb-5">The passionate experts behind Digital Den who make it all possible.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <!-- Replace with your image path -->
+                            <img src="images/user/icons/shalu.webp" alt="Shamshad Shalu" class="team-img mb-3">
+                            <h5 class="card-title">Shamshad Shalu</h5>
+                            <p class="text-muted">Founder & CEO</p>
+                            <p class="card-text">Tech visionary with 15+ years in the industry. Sarah founded Digital Den with a passion for making technology accessible to everyone.</p>
+                            <div class="social-links mt-3">
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <!-- Replace with your image path -->
+                            <img src="images/user/icons/junaid.jpg" alt="Junaid " class="team-img mb-3">
+                            <h5 class="card-title">Junaid </h5>
+                            <p class="text-muted">CTO</p>
+                            <p class="card-text">Software engineer and hardware expert who ensures we always offer the most cutting-edge technology solutions to our customers.</p>
+                            <div class="social-links mt-3">
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#"><i class="fab fa-github"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <!-- Replace with your image path -->
+                            <img src="images/user/icons/hakeem.jpg" alt="Abdul Hakeem " class="team-img mb-3">
+                            <h5 class="card-title">Abdul Hakeem</h5>
+                            <p class="text-muted">Customer Experience Director</p>
+                            <p class="card-text">Dedicated to creating exceptional customer journeys and ensuring satisfaction at every touchpoint with our brand.</p>
+                            <div class="social-links mt-3">
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <!-- Replace with your image path -->
+                            <img src="images/user/icons/sahad.jpg" alt="Sahad Saleel " class="team-img mb-3">
+                            <h5 class="card-title">Sahad Saleel </h5>
+                            <p class="text-muted">Head of Product</p>
+                            <p class="card-text">Product specialist with a keen eye for quality and performance. James leads our product selection and testing processes.</p>
+                            <div class="social-links mt-3">
+                                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#"><i class="fab fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section style="background-color: var(--brand-bg);">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="stats-item">
+                        <div class="stats-number"><%= yearsInBusiness %></div>
+                        <p>Years in Business</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="stats-item">
+                        <div class="stats-number"><%= totalCustomers %></div>
+                        <p>Happy Customers</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="stats-item">
+                        <div class="stats-number"><%= totalProducts %></div>
+                        <p>Products</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-4">
+                    <div class="stats-item">
+                        <div class="stats-number"><%= totalBrands %></div>
+                        <p>Brand Partners</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="section-title">What Our Customers Say</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-item">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                M
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Michael Brown</h5>
+                                <p class="text-muted mb-0">Software Developer</p>
+                            </div>
+                        </div>
+                        <p class="mb-0">"As a developer who needs reliable equipment, Digital Den has been my go-to tech store for years. Their product selection and knowledgeable staff have never let me down. My XPS laptop has been a workhorse for the past 3 years!"</p>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-item">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                E
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Emma Davis</h5>
+                                <p class="text-muted mb-0">Graphic Designer</p>
+                            </div>
+                        </div>
+                        <p class="mb-0">"The team at Digital Den helped me find the perfect MacBook for my design work. They understood my needs and budget and provided excellent follow-up support. I couldn't be happier with my purchase experience!"</p>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-item">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                R
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Robert Kim</h5>
+                                <p class="text-muted mb-0">Gaming Enthusiast</p>
+                            </div>
+                        </div>
+                        <p class="mb-0">"Digital Den is the ultimate destination for gamers. The Legion Pro I purchased has exceptional performance, and their after-sales support is unmatched. They even helped me optimize my gaming setup remotely."</p>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-item">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mr-1 " style="width: 40px; height: 40px;">
+                                L
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Lisa Thompson</h5>
+                                <p class="text-muted mb-0">Small Business Owner</p>
+                            </div>
+                        </div>
+                        <p class="mb-0">"When I needed to equip my new office with computers, Digital Den provided a comprehensive solution that fit my budget. Their business support package has been invaluable for my growing company."</p>
+                        <div class="mt-2">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section>
+        <div class="container">
+            <div class="cta-section">
+                <h2 class="display-5 fw-bold mb-4">Ready to Elevate Your Tech Experience?</h2>
+                <p class="lead mb-4">Discover our premium selection of laptops, computers, and accessories today.</p>
+                <div class="d-flex justify-content-center flex-wrap gap-3">
+                    <a href="/products" class="btn btn-light btn-lg">Browse Products</a>
+                    <a href="/contactUs" class="btn btn-outline-light btn-lg">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<%- include('../partial/user/footer') %>

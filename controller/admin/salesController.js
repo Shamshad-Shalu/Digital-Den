@@ -1034,7 +1034,7 @@ const getDashboardPage = async (req, res , next ) => {
                 })),
                 recentOrders: recentOrdersData
             });
-        }
+        }  
 
         // Render the dashboard page for regular requests
         res.render("admin/dashboard", {
@@ -1068,7 +1068,7 @@ const getDashboardPage = async (req, res , next ) => {
 };
  
 module.exports = {
-getSalePage,
+getSalePage,         
 getDashboardPage ,
 exportSales
 

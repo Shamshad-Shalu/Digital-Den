@@ -30,17 +30,10 @@ router.post("/reset-otp",userController.forgotOtp);
 router.get("/reset-password",userController.loadResetPassword);
 router.patch("/reset-password",userController.ResetPassword);
               
-                                 
-router.get("/contactUs",(req , res , next ) => {
-    try {
-        res.render("contact")
-    } catch (error) {
-        error.statusCode = 500; 
-        next(error);  
-    }
-}) 
-
-
+// constact us & aboutus 
+router.get("/contactUs",profileController.getContactUsPage);               
+router.get("/aboutUs",profileController.getAboutUsPage);
+  
 // Google OAuth routes
 router.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"]

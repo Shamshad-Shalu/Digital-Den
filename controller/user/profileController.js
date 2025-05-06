@@ -4,6 +4,7 @@ const {validatePassword, validateEmail ,validateUserProfile} = require("../../ut
 const {genarateOtp} = require("../../utils/helper");
 const Wallet = require("../../model/walletSchema");
 const {sendProfileUpdateOtp} = require("../../utils/userEmails");
+const Product = require('../../model/productSchema');
 const fs = require('fs');
 const path = require('path');
 
@@ -319,6 +320,40 @@ const verifyPhoneOtp = async (req, res , next) => {
 };
 
 
+const getAboutUsPage = async (req , res , next ) => {
+    try {
+
+        // Total Customers & products
+        const totalCustomers = await User.countDocuments({ isAdmin: false, isBlocked: false });
+        const totalProducts = await Product.countDocuments({ isListed: true, isDeleted: false });
+        const totalBrands = await Product.countDocuments({ isListed: true, isDeleted: false });
+        const startYear = 2025; 
+        const currentYear = new Date().getFullYear();
+        const yearsInBusiness = currentYear - startYear;
+
+        res.render("aboutUs",{
+            totalCustomers,
+            totalProducts,
+            totalBrands,
+            yearsInBusiness
+        });
+
+    } catch (error) {
+        error.statusCode = 500; 
+        next(error);  
+    }
+};
+
+const getContactUsPage = async (req , res , next ) => {
+    try {
+        res.render("contact")
+    } catch (error) {
+        error.statusCode = 500; 
+        next(error);  
+    }
+}
+
+
 module.exports = { 
     getUserProfile, 
     getEditProfile,
@@ -327,6 +362,8 @@ module.exports = {
     changeEmail,
     verifyEmailOtp,
     updateProfile,
-    verifyPhoneOtp
+    verifyPhoneOtp,
+    getAboutUsPage,
+    getContactUsPage
 
 };
