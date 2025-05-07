@@ -85,7 +85,7 @@ app.use("/", userRouter);
      
 
 connectDatabase().then(()=>{
-  app.listen(4001, (err) => {
+  app.listen(process.env.PORT, (err) => {
       console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`);
   });
 
