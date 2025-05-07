@@ -299,3 +299,231 @@ body {
 [data-theme="dark"] #counts {
     color: rgb(214, 209, 209) !important;
 }
+
+.offers-wrapper {
+    position: relative;
+}
+
+.offers-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background-color: rgba(0, 123, 255, 0.1);
+    border: 1px dashed #007bff;
+    border-radius: 4px;
+    color: #007bff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-width: fit-content;
+}
+
+.offers-badge:hover {
+    background-color: rgba(0, 123, 255, 0.15);
+}
+
+.offers-count {
+    font-weight: 500;
+}
+
+.toggle-icon {
+    font-size: 10px;
+    transition: transform 0.3s ease;
+}
+
+.offers-badge[aria-expanded="true"] .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Offers Panel */
+.offers-panel {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.offer-mini-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.offer-mini-item:last-child {
+    border-bottom: none;
+}
+
+.offer-mini-item:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.offer-mini-item i:first-child {
+    margin-right: 10px;
+    width: 18px;
+    text-align: center;
+}
+
+.offer-mini-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.offer-mini-info span {
+    font-size: 14px;
+}
+
+.offer-mini-info small {
+    font-size: 12px;
+}
+
+/* No Offers Style */
+.no-offers {
+    padding: 6px 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 14px;
+}
+
+/* Dark Mode Compatibility */
+[data-theme="dark"] .offers-badge {
+    background-color: rgba(0, 123, 255, 0.2);
+    border-color: rgba(0, 123, 255, 0.5);
+}
+
+[data-theme="dark"] .offers-panel {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .offer-mini-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .offer-mini-item {
+    border-color: var(--border-color);
+}
+
+.modal-footer ,
+.modal-body {
+    background-color: var(--card-bg);
+
+}
+
+.text-muted {
+    color:var(--text-muted)!important;
+}
+
+ /* Review section styles */
+ .reviews-container {
+    font-family: var(--bs-font-sans-serif);
+}
+
+.overall-rating {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.stars-large i {
+    font-size: 1.5rem;
+}
+
+.rating-breakdown .progress {
+    border-radius: 10px;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.review-filters .btn-group .btn {
+    border-radius: 4px;
+    margin-right: 4px;
+}
+
+.review-item {
+    transition: all 0.2s ease;
+    background-color: var(--card-bg);
+}
+
+.review-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.review-title {
+    font-weight: 600;
+}
+
+.review-content {
+    color: var(--text-color);
+}
+
+.reviewer-info .avatar {
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+/* Rating select interaction */
+.rating-select i {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rating-select i:hover,
+.rating-select i.active {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+/* Dark mode compatibility */
+[data-theme="dark"] .review-item {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .overall-rating {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .rating-breakdown .progress {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .rating-select i {
+        font-size: 1.25rem;
+    }
+    
+    .review-filters .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+.modal-header {
+    background-color: var(--card-bg);
+}
+
+.form-control {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.form-control:focus {
+    background-color: var(--search-row-border);
+    color: var(--text-color);
+}
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.active {
+    --bs-btn-active-color: #fff ;
+    --bs-btn-active-bg: #6c757d ;
+    --bs-btn-active-border-color: #6c757d ;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125) ;
+}

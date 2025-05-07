@@ -9,7 +9,10 @@
                 <h2>Get Discount up to 100%</h2>
                 <h1>Make Life Better With Laptop</h1>
                 <p>Discover your new world and enjoy happy moments with Asus Poco X23GM.</p>
-                <button class="btn btn-primary">Browse More</button>
+                <a href="/products">
+                    <button class="btn btn-primary">Browse More</button>
+                </a>
+                
             </div>
             <div class="col-md-6">
                 <img src="/images/user/products/banner1.png" alt="Laptop" class="img-fluid">
@@ -90,7 +93,9 @@
         <div class="banner-left">
             <h2>Start from $300.00</h2>
             <p>Make Life Better With<br>Stylish Ultra Laptop</p>
-            <button class="pre-order-button">Pre Order Now</button>
+            <a href="/products?category=Laptop">
+                <button class="pre-order-button">Pre Order Now</button>
+            </a>
         </div>
         <div class="banner-right">
             <img src="/images/user/products/monitor-hp-removebg-preview.png" alt="Laptop" class="laptop-image">
@@ -109,12 +114,15 @@
                         <div class="countdown-sec">
                             <h1 class="h4 mb-3">Weekly Best Product</h1>
                             <div class="countdown-container">
-                                <div><div class="countdown-item">05</div><div class="countdown-label">Days</div></div>
-                                <div><div class="countdown-item">15</div><div class="countdown-label">Hours</div></div>
-                                <div><div class="countdown-item">50</div><div class="countdown-label">Mins</div></div>
-                                <div><div class="countdown-item">00</div><div class="countdown-label">Secs</div></div>
-                            </div>
-                            <button class="pre-order-btn">Pre Order Now</button>
+                                <div><div class="countdown-item" id="days">00</div><div class="countdown-label">Days</div></div>
+                                <div><div class="countdown-item" id="hours">00</div><div class="countdown-label">Hours</div></div>
+                                <div><div class="countdown-item" id="minutes">00</div><div class="countdown-label">Mins</div></div>
+                                <div><div class="countdown-item" id="seconds">00</div><div class="countdown-label">Secs</div></div>
+                              </div>                              
+                            <a href="/products">
+                                <button class="pre-order-btn"> Order Now</button>
+                            </a>
+                            
                         </div>
                     </div>
                 </div>
@@ -216,7 +224,36 @@
 <% } %>
 <%- include ("../../views/partial/user/footer") %>
 <script src="/script/user/user.js"></script>
-
+<script>
+    const targetDate = new Date("<%= endDate %>");
+  
+    function updateCountdown() {
+      const now = new Date();
+      const timeLeft = targetDate - now;
+  
+      if (timeLeft <= 0) {
+        document.getElementById("days").textContent = "00";
+        document.getElementById("hours").textContent = "00";
+        document.getElementById("minutes").textContent = "00";
+        document.getElementById("seconds").textContent = "00";
+        return;
+      }
+  
+      const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+      const seconds = Math.floor((timeLeft / 1000) % 60);
+  
+      document.getElementById("days").textContent = String(days).padStart(2, '0');
+      document.getElementById("hours").textContent = String(hours).padStart(2, '0');
+      document.getElementById("minutes").textContent = String(minutes).padStart(2, '0');
+      document.getElementById("seconds").textContent = String(seconds).padStart(2, '0');
+    }
+  
+    setInterval(updateCountdown, 1000);
+    updateCountdown(); // initial call
+  </script>
+  
 
 
 

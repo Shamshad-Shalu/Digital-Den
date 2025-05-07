@@ -1,206 +1,5 @@
 <%- include('../partial/user/header') %>
-
-<style>
-    .profile-photo {
-        width: 130px;
-        height: 130px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid var(--card-bg);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-    .profile-photo:hover {
-        transform: scale(1.05);
-    }
-
-    .form-control {
-        border-radius: 8px;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        background-color: var(--card-bg);
-        color: var(--text-color);
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
-    }
-
-    .divider {
-        border-top: 1px solid var(--border-color);
-        margin: 2rem 0;
-    }
-
-    .modal-content {
-        border-radius: 12px;
-        background-color: var(--card-bg);
-        color: var(--text-color);
-    }
-
-    .profile-image-modal .modal-content {
-        background: transparent;
-        border: none;
-        box-shadow: none;
-    }
-
-    .profile-image-modal .modal-body {
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-    }
-
-    .large-profile-img {
-        max-width: 100%;
-        max-height: 80vh;
-        border-radius: 12px;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-        cursor: zoom-in;
-    }
-
-    .large-profile-img.zoomed {
-        transform: scale(1.5);
-        cursor: zoom-out;
-    }
-
-    .modal-btn-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.8;
-        transition: opacity 0.3s ease;
-    }
-
-    .modal-btn-close:hover {
-        opacity: 1;
-    }
-
-    .input-group .btn-outline-secondary {
-        border-radius: 0 8px 8px 0;
-        border: 1px solid var(--border-color);
-        border-left: 0;
-    }
-
-    .input-group .form-control {
-        border-right: 0;
-        border-radius: 8px 0 0 8px;
-    }
-
-    .is-invalid {
-        border-color: #dc3545;
-    }
-
-    .invalid-feedback {
-        display: block;
-        color: #dc3545;
-    }
-
-    body.modal-open {
-        padding-right: 0 !important;
-        overflow: hidden;
-    }
-
-    .modal-open .body {
-        padding-right: 0 !important;
-    }
-
-        
-    #profileImageModal .modal-dialog {
-        max-width: 400px;
-    }
-
-    #profileImageModal .modal-content {
-        border-radius: 16px;
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        overflow: hidden;
-    }
-
-    .profile-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        color: var(--text-color);
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .profile-img-container {
-        width: 100%;
-        padding-top: 100%;
-        position: relative;
-        background: linear-gradient(135deg, var(--light-color) 0%, var(--border-color) 100%);
-    }
-
-    #modalProfileImg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .profile-name {
-        padding: 15px;
-        text-align: center;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .profile-name h5 {
-        margin: 0;
-        font-weight: 600;
-    }
-
-    [data-theme="dark"] .profile-img-container {
-        background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
-    }
-
-    .default-profile-icon {
-        width: 130px;
-        height: 130px;
-        border-radius: 50%;
-        background-color: #007bff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid var(--card-bg);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-    .default-profile-icon:hover {
-        transform: scale(1.05);
-    }
-
-    .default-profile-icon i {
-        font-size: 60px;
-        color: white;
-    }
-</style>
+<link rel="stylesheet" href="/style/user/profile.css">
 
 <div class="body">
     <div class="container-fluid profile-container">
@@ -234,124 +33,48 @@
                     <div class="text-end">
                         <a href="/edit-profile" class="btn btn-primary <%= isUserBlocked ? 'disabled' : '' %>">Edit Profile</a>
                     </div>
-
-
-        <!-- Referral Rewards Section -->
-<div class="divider"></div>
-
-<h4 class="section-title">REFERRAL REWARDS</h4>
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-                <div class="row align-items-center">
-                    <div class="col-12 col-md-7">
-                        <h5 class="mb-3">Invite friends and earn rewards!</h5>
-                        <p class="mb-3">Share your unique referral link with friends. When they sign up using your link, you'll get <strong>₹200</strong> in rewards.</p>
-                        
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="referralLink" value="?ref=<%= user.referralCode  || '1234'%>" readonly>
-                            <button class="btn btn-primary" type="button" id="copyReferralLink">
-                                <i class="bi bi-clipboard me-1"></i> Copy
-                            </button>
-                        </div>
-                        
-                        <div class="d-flex mt-3">
-                            <button class="btn btn-outline-primary me-2" id="shareWhatsApp">
-                                <i class="bi bi-whatsapp me-1"></i> Share
-                            </button>
-                            <button class="btn btn-outline-primary" id="shareEmail">
-                                <i class="bi bi-envelope me-1"></i> Email
-                            </button>
+   
+                    <div class="divider"></div>
+                     <!-- Referral Rewards Section -->
+                    <h4 class="section-title">REFERRAL REWARDS</h4>
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-12 col-md-7">
+                                            <h5 class="mb-3">Invite friends and earn rewards!</h5>
+                                            <p class="mb-3">Share your unique referral link with friends. When they sign up using your link, you'll get <strong>₹200</strong> in rewards.</p>
+                                            <div class="input-group mb-3">
+                                                <input type="text" class="form-control" id="referralLink" value="<%= user.referralCode  || '1234'%>" readonly>
+                                                <button class="btn btn-primary" type="button" id="copyReferralLink">
+                                                    <i class="bi bi-clipboard me-1"></i> Copy
+                                                </button>
+                                            </div>
+                                            
+                                            <div class="d-flex mt-3">
+                                                <button class="btn btn-outline-primary me-2" id="shareWhatsApp">
+                                                    <i class="bi bi-whatsapp me-1"></i> Share
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-5 text-center mt-4 mt-md-0">
+                                            <div class="referral-stats p-3 rounded" style="background-color: var(--primary-light);">
+                                                <div class="mb-3">
+                                                    <h6 class="mb-1">Total Referrals</h6>
+                                                    <h3 class="mb-0"><%= totalReferrals %></h3>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-1">Rewards Earned</h6>
+                                                    <h3 class="mb-0">₹<%= totalReferrals * 200  %></h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-5 text-center mt-4 mt-md-0">
-                        <div class="referral-stats p-3 rounded" style="background-color: var(--primary-light);">
-                            <div class="mb-3">
-                                <h6 class="mb-1">Total Referrals</h6>
-                                <h3 class="mb-0"><%= totalReferrals %></h3>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Rewards Earned</h6>
-                                <h3 class="mb-0">₹<%= totalReferrals * 200  %></h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Copy referral link functionality
-        const copyButton = document.getElementById('copyReferralLink');
-        const referralLink = document.getElementById('referralLink');
-        
-        copyButton?.addEventListener('click', function() {
-
-            navigator.clipboard.writeText(referralLink.value)
-            .then(() =>{
-                const originalText = copyButton.innerHTML;
-                copyButton.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
-                setTimeout(() =>  copyButton.innerHTML = originalText , 2000);
-            })
-            .catch(err => console.error('Failed to copy: ', err));
-        });
-        
-        
-        // Share on WhatsApp
-        const shareWhatsApp = document.getElementById('shareWhatsApp');
-        if (shareWhatsApp) {
-            shareWhatsApp.addEventListener('click', function() {
-                const text = `Hey! Sign up using my referral link and get ₹200 rewards: ${referralLink.value}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-                window.open(whatsappUrl, '_blank');
-            });
-        }
-        
-        // Share via Email
-        const shareEmail = document.getElementById('shareEmail');
-        if (shareEmail) {
-            shareEmail.addEventListener('click', function() {
-                const subject = 'Join me and get ₹200 rewards!';
-                const body = `Hey!\n\nI thought you might be interested in this. Sign up using my referral link and get ₹200 in rewards!\n\n${referralLink.value}`;
-                const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.location.href = mailtoUrl;
-            });
-        }
-    });
-</script>
-
-<style>
-    /* Additional styles for better dark/light mode compatibility */
-    .card {
-        background-color: var(--card-bg);
-        color: var(--text-color);
-    }
-    
-    .referral-stats {
-        border: 1px solid var(--border-color);
-        background-color: var(--primary-light) !important;
-        color: var(--text-color);
-    }
-    
-    .btn-outline-primary {
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-    
-    .btn-outline-primary:hover {
-        background-color: var(--primary-color);
-        color: white;
-    }
-    
-    [data-theme="dark"] .referral-stats {
-        background-color: rgba(99, 102, 241, 0.15) !important;
-    }
-</style>
-
                     <div class="divider"></div>
 
                     <!-- Login Details Section -->
@@ -480,7 +203,6 @@
     </div>
 </div>
 
-
 <!-- Add Password Modal -->
 <div class="modal fade" id="addPasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -521,225 +243,6 @@
     </div>
 </div>
 
-
 <%- include('../partial/user/footer') %>
 
-<script>
-
-    function displayFormErrors(form, errors) { 
-        clearErrors(form);
-        if (errors && typeof errors === 'object') {
-            Object.entries(errors).forEach(([field, message]) => {
-                const input = form.querySelector(`[name="${field}"]`);
-                if (input) {
-                    input.classList.add('is-invalid');
-                    const parentDiv = input.closest('.mb-3');
-                    const feedback = parentDiv.querySelector('.invalid-feedback');
-                    if (feedback) {
-                        feedback.textContent = message;
-                        feedback.style.display = 'block'; 
-                    }
-                }
-            });
-        }
-    }
-
-    function clearErrors(form) {
-        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        form.querySelectorAll('.invalid-feedback').forEach(el => {
-            el.textContent = '';
-            el.style.display = 'none'; 
-        });
-    }
-    document.addEventListener("DOMContentLoaded" , () =>{
-    // Password Visibility Toggle
-    function setupPasswordToggle(inputId, buttonId, iconId) {
-        const input = document.getElementById(inputId);
-        const button = document.getElementById(buttonId);
-        const icon = document.getElementById(iconId);
-        button.addEventListener('click', function() {
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
-        });
-    }
-
-    setupPasswordToggle('currentPasswordEmail', 'toggleCurrentPasswordEmail', 'currentPasswordEmailEyeIcon');
-    setupPasswordToggle('currentPassword', 'toggleCurrentPassword', 'currentPasswordEyeIcon');
-    setupPasswordToggle('newPassword', 'toggleNewPassword', 'newPasswordEyeIcon');
-    setupPasswordToggle('confirmPassword', 'toggleConfirmPassword', 'confirmPasswordEyeIcon');
-    setupPasswordToggle('newPasswordAdd', 'toggleNewPasswordAdd', 'newPasswordAddEyeIcon');
-    setupPasswordToggle('confirmPasswordAdd', 'toggleConfirmPasswordAdd', 'confirmPasswordAddEyeIcon');
-
-    async function passwordSetting(form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearErrors(form);
-
-            const formData = new FormData(form);
-            const jsonData = Object.fromEntries(formData);
-            // Trim all string values
-            Object.keys(jsonData).forEach(key => {
-                if (typeof jsonData[key] === 'string') {
-                    jsonData[key] = jsonData[key].trim();
-                }
-            });
-
-            // Use URL
-            const URL = form.id === 'changePasswordForm' ? '/change-password' : '/add-password';
-
-            try {
-                const response = await fetch(URL, {
-                    method: 'POST',
-                    body: JSON.stringify(jsonData),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const data = await response.json();
-                if (!response.ok || !data.success) {
-                    displayFormErrors(form, data.errors);
-                    Swal.fire('Error', data.message || 'Invalid form validations!', 'error');
-                } else {
-                    const successMessage = form.id === 'changePasswordForm' ? 
-                        'Password changed successfully' : 'Password added successfully';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: successMessage,
-                        timer: 1000, 
-                        timerProgressBar: true, 
-                        showConfirmButton: false 
-                    }).then(() => {
-                        window.location.reload();
-                    });
-            }
-
-            } catch (error) {
-                console.error('Password operation error:', error);
-                Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
-            }
-        });
-    }
-
-    const addPasswordForm = document.getElementById('addPasswordForm');
-    if (addPasswordForm) {
-        passwordSetting(addPasswordForm);
-    }
-
-    const changePasswordForm = document.getElementById('changePasswordForm'); 
-    if (changePasswordForm) {
-        passwordSetting(changePasswordForm);
-    }
-
-    // Email Update Form
-    const updateEmailForm = document.getElementById('updateEmailForm');
-    if (updateEmailForm) {
-        let isOtpSent = false;
-
-        updateEmailForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            clearErrors(updateEmailForm);
-
-            const formData = new FormData(updateEmailForm);
-            const jsonData = Object.fromEntries(formData);
-            Object.keys(jsonData).forEach(key => {
-                if (typeof jsonData[key] === 'string') {
-                    jsonData[key] = jsonData[key].trim();
-                }
-            });
-
-            try {
-                // Show processing Swal
-                const processingSwal = Swal.fire({
-                    title: 'Processing...',
-                    text: 'Please wait while we send the OTP',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                const url = isOtpSent ? '/verify-email-otp' : '/change-email';
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify(jsonData),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const data = await response.json();
-
-                // Close the processing Swal
-                await processingSwal.close();
-
-                if (!response.ok || !data.success) {
-                    displayFormErrors(updateEmailForm, data.errors);
-                    await Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'Validation failed',
-                        confirmButtonText:"Ok",
-                        timer:1000
-                    });
-                    return;
-                }
-
-                if (!isOtpSent) {
-                    document.getElementById('otpFieldEmail').style.display = 'block';
-                    document.getElementById('updateEmailBtn').textContent = 'Verify OTP';
-                    isOtpSent = true;
-
-                    await Swal.fire({
-                        icon: 'success',
-                    title: 'OTP Sent',
-                    text: 'Please check your new email for the OTP',
-                    showConfirmButton: false,
-                    timer: 1000 
-                    });
-                } else {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Email updated successfully',
-                        showConfirmButton: false,
-                        timer: 500
-                    });
-                    $('#updateEmailModal').modal('hide');
-                    updateEmailForm.reset();
-                    document.getElementById('otpFieldEmail').style.display = 'none';
-                    document.getElementById('updateEmailBtn').textContent = 'Update';
-                    isOtpSent = false;
-                    window.location.reload();
-                }
-            } catch (error) {
-                console.error('Email update error:', error);
-                Swal.close();
-                await Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Something went wrong: ' + error.message
-                });
-            }
-        });
-    }
-
-    // Profile Image Zoom
-    document.getElementById('largeProfileImg').addEventListener('click', function() {
-        this.classList.toggle('zoomed');
-    });
-
- 
-
-       
-    })
-
-    
-   
-</script>
+<script src="/script/user/profile.js" ></script>

@@ -62,7 +62,7 @@
         }
 
         .form-control:focus {
-            background-color: var(--bg-focus ); 
+            background-color: var( --bg-formFocus ); 
             box-shadow:0 0 0 0.25rem rgba(13, 110, 253, 0.25);
             color: var(--text-color);
         }
@@ -375,8 +375,6 @@
                         }
                     });
 
-                    console.log("jsonData:",jsonData);
-
                     const errors = validateContactForm(jsonData);
                     if(errors) {
                         displayFormErrors(contactForm, errors );
@@ -389,8 +387,6 @@
                         body: formData
 
                     });
-
-                    console.log("response:",response);
 
                     if(response.ok){
                         Swal.fire({

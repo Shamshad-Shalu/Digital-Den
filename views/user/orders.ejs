@@ -165,7 +165,6 @@
     </div>
 </div>
 
-
 <!-- Return Order Modal -->
 <div class="modal fade" id="returnOrderModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -244,7 +243,7 @@
 
      // Store orders data for invoice modal
         let ordersData = <%- JSON.stringify(orders) %>; 
-    document.addEventListener("DOMContentLoaded", () => {
+     document.addEventListener("DOMContentLoaded", () => {
         // State to keep track of current filters, sort, search, and page
         let currentPage = document.getElementById("currentPage").value ;
         let currentLimit = document.getElementById("paginationLimit").value ;
@@ -301,12 +300,19 @@
                     },
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch orders');
-                }
-
                 const data = await response.json();
-                if (!data.success) {
+                if (!response.ok || !data.success) {
+                    if(data.redirect){
+                        Swal.fire({ 
+                            icon: "warning",title:data.message || 'Session is time out..!', 
+                            showConfirmButton: "OK",timer:1500, timerProgressBar: true
+                        })
+                        .then(() => {      
+                            if(data.redirect) window.location = data.redirect 
+                        })
+                         return
+                    }
+                   
                     throw new Error(data.message || 'Failed to fetch orders');
                 }
 

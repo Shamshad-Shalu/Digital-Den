@@ -1,0 +1,226 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --header-bg: #ffffff;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+    --accent-color: #007bff;
+    --sale-color: #007bff;
+    --shadow-color: rgba(0,0,0,0.1);
+    --muted-text: #6c757d;
+    --input-bg: #ffffff;
+    --input-text: #333333;
+    --input-placeholder: #6c757d;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --header-bg: #1e1e1e;
+    --card-bg: #2a2a2a;
+    --border-color: #3a3a3a;
+    --accent-color: #4BB6E8;
+    --sale-color: #4BB6E8;
+    --shadow-color: rgba(0,0,0,0.3);
+    --muted-text: #a7a3a3;
+    --input-bg: #3a3a3a;
+    --input-text: #e0e0e0;
+    --input-placeholder: #a7a3a3;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.form-section, .cart-summary {
+    background-color: var(--card-bg);
+    border: 0.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.form-control, .form-select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--border-color);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background-color: var(--input-bg);
+    color: var(--input-text);
+}
+
+.form-control::placeholder, .form-select option {
+    color: var(--input-placeholder);
+}
+
+.btn-primary, .btn-add {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-primary:hover, .btn-add:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.payment-option, .address-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+}
+
+.payment-option:hover, .address-card:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color);
+}
+
+.payment-option.active, .address-card.active {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color);
+}
+
+.btn-edit {
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+}
+
+.btn-edit:hover {
+    background-color: var(--accent-color);
+    color: var(--bg-color);
+}
+
+.upi-options {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: var(--card-bg);
+    border-radius: 5px;
+}
+
+.upi-option {
+    margin-bottom: 10px;
+}
+
+.upi-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.upi-option label {
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+}
+
+.upi-option img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
+
+.upi-input-group {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.upi-input-group input {
+    flex: 1;
+    margin-right: 10px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--border-color);
+}
+
+.upi-input-group input::placeholder {
+    color: var(--input-placeholder);
+}
+
+.btn-verify {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 5px;
+}
+
+.btn-verify:hover {
+    background-color: #5a6268;
+}
+
+.btn-pay {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+.btn-pay:hover {
+    background-color: #5a6268;
+}
+
+.more-addresses {
+    display: none;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.modal-header, .modal-body, .modal-footer {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.product-list .product-item {
+    transition: background-color 0.2s ease;
+}
+
+.product-list .product-item:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.product-list img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: transform 0.2s ease;
+}
+
+.product-list .product-item:hover img {
+    transform: scale(1.05); /* Subtle zoom on hover */
+}
+
+.empty-state {
+    text-align: center;
+    padding: 1.5rem 1rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.empty-text {
+    color: var(--light-text);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.payment-option input[disabled] + label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

@@ -82,7 +82,7 @@ const updateProductsForCategory = async (categoryId) => {
     } catch (error) {
         console.error(`Error updating product statuses for category ${categoryId}:`, error.stack);
     }
-};
+}; 
 
 function validateUser(req) {
     const {username, email, password} = req.body;

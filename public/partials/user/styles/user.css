@@ -14,6 +14,7 @@
     --banner-bg: #ffffff;
     --slider-border: #add8e6;
     --bg-focus :#6c757d;
+    --bg-formFocus :#f8f8f8;
 }
 
 [data-theme="dark"] {
@@ -31,7 +32,9 @@
     --product-card-bg: #2a2a2a;
     --banner-bg: #2a2a2a;
     --slider-border: #3a3a3a;
-    --bg-focus :rgb(41, 36, 36)
+    --bg-focus: #292029;
+    --bg-formFocus : #292029;
+
 }
 
 body {

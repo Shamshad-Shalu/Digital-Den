@@ -53,11 +53,11 @@ const checkBlockedStatus = async (req, res, next) => {
     }
 }
 // middleware/authMiddleware.js
-
+  
 const checkUserLoggedIn = (req, res, next) => {
     if (!res.locals.isLoggedIn || !res.locals.userData) {
         if (req.xhr || req.headers['content-type'] === 'application/json') {
-          return res.status(401).json({ success: false, redirect: '/signin?showAlert=true' });
+          return res.status(401).json({ success: false, message:"Session data is expired..." ,redirect: '/signin?showAlert=true' });
         }
         return res.redirect('/signin?showAlert=true');
     }

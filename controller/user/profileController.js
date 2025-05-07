@@ -44,7 +44,6 @@ const getEditProfile = async (req, res) => {
 
 const addPassword = async (req , res , next) => {
     try {
-
         const user = await User.findById(res.locals.userData);
         if (!user) {
             return res.status(403).json({
@@ -243,8 +242,6 @@ const updateProfile = async (req, res) => {
         if (phone && phone !== user.phone) {
 
             const otp = genarateOtp();
-            
-            // Math.floor(100000 + Math.random() * 900000).toString();
             
             // Store OTP and phone in session
             req.session.phoneOtp = otp;

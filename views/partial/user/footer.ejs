@@ -171,6 +171,18 @@
                 behavior: "smooth"
             });
         });
+
+        function showSwal(type, title, text, timer = 1500) {
+            return Swal.fire({
+                icon: type,
+                title,
+                text,
+                showConfirmButton: false,
+                timer,
+                timerProgressBar: true
+            });
+        }
+        
     </script>
 </body>
 </html>

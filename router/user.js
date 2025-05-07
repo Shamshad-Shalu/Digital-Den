@@ -33,7 +33,7 @@ router.patch("/reset-password",userController.ResetPassword);
 // constact us & aboutus 
 router.get("/contactUs",profileController.getContactUsPage);               
 router.get("/aboutUs",profileController.getAboutUsPage);
-  
+     
 // Google OAuth routes
 router.get("/auth/google", passport.authenticate("google", {
     scope: ["profile", "email"]
@@ -64,7 +64,6 @@ router.patch('/product/editReview/:reviewId',productsController.editReview);
 router.post('/product/review/like/:reviewId',productsController.toggleVoteReview);
 router.delete('/product/deleteReview/:reviewId',productsController.deleteProductReview);
                                       
-
 router.use(checkUserLoggedIn)
 
 // wishlist 
@@ -98,8 +97,6 @@ router.post('/order/cancel/:orderId', orderController.cancelOrder);
 router.post('/order/return/:orderId', orderController.returnOrder);
 router.post('/order/return-item/:orderId/:itemId', orderController.returnItem);
  
-    
-router.use(checkUserLoggedIn);
 //address -section
 router.get("/address",addressController.loadAddresspage);
 router.post("/address/add",addressController.addAddress);

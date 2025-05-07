@@ -31,7 +31,7 @@ async function sendUserStatusEmail(user) {
         html: emailContent.html,
     });
 }
-
+       
 async function sendForgotOtp (user, otp) { 
     const emailContent = {
         subject :"Password Reset OTP",
@@ -40,7 +40,7 @@ async function sendForgotOtp (user, otp) {
                 <h2 style="color: #007bff;">Password Reset OTP</h2>
                 <p>Dear ${user.username},</p>
                 <p>Your OTP for password reset is: <strong>${otp}</strong></p>
-                <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
+                <p>This OTP is valid for 1 minute. Please do not share it with anyone.</p>
                 <p>Regards,<br>Support Team</p>
             </div>
         `
@@ -62,7 +62,7 @@ async function sendSignupOtp(username,email,otp) {
                 <p>Dear ${username},</p>
                 <p>Thank you for signing up! To complete your account verification, please use the following OTP:</p>
                 <p>Your OTP is: <strong>${otp}</strong></p>
-                <p>This OTP is valid for 10 minutes. Please do not share it with anyone.</p>
+                <p>This OTP is valid for 60 seconds. Please do not share it with anyone.</p>
                 <p>If you did not sign up for this account, please ignore this email.</p>
                 <p>Regards,<br>Support Team</p>
             </div>

@@ -124,7 +124,7 @@
                                     <div class="row g-3">
                                         <div class="col-12 col-md-6">
                                             <label class="form-label">Phone </label>
-                                            <input type="tel" class="form-control" name="phone" value="<%= user.phone || "" %>">
+                                            <input type="tel" class="form-control" name="phone" placeholder="<%= user.phone || "N/A" %>">
                                             <div class="invalid-feedback"></div>
                                             <div class="info-text">Note: Phone OTP will be sent to your email (<%= user.email %>) if you update this field.</div>
                                         </div>      
@@ -268,7 +268,6 @@
     
           try {
             const url = isPhoneOtpSent ? '/verify-phone-otp' : '/update-profile';
-            
             const processingSwal = showProcessingSwal('Processing...', 'Please wait while we update your profile');
     
             const response = await fetch(url, {
@@ -277,7 +276,6 @@
             });
     
             const data = await response.json();
-            console.log('Server response:', data); // Debug log
             await processingSwal.close();
     
             if (!response.ok || !data.success) {

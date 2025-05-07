@@ -11,30 +11,30 @@ function togglePassword(inputId, iconId) {
     }
 }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        console.log("UrlParams :",urlParams);
-    
-        const referralCode = urlParams.get('ref');
-        console.log("refferralcode :",referralCode);
-    
-        if (referralCode) {
-            const signupForm = document.getElementById('signupForm');
-            if (signupForm) {
-                const referralInput = document.createElement('input');
-                referralInput.type = 'hidden';
-                referralInput.name = 'referralCode';
-                referralInput.value = referralCode;
-                signupForm.appendChild(referralInput);
-    
-                const referralMessage = document.createElement('div');
-                referralMessage.className = 'alert alert-success mt-3';
-                referralMessage.innerHTML = `
-                    <strong>Referred by a friend!</strong> 🎉<br>
-                    You’ll get ₹100, and your friend gets ₹200 after you sign up!
-                `;
-                signupForm.insertBefore(referralMessage, signupForm.firstChild);
-            }
-        }
+const urlParams = new URLSearchParams(window.location.search);
+console.log("UrlParams :",urlParams);
+
+const referralCode = urlParams.get('ref');
+console.log("refferralcode :",referralCode);
+
+if (referralCode) {
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        const referralInput = document.createElement('input');
+        referralInput.type = 'hidden';
+        referralInput.name = 'referralCode';
+        referralInput.value = referralCode;
+        signupForm.appendChild(referralInput);
+
+        const referralMessage = document.createElement('div');
+        referralMessage.className = 'alert alert-success mt-3';
+        referralMessage.innerHTML = `
+            <strong>Referred by a friend!</strong> 🎉<br>
+            You’ll get ₹100, and your friend gets ₹200 after you sign up!
+        `;
+        signupForm.insertBefore(referralMessage, signupForm.firstChild);
+    }
+}
 document.addEventListener("DOMContentLoaded", ()=> {
     const form = document.getElementById("signupForm");
 
@@ -42,11 +42,10 @@ document.addEventListener("DOMContentLoaded", ()=> {
         event.preventDefault();
 
          // Get values at submission time
-         const username = document.getElementById("username").value.trim();
+        const username = document.getElementById("username").value.trim();
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
         const cpassword = document.getElementById("confirmPassword").value;
-        const terms = document.getElementById("terms").checked;
         const errorContainer = document.querySelector('.error-container');
         errorContainer.innerHTML = '';
 
@@ -61,10 +60,6 @@ document.addEventListener("DOMContentLoaded", ()=> {
 
         if (password !== cpassword) {
             showError("Passwords do not match!");
-            return false;
-        }
-        if (!terms) {
-            showError("Please accept the Terms & Conditions");
             return false;
         }
 

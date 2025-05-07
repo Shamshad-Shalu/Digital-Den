@@ -89,5 +89,4 @@ connectDatabase().then(()=>{
       console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`);
   });
 
-    // app.listen(process.env.PORT,(err)=> console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`))
 })

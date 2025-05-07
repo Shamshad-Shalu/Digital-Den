@@ -85,7 +85,6 @@ const signup = async(req,res,next) =>{
         const findUser = await User.findOne({email, isAdmin:false});
 
         if(findUser){
-            console.log("user found with this email ")
             return res.status(400).json({
                 success: false,
                 message: "User already exists...Please Login"
@@ -114,6 +113,7 @@ const signup = async(req,res,next) =>{
 
         // Store OTP and user data in session
         req.session.userOtp = otp;
+        req.session.otpExpires = Date.now() + 60 *1000 ;
         req.session.userData = {
             username,email,password,
             referralCode : referralCode || null
@@ -150,7 +150,14 @@ const verifyOTP = async(req, res , next)=>{
         if(!otp || !req.session.userOtp){
             return res.status(400).json({ success:false,message:"OTP is required!"})
         }
+
+        console.log("req.body otp:",otp)
         console.log("session stored OTP:",req.session.userOtp);
+
+        if(req.session.otpExpires && Date.now() > req.session.otpExpires){
+            console.log("session :",req.session.otpExpires , "current date" ,Date.now() ,"is elible:", Date.now() > req.session.otpExpires );
+            return res.status(400).json({success:false,message:"OTP session expired. Please request a new OTP"})
+        }
         if(otp !== req.session.userOtp ){
             return res.status(400).json({success:false,message:"Invalid OTP, Please try again"})
         }
@@ -269,6 +276,7 @@ const resendOtp = async (req, res ,next)=>{
 
         let otp  = genarateOtp();
         req.session.userOtp = otp ;
+        req.session.otpExpires = Date.now() + 60 *1000 ;
 
         const emailSent  = await sendSignupOtp(username , email, otp);
         if(! emailSent){
@@ -340,6 +348,7 @@ const forgotPassword = async (req , res ,next) => {
             })
         }
         req.session.userOtp = otp;
+        req.session.otpExpires = Date.now() + 60 *1000 ;
         req.session.userData = {email};
 
         console.log("Otp generated:",otp);
@@ -375,12 +384,16 @@ const forgotOtp = async (req , res ,next) =>{
         }
         console.log("session stored OTP:",req.session.userOtp);
 
+        if(req.session.otpExpires && Date.now() > req.session.otpExpires){
+            return res.status(400).json({success:false,message:"OTP session expired. Please request a new OTP"})
+        }
+        
         if(otp === req.session.userOtp ){
 
             res.setHeader('Cache-Control', 'no-store',);
             return  res.json({
                 success:true,
-                message:"Account created Successfully!!!",
+                message:"Otp verified Successfully!!!",
                 redirectUrl:"/reset-password"
             });
         }else {
@@ -426,6 +439,7 @@ const resendResetOtp = async (req , res ,next) =>{
         }
 
         req.session.userOtp = otp;
+        req.session.otpExpires = Date.now() + 60 *1000 ;
         if(! emailSent){
             return res.status(500).json({
                 success: false,

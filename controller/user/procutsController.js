@@ -7,6 +7,7 @@ const {determineStatus ,getSpecialOffer , calculateBestOffer} = require("../../u
 const Wishlist = require("../../model/wishlistSchema");
 const Review = require("../../model/reviewSchema");
 const Order =  require("../../model/orderSchema");
+const Offer = require("../../model/offerSchema");
 const { ObjectId } = require('mongoose').Types;
 const { validateReviewForm } = require("../../utils/validation");            
 
@@ -60,6 +61,13 @@ const loadHome = async (req , res) => {
         topProducts = topProducts.filter(top => top.category && top.brand);
         topProducts = await mapProductDetails(topProducts);
 
+        const offer = await Offer.findOne({
+            status: "Active",
+            startDate: { $lte: new Date() },
+            endDate: { $gte: new Date() }
+          
+        });
+
         res.setHeader('Cache-Control', 'no-store');
         res.render("home", {
           products,
@@ -68,7 +76,9 @@ const loadHome = async (req , res) => {
           user: userData,
           isLoggedIn: isLoggedIn,
           showBlockedNotification: isUserBlocked,
-          wishlist
+          wishlist,
+          offer,
+          endDate: offer.endDate.toISOString() 
         });  
     } catch (error) {
         console.log("Home page not loading:", error);

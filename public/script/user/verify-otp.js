@@ -42,7 +42,7 @@ function moveToNext(input, index) {
     }
 }
 
-function verifyOTP(event) {
+async function verifyOTP(event) {
     event.preventDefault();
     
     // Get all OTP inputs
@@ -82,51 +82,56 @@ function verifyOTP(event) {
     const submitBtn = document.querySelector('.verify-btn');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Verifying...';
+  
+    try {
+        const response = await fetch(`/verify-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({otp:otp})
+        });
 
-    // Send AJAX request
-    $.ajax({
-        type: "POST",
-        url: "/verify-otp",
-        data: { 
-            otp: otp 
-        },
-        headers: {
-            'X-CSRF-TOKEN': csrfToken 
-        },
-        success: function(response) {
-            if (response.success) {
-                Swal.fire({
-                    icon: "success",
-                    title: "OTP Verified Successfully",
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    history.replaceState(null,"",response.redirectUrl);
-                    window.location.replace(response.redirectUrl);
-                    // window.location.href = response.redirectUrl;
-                });
-            } else {
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            if(data.redirect){
+                Swal.fire({ 
+                    icon: "warning", title:data.message || 'Session Data is Expired..!', 
+                    showConfirmButton: "OK",timer:1500, timerProgressBar: true
+                })
+                .then(() => {      
+                    window.location = data.redirect 
+                }) 
+            }else {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Verify OTP';
                 Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: response.message
-                });
+                    icon: "error",    
+                    title:"Error",
+                    text:data.message || 'Invalid Otp..!',
+                    showConfirmButton: "OK",
+                    timer:1500,  
+                    timerProgressBar: true
+                })
             }
-        },
-        error: function(xhr, status, error) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Verify OTP';
+        } else {
             Swal.fire({
-                icon: "error",
-                title: "Invalid OTP",
-                text: "Please try again"
+                icon: "success",    
+                title:"Success",
+                text:data.message || 'OTP Verified Successfully',
+                showConfirmButton: "OK",
+                timer:1500,  
+                timerProgressBar: true
+            })
+            .then(() => {
+                history.replaceState(null,"","/");
+                window.location.replace("/");
             });
         }
-    });
-
-    return false;
+    } catch (error) {
+        console.error('OTP Verification error:', error);
+        Swal.fire('Error', 'Something went wrong: ' + error.message, 'error');
+    }
+    
+    // return false;
 }
 
 function resendOTP(event) {
@@ -155,7 +160,8 @@ function resendOTP(event) {
                     text: "Please check your email for the new OTP",
                     showConfirmButton: false,
                     timer: 1500
-                });
+                }); 
+                resendBtn.textContent = 'Resend OTP';
             } else {
                 resendBtn.disabled = false;
                 resendBtn.textContent = 'Resend OTP';
