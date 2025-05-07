@@ -3,9 +3,10 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const User = require("../model/userSchema");
 const Coupon = require("../model/couponSchema");
+const Product = require("../model/productSchema");
 
 //product validation
-function validateProduct(product) {
+async function validateProduct(product , productId) {
     let errors = {};
 
     // Validate productName
@@ -19,6 +20,25 @@ function validateProduct(product) {
         errors.productName = 'Product name must contain at least one letter or number';
     }else if  (/^\s+$/.test(product.productName) || /\s{3,}/.test(product.productName)){
         errors.productName = 'Product name must contain at least one letter or number';
+    }else {
+        if(productId){
+            const existingProduct = await Product.findOne({ 
+                productName: { $regex: new RegExp(`^${product.productName}$`, 'i') },
+                _id: { $ne: productId }
+            });
+
+            if(existingProduct){
+              errors.productName = 'Product name already exists ...';
+            }
+        }else {
+            const existingProduct = await Product.findOne({ 
+                productName: { $regex: new RegExp(`^${product.productName}$`, 'i') }
+            });
+
+            if(existingProduct){
+              errors.productName = 'Product name already exists ...';
+            }
+        }  
     }
 
     // Validate description

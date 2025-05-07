@@ -13,7 +13,7 @@ const { adminErrorHandler } = require("../middleware/errorHandler.js");
 const {adminAuth} = require("../middleware/auth.js");
 const upload = require("../middleware/upload.js")
 
-// login
+// loin
 router.get("/login",adminController.loadLoagin)
 router.post("/login",adminController.login);
 router.get("/logout",adminController.logout);
