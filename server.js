@@ -35,7 +35,6 @@ app.use(session({
 }));
 
 
-
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
@@ -86,7 +85,7 @@ app.use("/", userRouter);
      
 
 connectDatabase().then(()=>{
-  app.listen(process.env.PORT, '0.0.0.0', (err) => {
+  app.listen(4001, (err) => {
       console.log(`server is running at ${process.env.HOST}:${process.env.PORT}`);
   });
 
