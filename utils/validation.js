@@ -32,7 +32,8 @@ async function validateProduct(product , productId) {
             }
         }else {
             const existingProduct = await Product.findOne({ 
-                productName: { $regex: new RegExp(`^${product.productName}$`, 'i') }
+                productName: { $regex: new RegExp(`^${product.productName}$`, 'i') },
+
             });
 
             if(existingProduct){

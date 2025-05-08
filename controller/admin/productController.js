@@ -215,9 +215,9 @@ const addProduct = async (req, res) => {
         cardImage,
         productImages,
       };
-  
+     
       // Validate
-      const errors = validateProduct(product);
+      const errors = await validateProduct(product);
       if (Object.keys(errors).length > 0) {
         await cleanupFiles(req.files);
         return res.status(400).json({ success: false, errors });
@@ -326,7 +326,7 @@ const editProduct = async (req, res) => {
       };
   
       // Validate 
-      const errors = validateProduct(updateData);
+      const errors = await validateProduct(updateData);
       if (Object.keys(errors).length > 0) {
         await cleanupFiles(req.files);
         return res.status(400).json({ success: false, errors });
