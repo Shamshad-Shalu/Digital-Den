@@ -524,7 +524,6 @@ const pageNotFound = async (req,res)=> {
     }
 }
 
-
 module.exports = {
     loadLoagin,
     login,

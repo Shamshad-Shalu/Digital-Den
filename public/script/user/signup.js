@@ -12,7 +12,6 @@ function togglePassword(inputId, iconId) {
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-console.log("UrlParams :",urlParams);
 
 const referralCode = urlParams.get('ref');
 console.log("refferralcode :",referralCode);

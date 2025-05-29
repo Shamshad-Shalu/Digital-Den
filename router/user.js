@@ -119,25 +119,8 @@ router.post('/wallet/add',walletController.addAmountWallet);
 router.post('/wallet/verify-payment', walletController.verifyPayment);
 router.post('/wallet/payment-failure', walletController.handlePaymentFailure);
 
-// aboutUs
- 
-
- 
- 
 
 
-// // Update a review - requires authentication
-// router.put('/:reviewId', productsController.updateReview);
-
-// // Delete a review - requires authentication
-// router.delete('/:reviewId', productsController.deleteReview);
-
-// // Vote on a review - requires authentication
-// router.post('/:reviewId/vote', productsController.voteReview);
-
-// // Add reply to a review - requires authentication
-// router.post('/:reviewId/reply',productsController.addReply);
-  
 // error handler 
 router.use(userErrorHandler);
 module.exports = router;

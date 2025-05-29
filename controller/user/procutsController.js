@@ -78,8 +78,8 @@ const loadHome = async (req , res) => {
           showBlockedNotification: isUserBlocked,
           wishlist,
           offer,
-          endDate: offer.endDate.toISOString() 
-        });  
+          endDate: offer?.endDate?.toISOString() 
+        }); 
     } catch (error) {
         console.log("Home page not loading:", error);
         res.status(500).send("Server Error");

@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (result.success) {
                     Swal.fire('Success', result.message, 'success');
                     window.location.href = '/order-success';
-                } else  if (data.redirect) {
+                } else  if (result.redirect) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Authentication Required',
@@ -349,13 +349,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = data.redirect;
+                        window.location.href = result.redirect;
                     });
                 }else {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.message || 'Failed to remove to place order.',
+                        text: result.message || 'Failed to remove to place order.',
                         timer: 1500,
                         showConfirmButton: "OK"
                     })

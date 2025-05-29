@@ -11,7 +11,6 @@ const path = require('path');
 
 const getUserProfile = async (req, res) => {
     try {
-
         const {userData} = res.locals 
   
         if (!userData) {
